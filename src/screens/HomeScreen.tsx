@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, Plus, Volume2, VolumeX } from 'lucide-react';
+import { ArrowRight, Plus } from 'lucide-react';
 import {
   ASSET_ICONS,
   BUFF_META,
@@ -20,8 +20,6 @@ import {
 
 export const HomeScreen: React.FC = () => {
   const profile = useDelicaciesStore((s) => s.profile);
-  const bgmEnabled = useDelicaciesStore((s) => s.bgmEnabled);
-  const toggleBgm = useDelicaciesStore((s) => s.toggleBgm);
   const addToCart = useDelicaciesStore((s) => s.addToCart);
   const pushStack = useDelicaciesStore((s) => s.pushStack);
   const setActiveTab = useDelicaciesStore((s) => s.setActiveTab);
@@ -85,7 +83,7 @@ export const HomeScreen: React.FC = () => {
               />
             </div>
             <div className="min-w-0">
-              <p className="text-[10.5px] text-[#C8D0E4] leading-tight truncate">
+              <p className="font-genshin text-[10px] text-[#C8D0E4] leading-tight truncate tabular-nums">
                 Traveler · AR {profile.adventureRank}
               </p>
               <h1 className="font-genshin text-[14.5px] text-[#FFF8E7] leading-tight truncate group-hover:text-[#FFE7A5] transition-colors">
@@ -94,29 +92,14 @@ export const HomeScreen: React.FC = () => {
             </div>
           </button>
 
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              type="button"
-              onClick={() => setActiveTab('profil')}
-              className="min-h-[36px] px-1 py-1 flex items-center gap-1 hover:opacity-85 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE7A5] rounded-lg"
-              title="Saldo Mora Aktif"
-            >
-              <MoraAmount amount={profile.moraBalance} size="sm" className="text-[#FFE7A5]" />
-            </button>
-
-            <button
-              type="button"
-              onClick={toggleBgm}
-              aria-label={bgmEnabled ? 'Matikan musik latar' : 'Nyalakan musik latar'}
-              className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE7A5] ${
-                bgmEnabled
-                  ? 'bg-[#FFE7A5]/16 text-[#FFE7A5]'
-                  : 'bg-white/[0.06] text-[#B6C0D9] hover:text-[#FFE7A5]'
-              }`}
-            >
-              {bgmEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => setActiveTab('profil')}
+            className="min-h-[36px] px-1 py-1 flex items-center gap-1 shrink-0 hover:opacity-85 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE7A5] rounded-lg"
+            title="Saldo Mora Aktif"
+          >
+            <MoraAmount amount={profile.moraBalance} size="sm" className="text-[#FFE7A5]" />
+          </button>
         </div>
       </header>
 
@@ -181,7 +164,7 @@ export const HomeScreen: React.FC = () => {
                 alt="Voucher Intertwined Fate"
                 className="w-4 h-4 object-contain shrink-0"
               />
-              <span>Pengantaran Kurir Glider 12–22 menit</span>
+              <span className="truncate">Lokal Liyue 0 Mora · Glider 6–24 mnt</span>
             </div>
             <button
               type="button"
@@ -295,7 +278,12 @@ export const HomeScreen: React.FC = () => {
                       {dish.name}
                     </h3>
                     <div className="mt-1">
-                      <BuffBadge buffType={dish.buffType} label={dish.buffLabel} compact />
+                      <BuffBadge
+                        buffType={dish.buffType}
+                        label={dish.buffLabel}
+                        iconSrc={dish.buffIcon}
+                        compact
+                      />
                     </div>
                   </button>
 

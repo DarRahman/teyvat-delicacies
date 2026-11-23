@@ -29,6 +29,7 @@ export interface Dish {
   region: TeyvatRegion;
   buffType: BuffType;
   buffLabel: string;
+  buffIcon?: string;
   priceMora: number;
   image: string;
   fallbackImage: string;
@@ -45,8 +46,10 @@ export interface CartItem {
 
 export interface Coupon {
   code: string;
-  type: 'PERCENT' | 'FREE_DELIVERY';
+  type: 'PERCENT' | 'FREE_DELIVERY' | 'FIXED_MORA';
   value: number;
+  minSubtotalMora: number;
+  maxUses: number;
   title: string;
   description: string;
   icon: string;
@@ -63,6 +66,8 @@ export interface DeliveryPoint {
   region: TeyvatRegion;
   landmark: string;
   etaMinutes: number;
+  deliveryFeeMora: number;
+  isLocalLiyue?: boolean;
   mapCoords: MapCoordinates;
 }
 

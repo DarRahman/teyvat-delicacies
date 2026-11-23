@@ -27,7 +27,7 @@ export const CelestiaGateScreen: React.FC = () => {
     if (isEntering) return;
     setIsEntering(true);
     timerRef.current = window.setTimeout(() => {
-      enterTeyvat(true);
+      enterTeyvat();
     }, 640);
   };
 

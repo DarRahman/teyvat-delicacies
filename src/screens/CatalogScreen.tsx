@@ -351,6 +351,7 @@ export const CatalogScreen: React.FC = () => {
                       <BuffBadge
                         buffType={dish.buffType}
                         label={dish.buffLabel}
+                        iconSrc={dish.buffIcon}
                         compact
                       />
                     </div>

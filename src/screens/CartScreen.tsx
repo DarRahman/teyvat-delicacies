@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Minus, Plus, Trash2, X } from 'lucide-react';
 import { ASSET_ICONS, COUPONS, RARITY_META, formatMora } from '../data/dishes';
+import { getRemainingVoucherUses } from '../lib/delicaciesRules';
 import { useDelicaciesStore } from '../store/useDelicaciesStore';
 import {
   DiamondDivider,
@@ -13,6 +14,9 @@ import {
 export const CartScreen: React.FC = () => {
   const cart = useDelicaciesStore((s) => s.cart);
   const appliedCouponCode = useDelicaciesStore((s) => s.appliedCouponCode);
+  const voucherUsageCount = useDelicaciesStore((s) => s.voucherUsageCount);
+  const selectedDeliveryPointId = useDelicaciesStore((s) => s.selectedDeliveryPointId);
+  const getSelectedDeliveryPoint = useDelicaciesStore((s) => s.getSelectedDeliveryPoint);
   const updateQuantity = useDelicaciesStore((s) => s.updateQuantity);
   const removeFromCart = useDelicaciesStore((s) => s.removeFromCart);
   const applyCoupon = useDelicaciesStore((s) => s.applyCoupon);
@@ -27,7 +31,16 @@ export const CartScreen: React.FC = () => {
     text: string;
   } | null>(null);
 
-  const totals = getCartTotals();
+  // Sync text field if coupon is auto-detached due to quantity/region change
+  useEffect(() => {
+    if (!appliedCouponCode && couponFeedback?.type === 'success') {
+      setCouponInput('');
+      setCouponFeedback(null);
+    }
+  }, [appliedCouponCode, selectedDeliveryPointId]);
+
+  const deliveryPoint = getSelectedDeliveryPoint();
+  const totals = getCartTotals(deliveryPoint);
 
   const handleApplyCoupon = (codeToTry?: string) => {
     const target = codeToTry ?? couponInput;
@@ -36,8 +49,17 @@ export const CartScreen: React.FC = () => {
       setCouponInput(target.trim().toUpperCase());
       setCouponFeedback({ type: 'success', text: res.message });
     } else {
+      if (codeToTry) {
+        setCouponInput(codeToTry);
+      }
       setCouponFeedback({ type: 'error', text: res.message });
     }
+  };
+
+  const getCouponValueBadge = (coupon: (typeof COUPONS)[number]) => {
+    if (coupon.type === 'PERCENT') return `-${coupon.value}%`;
+    if (coupon.type === 'FIXED_MORA') return `-${formatMora(coupon.value)}`;
+    return 'Gratis Ongkir';
   };
 
   return (
@@ -48,9 +70,9 @@ export const CartScreen: React.FC = () => {
           <h1 className="font-genshin text-[17px] text-[#FFE7A5] tracking-wide">
             Keranjang Petualang
           </h1>
-          <p className="text-[11px] text-[#C8D0E4] tabular-nums">
+          <p className="font-genshin text-[10.5px] text-[#C8D0E4] tabular-nums">
             {totals.itemCount > 0
-              ? `${totals.itemCount} porsi siap dikirim kurir Glider`
+              ? `${totals.itemCount} porsi siap menuju ${deliveryPoint.region}`
               : 'Belum ada hidangan dipilih'}
           </p>
         </div>
@@ -177,7 +199,7 @@ export const CartScreen: React.FC = () => {
               })}
             </section>
 
-            {/* Intertwined Fate Coupon Redemption Section */}
+            {/* Strict Voucher Redemption Section */}
             <section
               aria-labelledby="coupon-heading"
               className="rounded-2xl teyvat-ivory-card p-3.5"
@@ -186,15 +208,15 @@ export const CartScreen: React.FC = () => {
                 <TeyvatImage
                   src={ASSET_ICONS.intertwinedFate}
                   fallbackSrc={ASSET_ICONS.intertwinedFateCdn}
-                  alt="Kupon Intertwined Fate"
+                  alt="Voucher Teyvat"
                   className="w-6 h-6 object-contain shrink-0"
                 />
                 <div className="min-w-0">
                   <h2 id="coupon-heading" className="font-genshin text-[13px] text-[#242735]">
-                    Tebus Kupon Intertwined Fate
+                    Tebus Voucher Teyvat
                   </h2>
                   <p className="text-[11px] text-[#5B5F70]">
-                    Gunakan kode promo untuk potongan Mora atau gratis ongkir
+                    Validasi otomatis syarat minimal belanja &amp; sisa kuota pakai
                   </p>
                 </div>
               </div>
@@ -207,9 +229,14 @@ export const CartScreen: React.FC = () => {
                     setCouponInput(e.target.value.toUpperCase());
                     setCouponFeedback(null);
                   }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !appliedCouponCode) {
+                      handleApplyCoupon();
+                    }
+                  }}
                   placeholder="Contoh: PAIMONKENYANG"
-                  aria-label="Kode kupon promo"
-                  className="teyvat-cream-input flex-1 h-[42px] px-3 rounded-xl border border-[#CBB997] text-[12px] font-semibold tracking-wider uppercase placeholder:normal-case placeholder:tracking-normal placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-[#C87C24]"
+                  aria-label="Kode voucher promo"
+                  className="teyvat-cream-input flex-1 min-w-0 h-[42px] px-3 rounded-xl border border-[#CBB997] text-[12px] font-genshin tracking-wider uppercase placeholder:font-sans placeholder:normal-case placeholder:tracking-normal focus:outline-none focus:ring-2 focus:ring-[#C87C24]"
                 />
                 {appliedCouponCode ? (
                   <button
@@ -237,7 +264,8 @@ export const CartScreen: React.FC = () => {
 
               {couponFeedback && (
                 <p
-                  className={`mt-2 text-[11px] font-medium ${
+                  role="alert"
+                  className={`mt-2 text-[11px] font-semibold leading-snug ${
                     couponFeedback.type === 'success' ? 'text-[#2D6E4E]' : 'text-[#A33B3B]'
                   }`}
                 >
@@ -245,29 +273,64 @@ export const CartScreen: React.FC = () => {
                 </p>
               )}
 
-              <div className="mt-2.5 flex flex-wrap gap-1.5">
+              {/* Quick Voucher Cards with Live Remaining Quota & Min Spend */}
+              <div className="mt-3 space-y-1.5">
                 {COUPONS.map((c) => {
                   const isApplied = appliedCouponCode === c.code;
+                  const remaining = getRemainingVoucherUses(c, voucherUsageCount);
+                  const isExhausted = remaining <= 0;
                   return (
                     <button
                       key={c.code}
                       type="button"
                       onClick={() => handleApplyCoupon(c.code)}
-                      className={`min-h-[32px] px-2.5 py-1 rounded-lg border text-[11px] font-semibold inline-flex items-center gap-1.5 transition-colors ${
+                      className={`w-full rounded-xl px-2.5 py-2 border text-left flex items-center gap-2.5 transition-colors ${
                         isApplied
-                          ? 'bg-[#242B3E] border-[#C8A86B] text-[#FFE7A5]'
-                          : 'bg-[#ECE5D8] border-[#CBB997] text-[#3B4255] hover:border-[#9C5A14]'
+                          ? 'bg-[#242B3E] border-[#C8A86B] text-[#FFF8E7]'
+                          : isExhausted
+                          ? 'bg-[#ECE5D8]/55 border-[#D8CEBC] text-[#8E877A] opacity-75'
+                          : 'bg-[#ECE5D8] border-[#CBB997] text-[#2C3040] hover:border-[#9C5A14]'
                       }`}
                     >
                       <TeyvatImage
                         src={c.icon}
                         alt={c.code}
-                        className="w-4 h-4 object-contain"
+                        className="w-6 h-6 object-contain shrink-0"
                       />
-                      <span className="font-genshin">{c.code}</span>
-                      <span className="opacity-80">
-                        {c.type === 'PERCENT' ? `(-${c.value}%)` : '(Gratis Ongkir)'}
-                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <span
+                            className={`font-genshin text-[11.5px] truncate ${
+                              isApplied ? 'text-[#FFE7A5]' : 'text-[#242735]'
+                            }`}
+                          >
+                            {c.code}
+                          </span>
+                          <span
+                            className={`font-genshin text-[10.5px] shrink-0 tabular-nums ${
+                              isApplied
+                                ? 'text-[#FFE7A5]'
+                                : isExhausted
+                                ? 'text-[#A33B3B]'
+                                : 'text-[#9C5A14]'
+                            }`}
+                          >
+                            {getCouponValueBadge(c)}
+                          </span>
+                        </div>
+                        <div
+                          className={`text-[10px] mt-0.5 flex items-center justify-between gap-2 tabular-nums ${
+                            isApplied ? 'text-[#D6DCEB]' : 'text-[#5E6375]'
+                          }`}
+                        >
+                          <span className="truncate">
+                            Min. {formatMora(c.minSubtotalMora)} Mora
+                          </span>
+                          <span className="font-genshin shrink-0">
+                            {isExhausted ? 'Habis' : `Sisa ${remaining}×`}
+                          </span>
+                        </div>
+                      </div>
                     </button>
                   );
                 })}
@@ -294,16 +357,26 @@ export const CartScreen: React.FC = () => {
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span>Ongkir Kurir Glider</span>
-                  <span className="font-genshin text-[#242735] tabular-nums">
+                  <span>
+                    {totals.isLocalLiyue
+                      ? 'Kurir Lokal (Liyue)'
+                      : `Kurir Glider (${deliveryPoint.region})`}
+                  </span>
+                  <span
+                    className={`font-genshin tabular-nums ${
+                      totals.deliveryFee === 0 ? 'text-[#2D6E4E]' : 'text-[#242735]'
+                    }`}
+                  >
                     {totals.deliveryFee === 0
-                      ? 'Gratis'
+                      ? totals.isLocalLiyue
+                        ? 'Gratis · Lokal'
+                        : 'Gratis (Voucher)'
                       : `${formatMora(totals.deliveryFee)} Mora`}
                   </span>
                 </div>
                 {totals.discount > 0 && (
                   <div className="flex items-center justify-between text-[#2D6E4E]">
-                    <span>Potongan Kupon ({appliedCouponCode})</span>
+                    <span>Potongan Voucher ({appliedCouponCode})</span>
                     <span className="font-genshin font-bold tabular-nums">
                       -{formatMora(totals.discount)} Mora
                     </span>
@@ -326,7 +399,7 @@ export const CartScreen: React.FC = () => {
 
             <div className="pt-1 pb-2">
               <GoldCapsuleButton onClick={() => pushStack({ name: 'checkout' })}>
-                Lanjut Pengantaran Glider
+                Lanjut Pengantaran Teyvat
               </GoldCapsuleButton>
             </div>
           </div>

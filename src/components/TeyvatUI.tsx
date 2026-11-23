@@ -298,8 +298,9 @@ export const MoraAmount: React.FC<{
 export const BuffBadge: React.FC<{
   buffType: BuffType;
   label: string;
+  iconSrc?: string;
   compact?: boolean;
-}> = ({ buffType, label, compact = false }) => {
+}> = ({ buffType, label, iconSrc, compact = false }) => {
   const meta = BUFF_META[buffType];
   return (
     <span
@@ -312,12 +313,12 @@ export const BuffBadge: React.FC<{
       }}
     >
       <TeyvatImage
-        src={meta.icon}
+        src={iconSrc ?? meta.icon}
         fallbackSrc={meta.fallbackIcon}
         alt={meta.label}
         className={compact ? 'w-3.5 h-3.5 object-contain shrink-0' : 'w-4 h-4 object-contain shrink-0'}
       />
-      <span className="truncate">{label}</span>
+      <span className="truncate font-genshin">{label}</span>
     </span>
   );
 };

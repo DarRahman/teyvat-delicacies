@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { ArrowLeft, Heart, Minus, Plus } from 'lucide-react';
 import {
   ASSET_ICONS,
@@ -7,7 +7,6 @@ import {
   RARITY_META,
   formatMora,
 } from '../data/dishes';
-import { teyvatAudio } from '../lib/audio';
 import { useDelicaciesStore } from '../store/useDelicaciesStore';
 import {
   DiamondDivider,
@@ -26,7 +25,6 @@ export const DishDetailScreen: React.FC<DishDetailScreenProps> = ({ dishId }) =>
   const addToCart = useDelicaciesStore((s) => s.addToCart);
   const favoriteIds = useDelicaciesStore((s) => s.favoriteIds);
   const toggleFavorite = useDelicaciesStore((s) => s.toggleFavorite);
-  const sfxEnabled = useDelicaciesStore((s) => s.sfxEnabled);
 
   const [quantity, setQuantity] = useState(1);
 
@@ -34,14 +32,6 @@ export const DishDetailScreen: React.FC<DishDetailScreenProps> = ({ dishId }) =>
   const isFavorite = favoriteIds.includes(dish.id);
   const rarityStyle = RARITY_META[dish.rarity];
   const buffMeta = BUFF_META[dish.buffType];
-
-  useEffect(() => {
-    if (dish.rarity === 5) {
-      teyvatAudio.playSfx('legendary', sfxEnabled);
-    } else if (dish.rarity === 4) {
-      teyvatAudio.playSfx('epic', sfxEnabled);
-    }
-  }, [dish.id, dish.rarity, sfxEnabled]);
 
   const totalPrice = dish.priceMora * quantity;
 
@@ -132,7 +122,7 @@ export const DishDetailScreen: React.FC<DishDetailScreenProps> = ({ dishId }) =>
           <div>
             <div className="flex items-center justify-between gap-2">
               <DiamondStarRow rarity={dish.rarity} size={14} />
-              <span className="text-[11px] font-semibold text-[#5E6275] text-right">
+              <span className="font-genshin text-[10.5px] text-[#5E6275] text-right tabular-nums">
                 {dish.region} · {dish.category} · {dish.prepMinutes} mnt
               </span>
             </div>
@@ -169,7 +159,7 @@ export const DishDetailScreen: React.FC<DishDetailScreenProps> = ({ dishId }) =>
               style={{ backgroundColor: buffMeta.bgTint }}
             >
               <TeyvatImage
-                src={buffMeta.icon}
+                src={dish.buffIcon ?? buffMeta.icon}
                 fallbackSrc={buffMeta.fallbackIcon}
                 alt={buffMeta.label}
                 className="w-6 h-6 object-contain"
@@ -227,7 +217,7 @@ export const DishDetailScreen: React.FC<DishDetailScreenProps> = ({ dishId }) =>
               >
                 Bahan Baku Resep
               </h2>
-              <span className="text-[11px] text-[#64697B] tabular-nums">
+              <span className="font-genshin text-[10.5px] text-[#64697B] tabular-nums">
                 {dish.ingredients.length} bahan pilihan
               </span>
             </div>

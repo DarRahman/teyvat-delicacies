@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Check, Clock, Flame, MapPin } from 'lucide-react';
+import { Check, Clock, Flame, Footprints, MapPin } from 'lucide-react';
 import { ASSET_ICONS, formatMora } from '../data/dishes';
-import { teyvatAudio } from '../lib/audio';
 import {
   clampGliderProgress,
   getGliderStageFromProgress,
+  isLocalLiyueDelivery,
 } from '../lib/delicaciesRules';
 import { useDelicaciesStore } from '../store/useDelicaciesStore';
 import {
@@ -25,10 +25,9 @@ export const OrderStatusScreen: React.FC<OrderStatusScreenProps> = ({ orderId })
   const orders = useDelicaciesStore((s) => s.orders);
   const updateOrderStatus = useDelicaciesStore((s) => s.updateOrderStatus);
   const resetToTab = useDelicaciesStore((s) => s.resetToTab);
-  const sfxEnabled = useDelicaciesStore((s) => s.sfxEnabled);
 
   const order = orders.find((o) => o.id === orderId) ?? orders[0];
-  const initialTotalSeconds = (order?.deliveryPoint.etaMinutes ?? 15) * 60;
+  const initialTotalSeconds = (order?.deliveryPoint.etaMinutes ?? 12) * 60;
 
   const [progress, setProgress] = useState<number>(
     order?.status === 'COMPLETED' ? 100 : 4
@@ -38,9 +37,8 @@ export const OrderStatusScreen: React.FC<OrderStatusScreenProps> = ({ orderId })
   );
   const dispatchedRef = useRef(order?.status !== 'COOKING');
   const completedRef = useRef(order?.status === 'COMPLETED');
-  const playedJingleRef = useRef(false);
 
-  // Smooth continuous real-time Wind Glider flight progress (0% -> 100%)
+  // Smooth continuous real-time courier progress (0% -> 100%)
   useEffect(() => {
     if (!order || order.status === 'COMPLETED' || completedRef.current) return;
 
@@ -70,13 +68,6 @@ export const OrderStatusScreen: React.FC<OrderStatusScreenProps> = ({ orderId })
     }
   }, [progress, order, updateOrderStatus]);
 
-  useEffect(() => {
-    if (showQuestModal && !playedJingleRef.current) {
-      playedJingleRef.current = true;
-      teyvatAudio.playSfx('quest_complete', sfxEnabled);
-    }
-  }, [showQuestModal, sfxEnabled]);
-
   const handleInstantDeliver = () => {
     if (!order) return;
     dispatchedRef.current = true;
@@ -99,6 +90,7 @@ export const OrderStatusScreen: React.FC<OrderStatusScreenProps> = ({ orderId })
     );
   }
 
+  const isLocalLiyue = isLocalLiyueDelivery(order.deliveryPoint);
   const stage = getGliderStageFromProgress(progress);
   const roundedPercent = Math.round(progress);
   const remainingSeconds = Math.max(
@@ -112,19 +104,29 @@ export const OrderStatusScreen: React.FC<OrderStatusScreenProps> = ({ orderId })
     stage === 0
       ? 'Dimasak di Dapur Wanmin'
       : stage === 1
-      ? `Kurir Glider Menuju ${order.deliveryPoint.region}`
+      ? isLocalLiyue
+        ? 'Kurir Lokal Menuju Teras Yujing'
+        : `Kurir Glider Menuju ${order.deliveryPoint.region}`
+      : isLocalLiyue
+      ? `Tiba di ${order.deliveryPoint.name}`
       : `Mendarat di ${order.deliveryPoint.name}`;
 
   const statusSubcopy =
     stage === 0
       ? 'Chef Xiangling sedang meracik dan menyegel kehangatan hidanganmu.'
       : stage === 1
-      ? `Kurir Wind Glider meluncur membawa pesanan ke ${order.deliveryPoint.name}.`
-      : 'Pesanan kuliner telah tiba hangat di titik pendaratan pilihanmu.';
+      ? isLocalLiyue
+        ? 'Kurir lokal Dapur Wanmin mengantar pesanan hangat melintasi Pelabuhan Liyue (Gratis Ongkir).'
+        : `Kurir Wind Glider meluncur membawa pesanan ke ${order.deliveryPoint.name}.`
+      : 'Pesanan kuliner telah tiba hangat di lokasi pilihanmu.';
 
   const phases = [
     { label: 'Dapur Wanmin', active: stage >= 0, current: stage === 0 },
-    { label: 'Kurir Meluncur', active: stage >= 1, current: stage === 1 },
+    {
+      label: isLocalLiyue ? 'Kurir Lokal' : 'Kurir Meluncur',
+      active: stage >= 1,
+      current: stage === 1,
+    },
     { label: 'Pesanan Tiba', active: stage >= 2, current: stage === 2 },
   ];
 
@@ -138,7 +140,7 @@ export const OrderStatusScreen: React.FC<OrderStatusScreenProps> = ({ orderId })
               {order.id}
             </p>
             <h1 className="font-genshin text-[17px] text-[#FFE7A5]">
-              Pelacakan Kurir Glider
+              {isLocalLiyue ? 'Pengantaran Lokal Liyue' : 'Pelacakan Kurir Glider'}
             </h1>
           </div>
           <div className="inline-flex items-center gap-1.5 font-genshin text-[13px] text-[#FFE7A5] tabular-nums shrink-0">
@@ -150,9 +152,9 @@ export const OrderStatusScreen: React.FC<OrderStatusScreenProps> = ({ orderId })
 
       {/* Edge-to-Edge Warm Antique Parchment Scrollable Tracking Canvas */}
       <div className="relative z-10 flex-1 min-h-0 overflow-y-auto no-scrollbar px-4 pt-4 pb-8 space-y-4">
-        {/* Authentic Genshin Commission Wind Glider Progress Card */}
+        {/* Authentic Genshin Commission Progress Card */}
         <section
-          aria-label="Lintasan Terbang Kurir Glider"
+          aria-label="Lintasan Pengantaran Pesanan"
           className="rounded-2xl teyvat-ivory-card p-4 space-y-4"
         >
           {/* Commission Quest Title & Live Gold Percentage */}
@@ -160,7 +162,11 @@ export const OrderStatusScreen: React.FC<OrderStatusScreenProps> = ({ orderId })
             <div className="min-w-0">
               <div className="inline-flex items-center gap-1.5 text-[10px] font-genshin tracking-wider text-[#9C6A1B] uppercase">
                 <DiamondStar size={9} className="text-[#C8963E]" />
-                <span>Misi Pengantaran Aktif</span>
+                <span>
+                  {isLocalLiyue
+                    ? 'Pengantaran Lokal · Pelabuhan Liyue'
+                    : 'Misi Pengantaran Aktif'}
+                </span>
               </div>
               <h2 className="font-genshin text-[15px] text-[#2C3040] leading-snug mt-1">
                 {statusHeadline}
@@ -174,9 +180,9 @@ export const OrderStatusScreen: React.FC<OrderStatusScreenProps> = ({ orderId })
             </div>
           </div>
 
-          {/* Authentic Warm Parchment & Antique Gold Wind Glider Flight Corridor */}
+          {/* Authentic Warm Parchment & Antique Gold Delivery Corridor */}
           <div className="rounded-2xl bg-[#EFE9DC] border border-[#DDD2BE] px-3.5 py-4 space-y-3">
-            {/* Continuous Horizontal Flight Track */}
+            {/* Continuous Horizontal Track */}
             <div className="relative h-12 flex items-center">
               {/* Origin Crest (Left: Wanmin Kitchen) */}
               <div
@@ -198,10 +204,10 @@ export const OrderStatusScreen: React.FC<OrderStatusScreenProps> = ({ orderId })
                   }}
                 />
 
-                {/* Smoothly Gliding Genshin Wind Glider Wing Medallion */}
+                {/* Smoothly Gliding Courier Medallion */}
                 <div
                   role="progressbar"
-                  aria-label="Progres terbang Kurir Glider"
+                  aria-label="Progres pengantaran pesanan"
                   aria-valuemin={0}
                   aria-valuemax={100}
                   aria-valuenow={roundedPercent}
@@ -210,7 +216,7 @@ export const OrderStatusScreen: React.FC<OrderStatusScreenProps> = ({ orderId })
                   }}
                   className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 z-20 transition-[left] duration-75 ease-linear"
                 >
-                  {/* Soft Gold-Ivory Wind Streaks while Gliding */}
+                  {/* Soft Gold-Ivory Motion Streaks while Active */}
                   {progress > 5 && progress < 100 && (
                     <div
                       aria-hidden="true"
@@ -224,7 +230,7 @@ export const OrderStatusScreen: React.FC<OrderStatusScreenProps> = ({ orderId })
                     </div>
                   )}
 
-                  {/* Genshin Charcoal-Gold Wing Medallion */}
+                  {/* Genshin Charcoal-Gold Courier Medallion */}
                   <div
                     className={`w-10 h-10 rounded-full border-2 flex items-center justify-center ${
                       stage >= 2
@@ -234,6 +240,8 @@ export const OrderStatusScreen: React.FC<OrderStatusScreenProps> = ({ orderId })
                   >
                     {stage >= 2 ? (
                       <Check className="w-4 h-4 stroke-[3]" />
+                    ) : isLocalLiyue ? (
+                      <Footprints className="w-4 h-4" />
                     ) : (
                       <WindGliderIcon className="w-6 h-6" />
                     )}
@@ -262,20 +270,24 @@ export const OrderStatusScreen: React.FC<OrderStatusScreenProps> = ({ orderId })
               </div>
               <div className="text-center px-2">
                 <div className="font-genshin text-[#9C6A1B] tabular-nums">
-                  {stage >= 2 ? 'Pendaratan Selesai' : `Est. ${mins}:${secs}`}
+                  {stage >= 2 ? 'Pesanan Tiba' : `Est. ${mins}:${secs}`}
                 </div>
-                <div className="text-[#6E6758] text-[10px]">Kurir Wind Glider</div>
+                <div className="text-[#6E6758] text-[10px]">
+                  {isLocalLiyue ? 'Kurir Lokal · 0 Mora' : 'Kurir Wind Glider'}
+                </div>
               </div>
               <div className="text-right max-w-[104px]">
                 <div className="font-genshin text-[#2C3040] truncate">
-                  {order.deliveryPoint.region}
+                  {isLocalLiyue ? 'Teras Yujing' : order.deliveryPoint.region}
                 </div>
-                <div className="text-[#6E6758] text-[10px] truncate">Tujuan</div>
+                <div className="text-[#6E6758] text-[10px] truncate">
+                  {isLocalLiyue ? 'Liyue · Lokal' : 'Tujuan'}
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Authentic Genshin Inline Diamond Milestone Strip (No generic boxy tabs) */}
+          {/* Authentic Genshin Inline Diamond Milestone Strip */}
           <div className="flex items-center justify-between px-1 pt-0.5">
             {phases.map((phase, idx) => (
               <React.Fragment key={phase.label}>
@@ -309,7 +321,9 @@ export const OrderStatusScreen: React.FC<OrderStatusScreenProps> = ({ orderId })
 
           {stage < 2 && (
             <GoldCapsuleButton onClick={handleInstantDeliver}>
-              Percepat Pendaratan Kurir Glider
+              {isLocalLiyue
+                ? 'Percepat Pengantaran Lokal'
+                : 'Percepat Pendaratan Kurir Glider'}
             </GoldCapsuleButton>
           )}
         </section>
@@ -322,8 +336,10 @@ export const OrderStatusScreen: React.FC<OrderStatusScreenProps> = ({ orderId })
           <div className="flex items-start gap-2.5">
             <MapPin className="w-4 h-4 text-[#9C5A14] shrink-0 mt-0.5" />
             <div className="min-w-0">
-              <div className="text-[10px] font-semibold uppercase tracking-wider text-[#9C5A14]">
-                Tujuan Pengantaran · {order.deliveryPoint.region}
+              <div className="font-genshin text-[10px] uppercase tracking-wider text-[#9C5A14]">
+                {isLocalLiyue
+                  ? 'Pengantaran Lokal · Liyue'
+                  : `Tujuan Pengantaran · ${order.deliveryPoint.region}`}
               </div>
               <div className="font-genshin text-[14px] text-[#2C3040]">
                 {order.deliveryPoint.name}
@@ -350,6 +366,18 @@ export const OrderStatusScreen: React.FC<OrderStatusScreenProps> = ({ orderId })
                 </span>
               </div>
             ))}
+            <div className="flex items-center justify-between text-[11.5px] text-[#5B6073] pt-1">
+              <span>{isLocalLiyue ? 'Ongkir Lokal Liyue' : 'Ongkir Kurir Glider'}</span>
+              <span
+                className={`font-genshin tabular-nums ${
+                  order.deliveryFeeMora === 0 ? 'text-[#2D6E4E]' : 'text-[#35394A]'
+                }`}
+              >
+                {order.deliveryFeeMora === 0
+                  ? 'Gratis (0 Mora)'
+                  : `${formatMora(order.deliveryFeeMora)} Mora`}
+              </span>
+            </div>
           </div>
 
           {order.kitchenNotes && (
@@ -359,11 +387,22 @@ export const OrderStatusScreen: React.FC<OrderStatusScreenProps> = ({ orderId })
             </div>
           )}
 
-          <div className="pt-2 border-t border-[#E2D8C5] flex items-center justify-between">
-            <span className="text-[12px] font-semibold text-[#5B6073]">
-              {order.paymentMethod === 'NORTHLAND_BANK_CARD'
-                ? 'Lunas · Kartu Northland Bank'
-                : 'Bayar Tunai saat Terima'}
+          <div className="pt-2 border-t border-[#E2D8C5] flex items-center justify-between gap-2">
+            <span className="inline-flex items-center gap-1.5 text-[11.5px] font-semibold text-[#5B6073]">
+              <TeyvatImage
+                src={
+                  order.paymentMethod === 'NORTHLAND_BANK_CARD'
+                    ? ASSET_ICONS.genesisCrystal
+                    : ASSET_ICONS.mora
+                }
+                alt="Metode Pembayaran"
+                className="w-4 h-4 object-contain shrink-0"
+              />
+              <span>
+                {order.paymentMethod === 'NORTHLAND_BANK_CARD'
+                  ? 'Lunas · Northland Bank'
+                  : 'Tunai saat Terima'}
+              </span>
             </span>
             <MoraAmount
               amount={order.totalMora}
@@ -410,7 +449,7 @@ export const OrderStatusScreen: React.FC<OrderStatusScreenProps> = ({ orderId })
                   <DiamondStar size={12} />
                 </div>
                 <p className="font-genshin text-[10px] tracking-[0.2em] text-[#FFE7A5] uppercase">
-                  Misi Kuliner Selesai
+                  {isLocalLiyue ? 'Pengantaran Lokal Selesai' : 'Misi Kuliner Selesai'}
                 </p>
                 <h2
                   id="quest-complete-title"

@@ -1,13 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Check,
-  Image as ImageIcon,
-  PlusCircle,
-  RotateCw,
-  Volume2,
-  VolumeX,
-  X,
-} from 'lucide-react';
+import { Check, Image as ImageIcon, RotateCw, X } from 'lucide-react';
 import {
   ASSET_ICONS,
   COUPONS,
@@ -16,6 +8,7 @@ import {
   RARITY_META,
   formatMora,
 } from '../data/dishes';
+import { getRemainingVoucherUses, isLocalLiyueDelivery } from '../lib/delicaciesRules';
 import { useDelicaciesStore } from '../store/useDelicaciesStore';
 import {
   DiamondBullet,
@@ -31,10 +24,7 @@ export const ProfileScreen: React.FC = () => {
   const setSelectedNamecard = useDelicaciesStore((s) => s.setSelectedNamecard);
   const orders = useDelicaciesStore((s) => s.orders);
   const favoriteIds = useDelicaciesStore((s) => s.favoriteIds);
-  const bgmEnabled = useDelicaciesStore((s) => s.bgmEnabled);
-  const sfxEnabled = useDelicaciesStore((s) => s.sfxEnabled);
-  const toggleBgm = useDelicaciesStore((s) => s.toggleBgm);
-  const toggleSfx = useDelicaciesStore((s) => s.toggleSfx);
+  const voucherUsageCount = useDelicaciesStore((s) => s.voucherUsageCount);
   const topUpMora = useDelicaciesStore((s) => s.topUpMora);
   const reorderFromHistory = useDelicaciesStore((s) => s.reorderFromHistory);
   const pushStack = useDelicaciesStore((s) => s.pushStack);
@@ -70,12 +60,12 @@ export const ProfileScreen: React.FC = () => {
 
       {/* Edge-to-Edge Warm Antique Parchment Scrollable Canvas */}
       <div className="flex-1 min-h-0 overflow-y-auto px-4 pt-4 pb-16 space-y-4">
-        {/* Authentic In-Game Adventurer Namecard Showcase (Symmetrical Full-Bleed Corners) */}
+        {/* Authentic In-Game Adventurer Namecard Showcase (Unobstructed Artwork — Zero Namecard Label Pill) */}
         <section
           aria-label="Kartu Namecard Petualang"
           className="rounded-2xl overflow-hidden border-2 border-[#C8A86B] shadow-[0_6px_18px_rgba(74,58,30,0.14)] bg-[#FAF8F2]"
         >
-          {/* Symmetrical Full-Bleed Namecard Banner (zoomed cleanly to crop built-in PNG right curve) */}
+          {/* Symmetrical Full-Bleed Namecard Banner */}
           <div className="relative h-[132px] w-full overflow-hidden bg-[#242C42]">
             <img
               src={activeNamecard.bgImage}
@@ -85,7 +75,7 @@ export const ProfileScreen: React.FC = () => {
             {/* Measured left readability fade preserving vivid Namecard artwork across center & right */}
             <div
               aria-hidden="true"
-              className="absolute inset-0 bg-gradient-to-r from-[#1A2133]/82 via-[#1A2133]/35 to-transparent pointer-events-none"
+              className="absolute inset-0 bg-gradient-to-r from-[#1A2133]/82 via-[#1A2133]/32 to-transparent pointer-events-none"
             />
 
             <div className="relative z-10 h-full px-4 py-3.5 flex items-center gap-3.5">
@@ -99,13 +89,10 @@ export const ProfileScreen: React.FC = () => {
               </div>
 
               <div className="min-w-0 flex-1">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#192032]/78 border border-[#FFE7A5]/55 text-[10px] font-genshin text-[#FFE7A5] mb-1">
-                  <span className="truncate">{activeNamecard.name}</span>
-                </div>
-                <h2 className="font-genshin text-[18px] text-[#FFFDF5] leading-tight truncate drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]">
+                <h2 className="font-genshin text-[19px] text-[#FFFDF5] leading-tight truncate drop-shadow-[0_1px_4px_rgba(0,0,0,0.85)]">
                   {profile.username}
                 </h2>
-                <div className="mt-1 flex items-center gap-1.5 text-[11px] font-semibold text-[#F7F1E3] drop-shadow-[0_1px_3px_rgba(0,0,0,0.75)]">
+                <div className="mt-1.5 flex items-center gap-1.5 font-genshin text-[11px] text-[#F7F1E3] drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
                   <TeyvatImage
                     src={ASSET_ICONS.crownOfInsight}
                     alt="Reputasi Knights of Favonius"
@@ -117,10 +104,10 @@ export const ProfileScreen: React.FC = () => {
             </div>
           </div>
 
-          {/* Warm Ivory Adventurer Stat Strip */}
+          {/* Warm Ivory Adventurer Stat Strip (Full HYWenHei Typography across labels & numerals) */}
           <div className="px-3.5 py-3 bg-[#FAF8F2] border-t border-[#D3BC8E] grid grid-cols-4 gap-2">
             <div className="rounded-xl bg-[#EFEAE0] border border-[#D3BC8E] px-2 py-1.5 text-center">
-              <div className="text-[9.5px] font-semibold text-[#6B5A3E] uppercase tracking-wider">
+              <div className="font-genshin text-[9.5px] text-[#6B5A3E] uppercase tracking-wider">
                 UID
               </div>
               <div className="font-genshin text-[11px] text-[#242735] tabular-nums truncate mt-0.5">
@@ -128,7 +115,7 @@ export const ProfileScreen: React.FC = () => {
               </div>
             </div>
             <div className="rounded-xl bg-[#EFEAE0] border border-[#D3BC8E] px-2 py-1.5 text-center">
-              <div className="text-[9.5px] font-semibold text-[#6B5A3E] uppercase tracking-wider">
+              <div className="font-genshin text-[9.5px] text-[#6B5A3E] uppercase tracking-wider">
                 AR
               </div>
               <div className="font-genshin text-[14px] text-[#9C5A14] tabular-nums mt-0.5">
@@ -136,7 +123,7 @@ export const ProfileScreen: React.FC = () => {
               </div>
             </div>
             <div className="rounded-xl bg-[#EFEAE0] border border-[#D3BC8E] px-2 py-1.5 text-center">
-              <div className="text-[9.5px] font-semibold text-[#6B5A3E] uppercase tracking-wider">
+              <div className="font-genshin text-[9.5px] text-[#6B5A3E] uppercase tracking-wider">
                 WL
               </div>
               <div className="font-genshin text-[14px] text-[#9C5A14] tabular-nums mt-0.5">
@@ -144,7 +131,7 @@ export const ProfileScreen: React.FC = () => {
               </div>
             </div>
             <div className="rounded-xl bg-[#EFEAE0] border border-[#D3BC8E] px-2 py-1.5 text-center">
-              <div className="text-[9.5px] font-semibold text-[#6B5A3E] uppercase tracking-wider">
+              <div className="font-genshin text-[9.5px] text-[#6B5A3E] uppercase tracking-wider">
                 Pesanan
               </div>
               <div className="font-genshin text-[14px] text-[#2D6E4E] tabular-nums mt-0.5">
@@ -154,7 +141,7 @@ export const ProfileScreen: React.FC = () => {
           </div>
         </section>
 
-        {/* Teyvat Wallet (Luminous Ivory Card) */}
+        {/* Teyvat Wallet (Luminous Ivory Card with Official Genshin Icons) */}
         <section
           aria-labelledby="wallet-heading"
           className="rounded-2xl teyvat-ivory-card p-4 space-y-3"
@@ -166,16 +153,21 @@ export const ProfileScreen: React.FC = () => {
             <button
               type="button"
               onClick={() => topUpMora(50000)}
-              className="min-h-[32px] px-2.5 py-1 rounded-full bg-[#ECE5D8] border border-[#C8A86B] font-genshin text-[11px] text-[#3B4255] inline-flex items-center gap-1 hover:border-[#9C5A14] transition-colors"
+              className="min-h-[34px] px-2.5 py-1 rounded-full bg-[#ECE5D8] border border-[#C8A86B] font-genshin text-[11px] text-[#3B4255] inline-flex items-center gap-1.5 hover:border-[#9C5A14] transition-colors"
             >
-              <PlusCircle className="w-3.5 h-3.5 text-[#9C5A14]" />
+              <TeyvatImage
+                src={ASSET_ICONS.masterlessStarglitter}
+                fallbackSrc={ASSET_ICONS.mora}
+                alt="Klaim Mora Ley Line"
+                className="w-4 h-4 object-contain shrink-0"
+              />
               <span>Klaim 50k Mora</span>
             </button>
           </div>
 
           <div className="grid grid-cols-2 gap-2.5">
             <div className="rounded-xl bg-[#ECE5D8] border border-[#D4C7AE] p-3">
-              <div className="text-[11px] text-[#5B5F70]">Saldo Mora</div>
+              <div className="font-genshin text-[10.5px] text-[#5B5F70]">Saldo Mora</div>
               <div className="mt-1">
                 <MoraAmount
                   amount={profile.moraBalance}
@@ -186,8 +178,10 @@ export const ProfileScreen: React.FC = () => {
             </div>
 
             <div className="rounded-xl bg-[#ECE5D8] border border-[#D4C7AE] p-3">
-              <div className="text-[11px] text-[#5B5F70]">Simpanan Primogem</div>
-              <div className="font-genshin mt-1 inline-flex items-center gap-1.5 font-bold text-[15px] text-[#242735] tabular-nums">
+              <div className="font-genshin text-[10.5px] text-[#5B5F70]">
+                Simpanan Primogem
+              </div>
+              <div className="font-genshin mt-1 inline-flex items-center gap-1.5 text-[15px] text-[#242735] tabular-nums">
                 <TeyvatImage
                   src={ASSET_ICONS.primogem}
                   fallbackSrc={ASSET_ICONS.primogemCdn}
@@ -201,71 +195,60 @@ export const ProfileScreen: React.FC = () => {
 
           <DiamondDivider />
 
-          {/* Active Delivery Vouchers */}
+          {/* Active Delivery Vouchers with Synced Remaining Quotas & Min Spend */}
           <div>
             <div className="font-genshin text-[11px] text-[#4E5366] mb-2">
-              Voucher Pengantaran Aktif
+              Koleksi Voucher Pengantaran ({COUPONS.length})
             </div>
             <div className="space-y-2">
-              {COUPONS.map((coupon) => (
-                <div
-                  key={coupon.code}
-                  className="rounded-xl bg-[#ECE5D8] border border-[#D4C7AE] px-3 py-2 flex items-center gap-2.5"
-                >
-                  <TeyvatImage
-                    src={coupon.icon}
-                    alt={coupon.title}
-                    className="w-7 h-7 object-contain shrink-0"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <div className="font-genshin text-[12px] text-[#242735] truncate">
-                      {coupon.title}
-                    </div>
-                    <div className="text-[11px] text-[#5B5F70] truncate">
-                      Kode:{' '}
-                      <strong className="font-genshin text-[#9C5A14]">{coupon.code}</strong>
+              {COUPONS.map((coupon) => {
+                const remaining = getRemainingVoucherUses(coupon, voucherUsageCount);
+                const exhausted = remaining <= 0;
+                return (
+                  <div
+                    key={coupon.code}
+                    className={`rounded-xl border px-3 py-2.5 flex items-center gap-2.5 ${
+                      exhausted
+                        ? 'bg-[#ECE5D8]/55 border-[#DCD2C0] opacity-70'
+                        : 'bg-[#ECE5D8] border-[#D4C7AE]'
+                    }`}
+                  >
+                    <TeyvatImage
+                      src={coupon.icon}
+                      alt={coupon.title}
+                      className="w-7 h-7 object-contain shrink-0"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="font-genshin text-[12px] text-[#242735] truncate">
+                          {coupon.title}
+                        </div>
+                        <span
+                          className={`font-genshin text-[10px] shrink-0 tabular-nums ${
+                            exhausted ? 'text-[#A33B3B]' : 'text-[#2D6E4E]'
+                          }`}
+                        >
+                          {exhausted
+                            ? 'Habis Terpakai'
+                            : `Sisa ${remaining}/${coupon.maxUses}`}
+                        </span>
+                      </div>
+                      <div className="text-[10.5px] text-[#5B5F70] truncate mt-0.5 tabular-nums">
+                        Kode:{' '}
+                        <strong className="font-genshin text-[#9C5A14]">
+                          {coupon.code}
+                        </strong>{' '}
+                        · Min.{' '}
+                        <span className="font-genshin">
+                          {formatMora(coupon.minSubtotalMora)}
+                        </span>{' '}
+                        Mora
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
-          </div>
-        </section>
-
-        {/* Audio Settings */}
-        <section className="rounded-2xl teyvat-ivory-card p-3.5 flex items-center justify-between gap-2">
-          <div>
-            <h2 className="font-genshin text-[13px] text-[#242735]">
-              Pengaturan Audio Teyvat
-            </h2>
-            <p className="text-[11px] text-[#5B5F70]">
-              Musik latar ambien &amp; efek suara pesanan
-            </p>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              type="button"
-              onClick={toggleBgm}
-              className={`min-h-[36px] px-3 rounded-lg border font-genshin text-[11px] inline-flex items-center gap-1 transition-colors ${
-                bgmEnabled
-                  ? 'bg-[#242B3E] border-[#C8A86B] text-[#FFE7A5]'
-                  : 'bg-[#ECE5D8] border-[#CBB997] text-[#4A4F63]'
-              }`}
-            >
-              {bgmEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
-              <span>BGM</span>
-            </button>
-            <button
-              type="button"
-              onClick={toggleSfx}
-              className={`min-h-[36px] px-3 rounded-lg border font-genshin text-[11px] inline-flex items-center gap-1 transition-colors ${
-                sfxEnabled
-                  ? 'bg-[#242B3E] border-[#C8A86B] text-[#FFE7A5]'
-                  : 'bg-[#ECE5D8] border-[#CBB997] text-[#4A4F63]'
-              }`}
-            >
-              <span>SFX</span>
-            </button>
           </div>
         </section>
 
@@ -329,7 +312,7 @@ export const ProfileScreen: React.FC = () => {
           </section>
         )}
 
-        {/* Order History List */}
+        {/* Order History List with Masterless Stardust Crest */}
         <section aria-labelledby="order-history-heading" className="space-y-2.5">
           <h2
             id="order-history-heading"
@@ -338,66 +321,78 @@ export const ProfileScreen: React.FC = () => {
             Riwayat Pesanan Kuliner
           </h2>
 
-          {orders.map((order) => (
-            <article
-              key={order.id}
-              className="rounded-2xl teyvat-ivory-card p-3.5 space-y-2.5"
-            >
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <div className="font-genshin text-[12px] text-[#242735] tabular-nums">
-                    {order.id}
+          {orders.map((order) => {
+            const localOrder = isLocalLiyueDelivery(order.deliveryPoint);
+            return (
+              <article
+                key={order.id}
+                className="rounded-2xl teyvat-ivory-card p-3.5 space-y-2.5"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-start gap-2 min-w-0">
+                    <TeyvatImage
+                      src={ASSET_ICONS.masterlessStardust}
+                      fallbackSrc={ASSET_ICONS.mora}
+                      alt="Lencana Pesanan"
+                      className="w-6 h-6 object-contain shrink-0 mt-0.5"
+                    />
+                    <div className="min-w-0">
+                      <div className="font-genshin text-[12px] text-[#242735] tabular-nums">
+                        {order.id}
+                      </div>
+                      <div className="text-[11px] text-[#5C6072] mt-0.5">
+                        {order.createdAt} ·{' '}
+                        {localOrder ? 'Lokal Liyue' : order.deliveryPoint.region}
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-[11px] text-[#5C6072] mt-0.5">
-                    {order.createdAt} · {order.deliveryPoint.name}
-                  </div>
-                </div>
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#2D6E4E] shrink-0">
-                  <DiamondBullet size={6} className="text-[#2D6E4E]" />
-                  <span>
-                    {order.status === 'COMPLETED' ? 'Terkirim' : 'Dalam Pengantaran'}
+                  <span className="inline-flex items-center gap-1 font-genshin text-[10.5px] text-[#2D6E4E] shrink-0">
+                    <DiamondBullet size={6} className="text-[#2D6E4E]" />
+                    <span>
+                      {order.status === 'COMPLETED' ? 'Terkirim' : 'Diantar'}
+                    </span>
                   </span>
-                </span>
-              </div>
+                </div>
 
-              <div className="text-[12px] text-[#3F4456] space-y-0.5">
-                {order.items.map((item) => (
-                  <div
-                    key={item.dish.id}
-                    className="flex items-center justify-between text-[11px]"
+                <div className="text-[12px] text-[#3F4456] space-y-0.5">
+                  {order.items.map((item) => (
+                    <div
+                      key={item.dish.id}
+                      className="flex items-center justify-between text-[11px]"
+                    >
+                      <span className="font-genshin truncate pr-2 text-[#2B2D3A]">
+                        {item.dish.name} ×{item.quantity}
+                      </span>
+                      <span className="font-genshin tabular-nums shrink-0 text-[#4A4F63]">
+                        {formatMora(item.dish.priceMora * item.quantity)} Mora
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="pt-2 border-t border-[#DED4C0] flex items-center justify-between gap-2">
+                  <MoraAmount
+                    amount={order.totalMora}
+                    size="sm"
+                    showSuffix
+                    className="text-[#242735]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => reorderFromHistory(order.id)}
+                    className="teyvat-gold-btn min-h-[36px] px-3.5 py-1.5 rounded-full font-genshin text-[11px] font-bold inline-flex items-center gap-1.5"
                   >
-                    <span className="font-genshin truncate pr-2 text-[#2B2D3A]">
-                      {item.dish.name} ×{item.quantity}
-                    </span>
-                    <span className="font-genshin tabular-nums shrink-0 text-[#4A4F63]">
-                      {formatMora(item.dish.priceMora * item.quantity)} Mora
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="pt-2 border-t border-[#DED4C0] flex items-center justify-between gap-2">
-                <MoraAmount
-                  amount={order.totalMora}
-                  size="sm"
-                  showSuffix
-                  className="text-[#242735]"
-                />
-                <button
-                  type="button"
-                  onClick={() => reorderFromHistory(order.id)}
-                  className="teyvat-gold-btn min-h-[36px] px-3.5 py-1.5 rounded-full font-genshin text-[11px] font-bold inline-flex items-center gap-1.5"
-                >
-                  <RotateCw className="w-3.5 h-3.5" />
-                  <span>Pesan Lagi</span>
-                </button>
-              </div>
-            </article>
-          ))}
+                    <RotateCw className="w-3.5 h-3.5" />
+                    <span>Pesan Lagi</span>
+                  </button>
+                </div>
+              </article>
+            );
+          })}
         </section>
       </div>
 
-      {/* WARM PARCHMENT COLLECTIBLE NAMECARD MODAL (Pure Unobstructed Artwork Options) */}
+      {/* WARM PARCHMENT COLLECTIBLE NAMECARD MODAL (Pure Unobstructed Artwork Options + Official Modal Ornament) */}
       {isNamecardModalOpen && (
         <div
           role="dialog"
@@ -406,30 +401,38 @@ export const ProfileScreen: React.FC = () => {
           className="absolute inset-0 z-50 bg-[#1B2234]/68 backdrop-blur-sm flex items-center justify-center p-4"
         >
           <div className="w-full max-w-[388px] max-h-[88%] rounded-[24px] overflow-hidden border border-[#D3BC8E] bg-[#ECE5D8] shadow-2xl flex flex-col animate-modal-enter">
-            {/* Clean Genshin Modal Header */}
+            {/* Clean Genshin Modal Header with Official Ornament */}
             <div className="px-4 py-3.5 teyvat-chrome-bar flex items-center justify-between gap-2 shrink-0">
-              <div>
-                <h2
-                  id="namecard-modal-title"
-                  className="font-genshin text-[15px] text-[#FFE7A5]"
-                >
-                  Koleksi Namecard Teyvat
-                </h2>
-                <p className="text-[11px] text-[#C8D0E4]">
-                  Ketuk gambar untuk memasang spanduk profil
-                </p>
+              <div className="flex items-center gap-2.5 min-w-0">
+                <TeyvatImage
+                  src={ASSET_ICONS.modalOrnament}
+                  fallbackSrc={ASSET_ICONS.crownOfInsight}
+                  alt="Ornamen Koleksi Namecard"
+                  className="w-7 h-7 object-contain shrink-0"
+                />
+                <div className="min-w-0">
+                  <h2
+                    id="namecard-modal-title"
+                    className="font-genshin text-[14.5px] text-[#FFE7A5] truncate"
+                  >
+                    Koleksi Namecard Teyvat
+                  </h2>
+                  <p className="text-[10.5px] text-[#C8D0E4] truncate">
+                    Ketuk gambar untuk memasang spanduk profil
+                  </p>
+                </div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsNamecardModalOpen(false)}
                 aria-label="Tutup pilihan Namecard"
-                className="w-9 h-9 rounded-full bg-white/[0.08] text-[#FFE7A5] flex items-center justify-center hover:bg-white/[0.15] transition-colors"
+                className="w-9 h-9 rounded-full bg-white/[0.08] text-[#FFE7A5] flex items-center justify-center hover:bg-white/[0.15] transition-colors shrink-0"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Live Selected Symmetrical Banner Preview (Shows active Namecard title & subtitle cleanly) */}
+            {/* Live Selected Symmetrical Banner Preview */}
             <div className="px-4 pt-3.5 shrink-0">
               <div className="relative h-[82px] rounded-xl overflow-hidden border border-[#D3BC8E] bg-[#242C42] shadow-sm">
                 <img
@@ -439,7 +442,7 @@ export const ProfileScreen: React.FC = () => {
                 />
                 <div className="absolute inset-0 bg-gradient-to-r from-[#1C2336]/86 via-[#1C2336]/38 to-transparent" />
                 <div className="relative z-10 h-full px-3.5 flex flex-col justify-center">
-                  <span className="text-[10px] uppercase tracking-wider text-[#FFE7A5] font-semibold">
+                  <span className="font-genshin text-[10px] uppercase tracking-wider text-[#FFE7A5]">
                     Dipasang · {activeNamecard.region}
                   </span>
                   <span className="font-genshin text-[14px] text-[#FFFDF5]">

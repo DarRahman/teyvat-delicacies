@@ -23,16 +23,18 @@ export default function App() {
   const setActiveTab = useDelicaciesStore((s) => s.setActiveTab);
   const getCartTotals = useDelicaciesStore((s) => s.getCartTotals);
   const toastMessage = useDelicaciesStore((s) => s.toastMessage);
-  // Subscribe to cart & coupon so FloatingQuickCartBar & tab badge stay reactive
+  // Subscribe to cart, delivery point, coupon & usage so FloatingQuickCartBar stays reactive
   useDelicaciesStore((s) => s.cart);
+  useDelicaciesStore((s) => s.selectedDeliveryPointId);
   useDelicaciesStore((s) => s.appliedCouponCode);
+  useDelicaciesStore((s) => s.voucherUsageCount);
 
   // Support ?autostart=1 query parameter to enter straight to Beranda
   useEffect(() => {
     if (typeof window === 'undefined' || hasEntered) return;
     const params = new URLSearchParams(window.location.search);
     if (params.get('autostart') === '1') {
-      enterTeyvat(false);
+      enterTeyvat();
     }
   }, [hasEntered, enterTeyvat]);
 

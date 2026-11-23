@@ -1,7 +1,9 @@
-import { COUPONS, DELIVERY_FEE_MORA } from '../data/dishes';
+import { COUPONS, DELIVERY_FEE_MORA, formatMora } from '../data/dishes';
 import {
   BuffType,
   CartItem,
+  Coupon,
+  DeliveryPoint,
   Dish,
   DishCategory,
   DishRarity,
@@ -13,9 +15,11 @@ import {
 export interface CartTotals {
   itemCount: number;
   subtotal: number;
+  baseDeliveryFee: number;
   deliveryFee: number;
   discount: number;
   finalTotal: number;
+  isLocalLiyue: boolean;
 }
 
 export interface DishFilterCriteria {
@@ -26,48 +30,161 @@ export interface DishFilterCriteria {
   rarity?: DishRarity | null;
 }
 
+export interface CouponValidationResult {
+  ok: boolean;
+  coupon?: Coupon;
+  message: string;
+}
+
+/** Determine whether a delivery destination is local within Liyue Harbor (Wanmin origin) */
+export function isLocalLiyueDelivery(deliveryPoint?: DeliveryPoint | null): boolean {
+  if (!deliveryPoint) return false;
+  return Boolean(deliveryPoint.isLocalLiyue || deliveryPoint.region === 'Liyue');
+}
+
+/** Dynamic distance-based delivery fee from Wanmin Kitchen (Liyue): 0 Mora local, 400..1200 Mora regional */
+export function getDeliveryFeeForPoint(deliveryPoint?: DeliveryPoint | null): number {
+  if (!deliveryPoint) return DELIVERY_FEE_MORA;
+  if (isLocalLiyueDelivery(deliveryPoint)) return 0;
+  return Math.max(0, deliveryPoint.deliveryFeeMora);
+}
+
+/** Remaining uses for a voucher given persisted usage counts */
+export function getRemainingVoucherUses(
+  coupon: Coupon,
+  voucherUsageCount: Record<string, number> = {}
+): number {
+  const used = Math.max(0, voucherUsageCount[coupon.code] ?? 0);
+  return Math.max(0, coupon.maxUses - used);
+}
+
+/** Strict voucher validator: empty code, unknown code, quota exhausted, minimum spend, and Liyue 0-Mora conflict */
+export function validateCouponApplication(
+  rawCode: string,
+  subtotal: number,
+  deliveryPoint: DeliveryPoint | null,
+  voucherUsageCount: Record<string, number> = {}
+): CouponValidationResult {
+  const normalized = rawCode.trim().toUpperCase();
+  if (!normalized) {
+    return {
+      ok: false,
+      message: 'Masukkan kode voucher terlebih dahulu.',
+    };
+  }
+
+  const coupon = COUPONS.find((c) => c.code === normalized);
+  if (!coupon) {
+    return {
+      ok: false,
+      message:
+        'Kode voucher tidak ditemukan. Coba PAIMONKENYANG, GLIDERFREE, atau ADEPTUSFEAST.',
+    };
+  }
+
+  const remaining = getRemainingVoucherUses(coupon, voucherUsageCount);
+  if (remaining <= 0) {
+    return {
+      ok: false,
+      message: `Kuota voucher ${coupon.code} sudah habis terpakai (${coupon.maxUses}/${coupon.maxUses}).`,
+    };
+  }
+
+  if (subtotal <= 0) {
+    return {
+      ok: false,
+      message: 'Tambahkan hidangan ke keranjang sebelum menebus voucher.',
+    };
+  }
+
+  if (subtotal < coupon.minSubtotalMora) {
+    const shortage = coupon.minSubtotalMora - subtotal;
+    return {
+      ok: false,
+      message: `Minimal belanja ${formatMora(coupon.minSubtotalMora)} Mora untuk ${coupon.code} (kurang ${formatMora(shortage)} Mora).`,
+    };
+  }
+
+  const baseDeliveryFee = getDeliveryFeeForPoint(deliveryPoint);
+  if (coupon.type === 'FREE_DELIVERY' && baseDeliveryFee === 0) {
+    return {
+      ok: false,
+      message:
+        'Ongkir lokal Liyue sudah gratis 0 Mora — simpan voucher ini untuk pengiriman luar Liyue.',
+    };
+  }
+
+  return {
+    ok: true,
+    coupon,
+    message: `${coupon.title} aktif (sisa ${remaining}× pakai).`,
+  };
+}
+
 export function calculateCartTotals(
   cart: CartItem[],
-  appliedCouponCode: string | null
+  appliedCouponCode: string | null,
+  deliveryPoint?: DeliveryPoint | null,
+  voucherUsageCount: Record<string, number> = {}
 ): CartTotals {
   const itemCount = cart.reduce((acc, item) => acc + item.quantity, 0);
   const subtotal = cart.reduce(
     (acc, item) => acc + item.dish.priceMora * item.quantity,
     0
   );
+  const localLiyue = isLocalLiyueDelivery(deliveryPoint);
 
   if (itemCount === 0) {
     return {
       itemCount: 0,
       subtotal: 0,
+      baseDeliveryFee: 0,
       deliveryFee: 0,
       discount: 0,
       finalTotal: 0,
+      isLocalLiyue: localLiyue,
     };
   }
 
-  const coupon = COUPONS.find((c) => c.code === appliedCouponCode) ?? null;
-  let deliveryFee = DELIVERY_FEE_MORA;
+  const baseDeliveryFee = getDeliveryFeeForPoint(deliveryPoint);
+  let deliveryFee = baseDeliveryFee;
   let discount = 0;
 
-  if (coupon?.type === 'PERCENT') {
-    discount = Math.round((subtotal * coupon.value) / 100);
-  } else if (coupon?.type === 'FREE_DELIVERY') {
-    deliveryFee = 0;
-    discount = DELIVERY_FEE_MORA;
+  if (appliedCouponCode) {
+    const check = validateCouponApplication(
+      appliedCouponCode,
+      subtotal,
+      deliveryPoint ?? null,
+      voucherUsageCount
+    );
+    if (check.ok && check.coupon) {
+      if (check.coupon.type === 'PERCENT') {
+        discount = Math.round((subtotal * check.coupon.value) / 100);
+      } else if (check.coupon.type === 'FIXED_MORA') {
+        discount = Math.min(subtotal, check.coupon.value);
+      } else if (check.coupon.type === 'FREE_DELIVERY') {
+        deliveryFee = 0;
+        discount = baseDeliveryFee;
+      }
+    }
   }
 
-  const finalTotal = Math.max(
-    0,
-    subtotal + deliveryFee - (coupon?.type === 'PERCENT' ? discount : 0)
-  );
+  const appliedSubtotalDiscount =
+    appliedCouponCode &&
+    COUPONS.find((c) => c.code === appliedCouponCode)?.type !== 'FREE_DELIVERY'
+      ? discount
+      : 0;
+
+  const finalTotal = Math.max(0, subtotal + deliveryFee - appliedSubtotalDiscount);
 
   return {
     itemCount,
     subtotal,
+    baseDeliveryFee,
     deliveryFee,
     discount,
     finalTotal,
+    isLocalLiyue: localLiyue,
   };
 }
 
@@ -120,13 +237,13 @@ export function validateCheckoutPayment(
   return { ok: true };
 }
 
-/** Clamp continuous Anemo Glider progress cleanly within 0..100 */
+/** Clamp continuous courier progress cleanly within 0..100 */
 export function clampGliderProgress(progress: number): number {
   if (!Number.isFinite(progress)) return 0;
   return Math.min(100, Math.max(0, Math.round(progress * 10) / 10));
 }
 
-/** Derive milestone stage (0=Cooking, 1=Gliding, 2=Completed) from continuous 0..100 progress */
+/** Derive milestone stage (0=Cooking, 1=Delivering, 2=Completed) from continuous 0..100 progress */
 export function getGliderStageFromProgress(progress: number): 0 | 1 | 2 {
   const clamped = clampGliderProgress(progress);
   if (clamped >= 100) return 2;
@@ -154,7 +271,7 @@ export function buildGliderFlightArcPath(
   }
   const midX = (origin.x + destination.x) / 2;
   const midY = (origin.y + destination.y) / 2;
-  const lift = Math.min(14, Math.max(5, dist * 0.24));
+  const lift = Math.min(14, Math.max(3, dist * 0.24));
   const ctrlX = midX;
   const ctrlY = Math.max(4, midY - lift);
   return `M ${origin.x.toFixed(1)} ${origin.y.toFixed(1)} Q ${ctrlX.toFixed(1)} ${ctrlY.toFixed(1)} ${destination.x.toFixed(1)} ${destination.y.toFixed(1)}`;

@@ -1,11 +1,17 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { COUPONS, INITIAL_ORDERS, INITIAL_PROFILE, NAMECARDS } from '../data/dishes';
-import { teyvatAudio } from '../lib/audio';
+import {
+  DELIVERY_POINTS,
+  INITIAL_ORDERS,
+  INITIAL_PROFILE,
+  NAMECARDS,
+} from '../data/dishes';
 import {
   CartTotals,
   calculateCartTotals,
+  isLocalLiyueDelivery,
   validateCheckoutPayment,
+  validateCouponApplication,
 } from '../lib/delicaciesRules';
 import {
   CartItem,
@@ -33,13 +39,11 @@ interface DelicaciesState {
   stack: StackRoute[];
   catalogPreset: CatalogFilterPreset | null;
 
-  // Audio Controls
-  bgmEnabled: boolean;
-  sfxEnabled: boolean;
-
-  // Cart & Coupons
+  // Cart, Delivery Region & Vouchers
   cart: CartItem[];
+  selectedDeliveryPointId: string;
   appliedCouponCode: string | null;
+  voucherUsageCount: Record<string, number>;
 
   // Favorites, Profile, Namecard & Orders
   favoriteIds: number[];
@@ -51,7 +55,7 @@ interface DelicaciesState {
   toastMessage: string | null;
 
   // Actions
-  enterTeyvat: (withBgm?: boolean) => void;
+  enterTeyvat: () => void;
   setActiveTab: (tab: TabId) => void;
   openCatalogWithFilter: (preset: CatalogFilterPreset) => void;
   clearCatalogPreset: () => void;
@@ -59,8 +63,8 @@ interface DelicaciesState {
   popStack: () => void;
   resetToTab: (tab: TabId) => void;
 
-  toggleBgm: () => void;
-  toggleSfx: () => void;
+  setSelectedDeliveryPointId: (pointId: string) => void;
+  getSelectedDeliveryPoint: () => DeliveryPoint;
 
   addToCart: (dish: Dish, quantity?: number) => void;
   removeFromCart: (dishId: number) => void;
@@ -81,10 +85,14 @@ interface DelicaciesState {
   showToast: (message: string) => void;
   clearToast: () => void;
 
-  getCartTotals: () => CartTotals;
+  getCartTotals: (overridePoint?: DeliveryPoint | null) => CartTotals;
 }
 
 let toastTimer: number | null = null;
+
+function resolveDeliveryPoint(pointId: string): DeliveryPoint {
+  return DELIVERY_POINTS.find((p) => p.id === pointId) ?? DELIVERY_POINTS[0];
+}
 
 export const useDelicaciesStore = create<DelicaciesState>()(
   persist(
@@ -94,11 +102,10 @@ export const useDelicaciesStore = create<DelicaciesState>()(
       stack: [],
       catalogPreset: null,
 
-      bgmEnabled: false,
-      sfxEnabled: true,
-
       cart: [],
+      selectedDeliveryPointId: DELIVERY_POINTS[0].id,
       appliedCouponCode: null,
+      voucherUsageCount: {},
 
       favoriteIds: [5101, 4102, 4116],
       profile: INITIAL_PROFILE,
@@ -107,14 +114,9 @@ export const useDelicaciesStore = create<DelicaciesState>()(
 
       toastMessage: null,
 
-      enterTeyvat: (withBgm = true) => {
-        if (withBgm) {
-          teyvatAudio.setBgmEnabled(true);
-        }
-        teyvatAudio.playSfx('epic', get().sfxEnabled);
+      enterTeyvat: () => {
         set({
           hasEntered: true,
-          bgmEnabled: withBgm,
           activeTab: 'beranda',
           stack: [],
         });
@@ -148,17 +150,44 @@ export const useDelicaciesStore = create<DelicaciesState>()(
         set({ activeTab: tab, stack: [] });
       },
 
-      toggleBgm: () => {
-        const next = !get().bgmEnabled;
-        teyvatAudio.setBgmEnabled(next);
-        set({ bgmEnabled: next });
-        get().showToast(next ? 'Musik latar Teyvat diaktifkan' : 'Musik latar dijeda');
+      setSelectedDeliveryPointId: (pointId) => {
+        const nextPoint = resolveDeliveryPoint(pointId);
+        const state = get();
+        const subtotal = state.cart.reduce(
+          (acc, item) => acc + item.dish.priceMora * item.quantity,
+          0
+        );
+
+        let nextCoupon = state.appliedCouponCode;
+        let autoRemovedMsg: string | null = null;
+
+        if (nextCoupon && subtotal > 0) {
+          const check = validateCouponApplication(
+            nextCoupon,
+            subtotal,
+            nextPoint,
+            state.voucherUsageCount
+          );
+          if (!check.ok) {
+            nextCoupon = null;
+            autoRemovedMsg = isLocalLiyueDelivery(nextPoint)
+              ? 'Ongkir Liyue sudah gratis 0 Mora — voucher ongkir disimpan kembali'
+              : `Voucher ${state.appliedCouponCode} dilepas karena syarat tidak terpenuhi`;
+          }
+        }
+
+        set({
+          selectedDeliveryPointId: nextPoint.id,
+          appliedCouponCode: nextCoupon,
+        });
+
+        if (autoRemovedMsg) {
+          get().showToast(autoRemovedMsg);
+        }
       },
 
-      toggleSfx: () => {
-        const next = !get().sfxEnabled;
-        set({ sfxEnabled: next });
-        get().showToast(next ? 'Efek suara diaktifkan' : 'Efek suara dinonaktifkan');
+      getSelectedDeliveryPoint: () => {
+        return resolveDeliveryPoint(get().selectedDeliveryPointId);
       },
 
       addToCart: (dish, quantity = 1) => {
@@ -179,19 +208,43 @@ export const useDelicaciesStore = create<DelicaciesState>()(
           };
         });
 
-        if (dish.rarity === 5) {
-          teyvatAudio.playSfx('legendary', get().sfxEnabled);
-        } else if (dish.rarity === 4) {
-          teyvatAudio.playSfx('epic', get().sfxEnabled);
-        }
-
         get().showToast(`${dish.name} (×${safeQty}) masuk ke Keranjang`);
       },
 
       removeFromCart: (dishId) => {
-        set((state) => ({
-          cart: state.cart.filter((item) => item.dish.id !== dishId),
-        }));
+        const state = get();
+        const nextCart = state.cart.filter((item) => item.dish.id !== dishId);
+        const nextSubtotal = nextCart.reduce(
+          (acc, item) => acc + item.dish.priceMora * item.quantity,
+          0
+        );
+        const activePoint = resolveDeliveryPoint(state.selectedDeliveryPointId);
+
+        let nextCoupon = state.appliedCouponCode;
+        let detachedCoupon: string | null = null;
+        if (nextCoupon) {
+          if (nextCart.length === 0) {
+            nextCoupon = null;
+          } else {
+            const check = validateCouponApplication(
+              nextCoupon,
+              nextSubtotal,
+              activePoint,
+              state.voucherUsageCount
+            );
+            if (!check.ok) {
+              detachedCoupon = nextCoupon;
+              nextCoupon = null;
+            }
+          }
+        }
+
+        set({ cart: nextCart, appliedCouponCode: nextCoupon });
+        if (detachedCoupon) {
+          get().showToast(
+            `Voucher ${detachedCoupon} dilepas karena subtotal di bawah syarat minimal`
+          );
+        }
       },
 
       updateQuantity: (dishId, quantity) => {
@@ -200,11 +253,37 @@ export const useDelicaciesStore = create<DelicaciesState>()(
           return;
         }
         const safeQty = Math.min(99, quantity);
-        set((state) => ({
-          cart: state.cart.map((item) =>
-            item.dish.id === dishId ? { ...item, quantity: safeQty } : item
-          ),
-        }));
+        const state = get();
+        const nextCart = state.cart.map((item) =>
+          item.dish.id === dishId ? { ...item, quantity: safeQty } : item
+        );
+        const nextSubtotal = nextCart.reduce(
+          (acc, item) => acc + item.dish.priceMora * item.quantity,
+          0
+        );
+        const activePoint = resolveDeliveryPoint(state.selectedDeliveryPointId);
+
+        let nextCoupon = state.appliedCouponCode;
+        let detachedCoupon: string | null = null;
+        if (nextCoupon) {
+          const check = validateCouponApplication(
+            nextCoupon,
+            nextSubtotal,
+            activePoint,
+            state.voucherUsageCount
+          );
+          if (!check.ok) {
+            detachedCoupon = nextCoupon;
+            nextCoupon = null;
+          }
+        }
+
+        set({ cart: nextCart, appliedCouponCode: nextCoupon });
+        if (detachedCoupon) {
+          get().showToast(
+            `Voucher ${detachedCoupon} dilepas karena subtotal di bawah syarat minimal`
+          );
+        }
       },
 
       clearCart: () => {
@@ -212,26 +291,29 @@ export const useDelicaciesStore = create<DelicaciesState>()(
       },
 
       applyCoupon: (rawCode) => {
-        const normalized = rawCode.trim().toUpperCase();
-        if (!normalized) {
-          return { ok: false, message: 'Masukkan kode kupon terlebih dahulu.' };
+        const state = get();
+        const subtotal = state.cart.reduce(
+          (acc, item) => acc + item.dish.priceMora * item.quantity,
+          0
+        );
+        const deliveryPoint = resolveDeliveryPoint(state.selectedDeliveryPointId);
+        const validation = validateCouponApplication(
+          rawCode,
+          subtotal,
+          deliveryPoint,
+          state.voucherUsageCount
+        );
+        if (!validation.ok || !validation.coupon) {
+          return { ok: false, message: validation.message };
         }
-        const coupon = COUPONS.find((c) => c.code === normalized);
-        if (!coupon) {
-          return {
-            ok: false,
-            message: 'Kode kupon tidak dikenali. Coba PAIMONKENYANG atau FRAGILERESIN.',
-          };
-        }
-        set({ appliedCouponCode: coupon.code });
-        teyvatAudio.playSfx('epic', get().sfxEnabled);
-        get().showToast(`Kupon ${coupon.code} berhasil diterapkan`);
-        return { ok: true, message: `${coupon.title} aktif.` };
+        set({ appliedCouponCode: validation.coupon.code });
+        get().showToast(`Voucher ${validation.coupon.code} berhasil diterapkan`);
+        return { ok: true, message: validation.message };
       },
 
       removeCoupon: () => {
         set({ appliedCouponCode: null });
-        get().showToast('Kupon dilepas dari pesanan');
+        get().showToast('Voucher dilepas dari pesanan');
       },
 
       toggleFavorite: (dishId) => {
@@ -253,7 +335,6 @@ export const useDelicaciesStore = create<DelicaciesState>()(
             moraBalance: state.profile.moraBalance + amount,
           },
         }));
-        teyvatAudio.playSfx('epic', get().sfxEnabled);
         get().showToast(
           `+${new Intl.NumberFormat('en-US').format(amount)} Mora diterima dari Ley Line`
         );
@@ -263,13 +344,17 @@ export const useDelicaciesStore = create<DelicaciesState>()(
         const match = NAMECARDS.find((n) => n.id === namecardId);
         if (!match) return;
         set({ selectedNamecardId: match.id });
-        teyvatAudio.playSfx('epic', get().sfxEnabled);
         get().showToast(`Namecard "${match.name}" dipasang`);
       },
 
       placeOrder: ({ deliveryPoint, paymentMethod, kitchenNotes }) => {
         const state = get();
-        const totals = state.getCartTotals();
+        const totals = calculateCartTotals(
+          state.cart,
+          state.appliedCouponCode,
+          deliveryPoint,
+          state.voucherUsageCount
+        );
         const validation = validateCheckoutPayment(
           state.cart,
           paymentMethod,
@@ -278,6 +363,20 @@ export const useDelicaciesStore = create<DelicaciesState>()(
         );
         if (!validation.ok) {
           return { ok: false, error: validation.error };
+        }
+
+        // Confirm whether active coupon is genuinely valid at checkout time
+        let usedCouponCode: string | null = null;
+        if (state.appliedCouponCode) {
+          const couponCheck = validateCouponApplication(
+            state.appliedCouponCode,
+            totals.subtotal,
+            deliveryPoint,
+            state.voucherUsageCount
+          );
+          if (couponCheck.ok && couponCheck.coupon) {
+            usedCouponCode = couponCheck.coupon.code;
+          }
         }
 
         const now = new Date();
@@ -297,7 +396,7 @@ export const useDelicaciesStore = create<DelicaciesState>()(
           deliveryFeeMora: totals.deliveryFee,
           discountMora: totals.discount,
           totalMora: totals.finalTotal,
-          couponCode: state.appliedCouponCode,
+          couponCode: usedCouponCode,
           deliveryPoint,
           paymentMethod,
           kitchenNotes: kitchenNotes.trim(),
@@ -305,10 +404,19 @@ export const useDelicaciesStore = create<DelicaciesState>()(
           createdAt: formattedTime.replace(',', ' ·'),
         };
 
+        const nextVoucherUsage = usedCouponCode
+          ? {
+              ...state.voucherUsageCount,
+              [usedCouponCode]: (state.voucherUsageCount[usedCouponCode] ?? 0) + 1,
+            }
+          : state.voucherUsageCount;
+
         set((prev) => ({
           orders: [newOrder, ...prev.orders],
           cart: [],
           appliedCouponCode: null,
+          voucherUsageCount: nextVoucherUsage,
+          selectedDeliveryPointId: deliveryPoint.id,
           profile:
             paymentMethod === 'NORTHLAND_BANK_CARD'
               ? {
@@ -346,11 +454,11 @@ export const useDelicaciesStore = create<DelicaciesState>()(
           }
           return {
             cart: nextCart,
+            selectedDeliveryPointId: target.deliveryPoint.id,
             activeTab: 'keranjang',
             stack: [],
           };
         });
-        teyvatAudio.playSfx('epic', get().sfxEnabled);
         get().showToast(`Pesanan ${target.id} dimasukkan kembali ke Keranjang`);
       },
 
@@ -362,27 +470,35 @@ export const useDelicaciesStore = create<DelicaciesState>()(
         if (typeof window !== 'undefined') {
           toastTimer = window.setTimeout(() => {
             set({ toastMessage: null });
-          }, 2400);
+          }, 2600);
         }
       },
 
       clearToast: () => set({ toastMessage: null }),
 
-      getCartTotals: () => {
-        const { cart, appliedCouponCode } = get();
-        return calculateCartTotals(cart, appliedCouponCode);
+      getCartTotals: (overridePoint) => {
+        const { cart, appliedCouponCode, selectedDeliveryPointId, voucherUsageCount } =
+          get();
+        const activePoint = overridePoint ?? resolveDeliveryPoint(selectedDeliveryPointId);
+        return calculateCartTotals(
+          cart,
+          appliedCouponCode,
+          activePoint,
+          voucherUsageCount
+        );
       },
     }),
     {
-      name: 'teyvat-delicacies-store-v2',
+      name: 'teyvat-delicacies-store-v3',
       partialize: (state) => ({
         cart: state.cart,
+        selectedDeliveryPointId: state.selectedDeliveryPointId,
         appliedCouponCode: state.appliedCouponCode,
+        voucherUsageCount: state.voucherUsageCount,
         favoriteIds: state.favoriteIds,
         profile: state.profile,
         selectedNamecardId: state.selectedNamecardId,
         orders: state.orders,
-        sfxEnabled: state.sfxEnabled,
       }),
     }
   )
