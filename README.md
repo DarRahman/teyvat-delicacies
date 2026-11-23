@@ -93,6 +93,8 @@ erDiagram
 
 | Berkas | Deskripsi & Isi |
 | :--- | :--- |
+| **[PRD_TEYVAT_DELICACIES.md](./PRD_TEYVAT_DELICACIES.md)** | **Product Requirements Document (PRD)** resmi memuat latar belakang, target platform, tech stack, dan spesifikasi 7 layar. |
+| **[AI_STUDIO_INSTRUCTIONS_AND_PROMPTS.md](./AI_STUDIO_INSTRUCTIONS_AND_PROMPTS.md)** | **Instruksi & Prompt Terpisah (English)** untuk Google AI Studio / Google Stitch: System Instructions vs Task Prompt. |
 | **[KONTEKS_LENGKAP_DAN_ASET_UNTUK_GOOGLE_STITCH.md](./KONTEKS_LENGKAP_DAN_ASET_UNTUK_GOOGLE_STITCH.md)** | **Single Source of Truth** untuk Google AI Studio & Stitch. Memuat Master Prompt, daftar URL transparan CDN HTTP 200, aturan anti-slop, dan token warna hex. |
 | **[BLUEPRINT_KONSEP_UIUX_FLOWCHART_DAN_ASET_GENSHIN.md](./BLUEPRINT_KONSEP_UIUX_FLOWCHART_DAN_ASET_GENSHIN.md)** | Blueprint arsitektur visual per layar, user journey flowchart, dan tabel audit aset 100% lengkap. |
 | **[DATA_MODEL_DAN_RELASI.md](./DATA_MODEL_DAN_RELASI.md)** | Skema ERD data, kontrak interface TypeScript type-safe, dan format global state store (Zustand/Context). |
