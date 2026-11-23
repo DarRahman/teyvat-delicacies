@@ -51,12 +51,12 @@ export const DishDetailScreen: React.FC<DishDetailScreenProps> = ({ dishId }) =>
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#FAF8F2] animate-stack-enter">
-      {/* Scrollable Edge-to-Edge Content */}
-      <div className="flex-1 overflow-y-auto pb-8 bg-[#FAF8F2]">
+    <div className="flex flex-col h-full w-full bg-[#FAF8F2] animate-stack-enter overflow-hidden">
+      {/* Scrollable Edge-to-Edge Content (No scrollbar gutter) */}
+      <div className="flex-1 w-full overflow-y-auto no-scrollbar pb-8 bg-[#FAF8F2]">
         {/* Full-Bleed Hero Rarity Backdrop with Triquetra Watermark & Centered Radial Illumination */}
         <div
-          className="relative h-[222px] overflow-hidden flex flex-col justify-between"
+          className="relative w-full h-[222px] overflow-hidden flex flex-col justify-between"
           style={{ background: rarityStyle.gradient }}
         >
           <img
@@ -126,13 +126,13 @@ export const DishDetailScreen: React.FC<DishDetailScreenProps> = ({ dishId }) =>
           </div>
         </div>
 
-        {/* Full-Bleed Ivory Parchment Dossier Surface */}
-        <div className="-mt-4 relative z-20 rounded-t-[26px] bg-[#FAF8F2] border-t-2 border-[#C8A86B] px-4 pt-5 pb-6 space-y-4 text-[#242735]">
+        {/* Full-Bleed Ivory Parchment Dossier Surface (Symmetrical Left & Right, Zero Brown Edge) */}
+        <div className="-mt-4 relative z-20 w-full rounded-t-[24px] bg-[#FAF8F2] px-4 pt-5 pb-6 space-y-4 text-[#2C3040]">
           {/* Title, 4-Point Diamond Stars, Region & Mora Price */}
           <div>
             <div className="flex items-center justify-between gap-2">
               <DiamondStarRow rarity={dish.rarity} size={14} />
-              <span className="text-[11px] font-semibold text-[#5E6275]">
+              <span className="text-[11px] font-semibold text-[#5E6275] text-right">
                 {dish.region} · {dish.category} · {dish.prepMinutes} mnt
               </span>
             </div>
@@ -258,8 +258,8 @@ export const DishDetailScreen: React.FC<DishDetailScreenProps> = ({ dishId }) =>
         </div>
       </div>
 
-      {/* Regal Bottom Sticky Action Bar */}
-      <div className="px-4 py-3 teyvat-chrome-bar border-t-2 border-[#C8A86B]/75 flex items-center gap-3 shrink-0">
+      {/* Clean Genshin Bottom Sticky Action Bar (Zero brown top line) */}
+      <div className="px-4 py-3 teyvat-chrome-bar flex items-center gap-3 shrink-0">
         {/* Portion Stepper */}
         <div className="inline-flex items-center gap-1 teyvat-chrome-pill rounded-full p-1 shrink-0">
           <button

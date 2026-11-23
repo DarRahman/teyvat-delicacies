@@ -42,8 +42,8 @@ export const CartScreen: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full bg-transparent">
-      {/* Slim Regal Header */}
-      <header className="px-4 pt-3.5 pb-3 teyvat-chrome-bar border-b-2 border-[#C8A86B]/75 shrink-0 flex items-center justify-between gap-2">
+      {/* Clean Genshin Header */}
+      <header className="px-4 pt-3.5 pb-3 teyvat-chrome-bar shrink-0 flex items-center justify-between gap-2">
         <div>
           <h1 className="font-genshin text-[17px] text-[#FFE7A5] tracking-wide">
             Keranjang Petualang
@@ -55,7 +55,7 @@ export const CartScreen: React.FC = () => {
           </p>
         </div>
         {totals.itemCount > 0 && (
-          <div className="px-2.5 py-1 rounded-full teyvat-chrome-pill">
+          <div className="shrink-0">
             <MoraAmount amount={totals.finalTotal} size="sm" className="text-[#FFE7A5]" />
           </div>
         )}

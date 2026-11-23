@@ -98,8 +98,8 @@ export const CatalogScreen: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full bg-transparent">
-      {/* Slim Regal Title Ribbon */}
-      <header className="px-4 pt-3.5 pb-3 teyvat-chrome-bar border-b-2 border-[#C8A86B]/75 shrink-0 flex items-center justify-between gap-2">
+      {/* Clean Genshin Title Ribbon (No brown line, borderless Mora HUD) */}
+      <header className="px-4 pt-3.5 pb-3 teyvat-chrome-bar shrink-0 flex items-center justify-between gap-2">
         <div>
           <h1 className="font-genshin text-[17px] text-[#FFE7A5] tracking-wide">
             Katalog Kuliner Teyvat
@@ -111,15 +111,15 @@ export const CatalogScreen: React.FC = () => {
         <button
           type="button"
           onClick={() => setActiveTab('profil')}
-          className="min-h-[34px] px-2.5 py-1 rounded-full teyvat-chrome-pill flex items-center gap-1 shrink-0 hover:border-[#FFE7A5] transition-colors"
+          className="min-h-[34px] px-1 py-1 flex items-center gap-1 shrink-0 hover:opacity-85 transition-opacity rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE7A5]"
           title="Saldo Mora"
         >
-          <MoraAmount amount={profile.moraBalance} size="xs" className="text-[#FFE7A5]" />
+          <MoraAmount amount={profile.moraBalance} size="sm" className="text-[#FFE7A5]" />
         </button>
       </header>
 
       {/* Luminous Warm Parchment Filter Control Deck */}
-      <div className="px-4 py-3 bg-[#F4EFE4] border-b border-[#D3BC8E] shrink-0 space-y-2.5 shadow-[0_2px_8px_rgba(74,58,30,0.06)]">
+      <div className="px-4 py-3 bg-[#F4EFE4] border-b border-[#E2D8C5] shrink-0 space-y-2.5">
         {/* Search Input + Region/Rarity Toggle */}
         <div className="flex items-center gap-2">
           <div className="relative flex-1">

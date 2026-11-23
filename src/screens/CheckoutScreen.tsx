@@ -63,13 +63,13 @@ export const CheckoutScreen: React.FC = () => {
 
   return (
     <div className="relative flex flex-col h-full bg-transparent animate-stack-enter">
-      {/* Slim Regal Top Bar */}
-      <header className="px-4 py-3 teyvat-chrome-bar border-b-2 border-[#C8A86B]/75 flex items-center gap-3 shrink-0">
+      {/* Clean Genshin Top Bar (Zero brown border line) */}
+      <header className="px-4 py-3 teyvat-chrome-bar flex items-center gap-3 shrink-0">
         <button
           type="button"
           onClick={popStack}
           aria-label="Kembali ke Keranjang"
-          className="w-10 h-10 rounded-full teyvat-chrome-pill text-[#FFE7A5] flex items-center justify-center hover:border-[#FFE7A5] transition-colors shrink-0"
+          className="w-10 h-10 rounded-full bg-white/[0.08] text-[#FFE7A5] flex items-center justify-center hover:bg-white/[0.14] transition-colors shrink-0"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
@@ -329,8 +329,8 @@ export const CheckoutScreen: React.FC = () => {
         )}
       </div>
 
-      {/* Regal Bottom Sticky Confirm CTA */}
-      <div className="px-4 py-3 teyvat-chrome-bar border-t-2 border-[#C8A86B]/75 shrink-0">
+      {/* Clean Genshin Bottom Sticky Confirm CTA */}
+      <div className="px-4 py-3 teyvat-chrome-bar shrink-0">
         <GoldCapsuleButton
           onClick={handleConfirmOrder}
           disabled={insufficientMora || cart.length === 0}
@@ -347,9 +347,9 @@ export const CheckoutScreen: React.FC = () => {
           aria-labelledby="teyvat-map-modal-title"
           className="absolute inset-0 z-50 bg-[#1B2234]/72 backdrop-blur-sm flex items-center justify-center p-3"
         >
-          <div className="w-full max-w-[396px] max-h-[92%] rounded-[24px] overflow-hidden border-2 border-[#C8A86B] bg-[#ECE5D8] shadow-2xl flex flex-col animate-modal-enter">
-            {/* Ornamental Modal Header */}
-            <div className="px-4 py-3 teyvat-chrome-bar border-b-2 border-[#C8A86B]/75 flex items-center justify-between gap-2 shrink-0">
+          <div className="w-full max-w-[396px] max-h-[92%] rounded-[24px] overflow-hidden border border-[#D3BC8E] bg-[#ECE5D8] shadow-2xl flex flex-col animate-modal-enter">
+            {/* Clean Genshin Modal Header */}
+            <div className="px-4 py-3 teyvat-chrome-bar flex items-center justify-between gap-2 shrink-0">
               <div>
                 <h2
                   id="teyvat-map-modal-title"
@@ -365,129 +365,121 @@ export const CheckoutScreen: React.FC = () => {
                 type="button"
                 onClick={() => setIsMapModalOpen(false)}
                 aria-label="Tutup Peta Teyvat"
-                className="w-9 h-9 rounded-full teyvat-chrome-pill text-[#FFE7A5] flex items-center justify-center hover:border-[#FFE7A5]"
+                className="w-9 h-9 rounded-full bg-white/[0.08] text-[#FFE7A5] flex items-center justify-center hover:bg-white/[0.15] transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Seamless Azure-Ocean World Map Canvas Covering All 8 Realms */}
-            <div className="p-3.5 space-y-2.5 overflow-y-auto">
-              <div className="relative w-full aspect-[100/95] overflow-hidden rounded-2xl border-2 border-[#C8A86B] bg-[#234B5E] shadow-inner">
-                {/* Inner 1:1 Image Wrapper framed to display Natlan/Inazuma (y=24) through Snezhnaya (y=85) cleanly */}
-                <div
-                  className="relative w-full"
-                  style={{ transform: 'translateY(-13.5%)' }}
-                >
-                  <img
-                    src={ASSET_ICONS.teyvatMap}
-                    alt="Peta Dunia Teyvat Lengkap Delapan Wilayah"
-                    className="w-full h-auto block select-none contrast-[1.04]"
-                  />
+            {/* Seamless Right-Side-Up Full 8-Region Teyvat World Map */}
+            <div className="p-3.5 space-y-2.5 overflow-y-auto no-scrollbar">
+              <div className="relative w-full aspect-square overflow-hidden rounded-2xl border border-[#D3BC8E] bg-[#1885B5] shadow-inner">
+                <img
+                  src={ASSET_ICONS.teyvatMap}
+                  alt="Peta Dunia Teyvat Lengkap Delapan Wilayah"
+                  className="w-full h-full object-cover block select-none"
+                />
 
-                  {/* SVG Golden Anemo Flight Trajectory Path from Wanmin Kitchen (Liyue) */}
-                  <svg
-                    viewBox="0 0 100 100"
-                    preserveAspectRatio="none"
-                    className="absolute inset-0 w-full h-full pointer-events-none"
-                    aria-hidden="true"
-                  >
-                    {flightArcPath ? (
-                      <>
-                        {/* Soft Golden-Teal Trajectory Glow */}
-                        <path
-                          d={flightArcPath}
-                          fill="none"
-                          stroke="rgba(255, 231, 165, 0.44)"
-                          strokeWidth="2.1"
-                          strokeLinecap="round"
-                        />
-                        {/* Animated Golden Flight Line */}
-                        <path
-                          d={flightArcPath}
-                          fill="none"
-                          stroke="#FFE7A5"
-                          strokeWidth="0.95"
-                          strokeDasharray="2.5 1.5"
-                          strokeLinecap="round"
-                          className="animate-flight-dash"
-                        />
-                      </>
-                    ) : (
-                      <circle
-                        cx={WANMIN_ORIGIN_COORDS.x}
-                        cy={WANMIN_ORIGIN_COORDS.y}
-                        r="4.2"
-                        fill="rgba(86, 226, 182, 0.28)"
-                        stroke="#FFE7A5"
-                        strokeWidth="0.75"
+                {/* SVG Golden Glider Flight Trajectory Path from Wanmin Kitchen (Liyue) */}
+                <svg
+                  viewBox="0 0 100 100"
+                  preserveAspectRatio="none"
+                  className="absolute inset-0 w-full h-full pointer-events-none"
+                  aria-hidden="true"
+                >
+                  {flightArcPath ? (
+                    <>
+                      <path
+                        d={flightArcPath}
+                        fill="none"
+                        stroke="rgba(32, 38, 56, 0.45)"
+                        strokeWidth="2.4"
+                        strokeLinecap="round"
                       />
-                    )}
-                    {/* Origin Kitchen Anchor (Wanmin Kitchen, Liyue) */}
+                      <path
+                        d={flightArcPath}
+                        fill="none"
+                        stroke="#FFE7A5"
+                        strokeWidth="1.05"
+                        strokeDasharray="2.5 1.5"
+                        strokeLinecap="round"
+                        className="animate-flight-dash"
+                      />
+                    </>
+                  ) : (
                     <circle
                       cx={WANMIN_ORIGIN_COORDS.x}
                       cy={WANMIN_ORIGIN_COORDS.y}
-                      r="1.5"
-                      fill="#FFE7A5"
-                      stroke="#1B2234"
-                      strokeWidth="0.45"
+                      r="4.2"
+                      fill="rgba(255, 231, 165, 0.28)"
+                      stroke="#FFE7A5"
+                      strokeWidth="0.8"
                     />
-                  </svg>
+                  )}
+                  {/* Origin Kitchen Anchor (Wanmin Kitchen, Liyue) */}
+                  <circle
+                    cx={WANMIN_ORIGIN_COORDS.x}
+                    cy={WANMIN_ORIGIN_COORDS.y}
+                    r="1.6"
+                    fill="#FFE7A5"
+                    stroke="#22283A"
+                    strokeWidth="0.5"
+                  />
+                </svg>
 
-                  {/* All 8 Clickable Regional Waypoint Pins */}
-                  {DELIVERY_POINTS.map((point) => {
-                    const isSelected = point.id === selectedPoint.id;
-                    const alignLabelLeft = point.mapCoords.x > 76;
-                    const placeLabelAbove = point.mapCoords.y > 78;
-                    return (
-                      <button
-                        key={point.id}
-                        type="button"
-                        onClick={() => setSelectedPointId(point.id)}
-                        aria-label={`Pilih titik antar ${point.name}, ${point.region}`}
-                        aria-pressed={isSelected}
-                        style={{
-                          left: `${point.mapCoords.x}%`,
-                          top: `${point.mapCoords.y}%`,
-                        }}
-                        className="absolute -translate-x-1/2 -translate-y-1/2 group focus-visible:outline-none z-10"
+                {/* All 8 Clickable Regional Waypoint Pins */}
+                {DELIVERY_POINTS.map((point) => {
+                  const isSelected = point.id === selectedPoint.id;
+                  const alignLabelLeft = point.mapCoords.x > 78;
+                  const placeLabelAbove = point.mapCoords.y > 78;
+                  return (
+                    <button
+                      key={point.id}
+                      type="button"
+                      onClick={() => setSelectedPointId(point.id)}
+                      aria-label={`Pilih titik antar ${point.name}, ${point.region}`}
+                      aria-pressed={isSelected}
+                      style={{
+                        left: `${point.mapCoords.x}%`,
+                        top: `${point.mapCoords.y}%`,
+                      }}
+                      className="absolute -translate-x-1/2 -translate-y-1/2 group focus-visible:outline-none z-10"
+                    >
+                      <span
+                        className={`flex items-center justify-center rounded-full border-2 transition-transform ${
+                          isSelected
+                            ? 'w-7 h-7 bg-[#FFE7A5] border-[#22283A] text-[#22283A] scale-110 shadow-[0_0_14px_rgba(255,231,165,0.95)]'
+                            : 'w-5 h-5 bg-[#22283A]/92 border-[#FFE7A5] text-[#FFE7A5] hover:scale-110'
+                        }`}
                       >
-                        <span
-                          className={`flex items-center justify-center rounded-full border-2 transition-transform ${
-                            isSelected
-                              ? 'w-7 h-7 bg-[#1F2C44] border-[#FFE7A5] text-[#56E2B6] scale-110 shadow-[0_0_14px_rgba(86,226,182,0.85)]'
-                              : 'w-5 h-5 bg-[#1B2234]/92 border-[#FFE7A5]/85 text-[#FFE7A5] hover:scale-110'
-                          }`}
-                        >
-                          <MapPin className={isSelected ? 'w-3.5 h-3.5' : 'w-2.5 h-2.5'} />
-                        </span>
+                        <MapPin className={isSelected ? 'w-3.5 h-3.5' : 'w-2.5 h-2.5'} />
+                      </span>
 
-                        <span
-                          className={`absolute px-1.5 py-0.5 rounded font-genshin text-[8px] leading-none whitespace-nowrap border pointer-events-none shadow ${
-                            placeLabelAbove ? 'bottom-full mb-1' : 'top-full mt-0.5'
-                          } ${
-                            alignLabelLeft ? 'right-0' : 'left-1/2 -translate-x-1/2'
-                          } ${
-                            isSelected
-                              ? 'bg-[#FFE7A5] text-[#242735] border-[#FFFDF8] z-20'
-                              : 'bg-[#192032]/90 text-[#FFF8E7] border-[#FFE7A5]/40'
-                          }`}
-                        >
-                          {point.region}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
+                      <span
+                        className={`absolute px-1.5 py-0.5 rounded font-genshin text-[8px] leading-none whitespace-nowrap border pointer-events-none shadow ${
+                          placeLabelAbove ? 'bottom-full mb-1' : 'top-full mt-0.5'
+                        } ${
+                          alignLabelLeft ? 'right-0' : 'left-1/2 -translate-x-1/2'
+                        } ${
+                          isSelected
+                            ? 'bg-[#FFE7A5] text-[#22283A] border-[#FAF8F2] z-20'
+                            : 'bg-[#22283A]/90 text-[#FFF8E7] border-[#FFE7A5]/45'
+                        }`}
+                      >
+                        {point.region}
+                      </span>
+                    </button>
+                  );
+                })}
 
-                {/* Compact Legend Badge Top-Center over open ocean */}
-                <div className="absolute top-2 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-lg bg-[#192032]/84 border border-[#FFE7A5]/40 text-[9px] text-[#FFF8E7] flex items-center gap-2 pointer-events-none backdrop-blur-sm whitespace-nowrap">
+                {/* Compact Legend Badge Top-Left over open northwestern sea */}
+                <div className="absolute top-2 left-2 px-2.5 py-1 rounded-lg bg-[#22283A]/84 border border-[#FFE7A5]/35 text-[9px] text-[#FFF8E7] flex items-center gap-2 pointer-events-none backdrop-blur-sm whitespace-nowrap">
                   <span className="inline-flex items-center gap-1">
                     <span className="w-2 h-2 rounded-full bg-[#FFE7A5]" />
                     <span>Asal: Wanmin</span>
                   </span>
                   <span className="inline-flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-[#56E2B6]" />
+                    <span className="w-2 h-2 rounded-full bg-[#C87C24] border border-[#FFE7A5]" />
                     <span>Tujuan</span>
                   </span>
                 </div>

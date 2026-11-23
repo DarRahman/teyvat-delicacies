@@ -70,13 +70,13 @@ test('Glider courier continuous trajectory and 8-realm Teyvat delivery map compu
 
   const snezhnaya = DELIVERY_POINTS.find((p) => p.id === 'zapolyarny-palace')!;
   const arc = buildGliderFlightArcPath(WANMIN_ORIGIN_COORDS, snezhnaya.mapCoords);
-  assert.ok(arc.startsWith('M 75.0 45.0 Q '));
-  assert.ok(arc.endsWith('52.0 85.0'));
+  assert.ok(arc.startsWith('M 68.0 65.0 Q '));
+  assert.ok(arc.endsWith('47.0 21.0'));
 
   const nodKrai = DELIVERY_POINTS.find((p) => p.id === 'nasha-outpost')!;
   const arcNod = buildGliderFlightArcPath(WANMIN_ORIGIN_COORDS, nodKrai.mapCoords);
-  assert.ok(arcNod.startsWith('M 75.0 45.0 Q '));
-  assert.ok(arcNod.endsWith('24.0 74.0'));
+  assert.ok(arcNod.startsWith('M 68.0 65.0 Q '));
+  assert.ok(arcNod.endsWith('29.0 37.0'));
 
   const sameSpot = buildGliderFlightArcPath(WANMIN_ORIGIN_COORDS, WANMIN_ORIGIN_COORDS);
   assert.equal(sameSpot, '');

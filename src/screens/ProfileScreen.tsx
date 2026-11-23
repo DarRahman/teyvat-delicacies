@@ -47,8 +47,8 @@ export const ProfileScreen: React.FC = () => {
 
   return (
     <div className="relative flex flex-col h-full bg-transparent">
-      {/* Slim Regal Header */}
-      <header className="px-4 pt-3.5 pb-3 teyvat-chrome-bar border-b-2 border-[#C8A86B]/75 shrink-0 flex items-center justify-between gap-2">
+      {/* Clean Genshin Header (Zero brown border line) */}
+      <header className="px-4 pt-3.5 pb-3 teyvat-chrome-bar shrink-0 flex items-center justify-between gap-2">
         <div>
           <h1 className="font-genshin text-[17px] text-[#FFE7A5] tracking-wide">
             Lisensi Petualang
@@ -397,7 +397,7 @@ export const ProfileScreen: React.FC = () => {
         </section>
       </div>
 
-      {/* WARM PARCHMENT COLLECTIBLE NAMECARD MODAL (All 8 Symmetrical Illustrated Banners) */}
+      {/* WARM PARCHMENT COLLECTIBLE NAMECARD MODAL (Pure Unobstructed Artwork Options) */}
       {isNamecardModalOpen && (
         <div
           role="dialog"
@@ -405,9 +405,9 @@ export const ProfileScreen: React.FC = () => {
           aria-labelledby="namecard-modal-title"
           className="absolute inset-0 z-50 bg-[#1B2234]/68 backdrop-blur-sm flex items-center justify-center p-4"
         >
-          <div className="w-full max-w-[388px] max-h-[88%] rounded-[24px] overflow-hidden border-2 border-[#C8A86B] bg-[#ECE5D8] shadow-2xl flex flex-col animate-modal-enter">
-            {/* Ornamental Slim Indigo Header Crest */}
-            <div className="px-4 py-3.5 teyvat-chrome-bar border-b-2 border-[#C8A86B]/75 flex items-center justify-between gap-2 shrink-0">
+          <div className="w-full max-w-[388px] max-h-[88%] rounded-[24px] overflow-hidden border border-[#D3BC8E] bg-[#ECE5D8] shadow-2xl flex flex-col animate-modal-enter">
+            {/* Clean Genshin Modal Header */}
+            <div className="px-4 py-3.5 teyvat-chrome-bar flex items-center justify-between gap-2 shrink-0">
               <div>
                 <h2
                   id="namecard-modal-title"
@@ -416,33 +416,33 @@ export const ProfileScreen: React.FC = () => {
                   Koleksi Namecard Teyvat
                 </h2>
                 <p className="text-[11px] text-[#C8D0E4]">
-                  Pilih 1 dari {NAMECARDS.length} Namecard resmi untuk spanduk profil
+                  Ketuk gambar untuk memasang spanduk profil
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsNamecardModalOpen(false)}
                 aria-label="Tutup pilihan Namecard"
-                className="w-9 h-9 rounded-full teyvat-chrome-pill text-[#FFE7A5] flex items-center justify-center hover:border-[#FFE7A5]"
+                className="w-9 h-9 rounded-full bg-white/[0.08] text-[#FFE7A5] flex items-center justify-center hover:bg-white/[0.15] transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Live Selected Symmetrical Banner Preview */}
+            {/* Live Selected Symmetrical Banner Preview (Shows active Namecard title & subtitle cleanly) */}
             <div className="px-4 pt-3.5 shrink-0">
-              <div className="relative h-[78px] rounded-xl overflow-hidden border-2 border-[#C8A86B] bg-[#242C42] shadow-sm">
+              <div className="relative h-[82px] rounded-xl overflow-hidden border border-[#D3BC8E] bg-[#242C42] shadow-sm">
                 <img
                   src={activeNamecard.bgImage}
                   alt={activeNamecard.name}
                   className="absolute inset-0 w-full h-full object-cover object-center scale-[1.22]"
                 />
-                <div className="absolute inset-0 bg-gradient-to-r from-[#192032]/86 via-[#192032]/40 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#1C2336]/86 via-[#1C2336]/38 to-transparent" />
                 <div className="relative z-10 h-full px-3.5 flex flex-col justify-center">
                   <span className="text-[10px] uppercase tracking-wider text-[#FFE7A5] font-semibold">
-                    Aktif · {activeNamecard.region}
+                    Dipasang · {activeNamecard.region}
                   </span>
-                  <span className="font-genshin text-[13.5px] text-[#FFFDF5]">
+                  <span className="font-genshin text-[14px] text-[#FFFDF5]">
                     {activeNamecard.name}
                   </span>
                   <span className="text-[10.5px] text-[#E6EBF5] truncate">
@@ -452,54 +452,42 @@ export const ProfileScreen: React.FC = () => {
               </div>
             </div>
 
-            {/* 2-Column Collectible Namecards Grid on Warm Parchment */}
-            <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3 grid grid-cols-2 gap-2.5">
-              {NAMECARDS.map((card) => {
-                const isSelected = card.id === activeNamecard.id;
-                return (
-                  <button
-                    key={card.id}
-                    type="button"
-                    onClick={() => setSelectedNamecard(card.id)}
-                    aria-pressed={isSelected}
-                    className={`rounded-xl overflow-hidden text-left border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C8A86B] flex flex-col shadow-sm ${
-                      isSelected
-                        ? 'border-[#C87C24] ring-2 ring-[#C8A86B]/60 bg-[#FAF8F2]'
-                        : 'border-[#D3BC8E] bg-[#FAF8F2] hover:border-[#9C5A14]'
-                    }`}
-                  >
-                    <div className="relative h-[68px] w-full bg-[#242C42] overflow-hidden">
+            {/* 2-Column Pure Visual Namecard Artwork Grid (Zero text covering art, full height guaranteed) */}
+            <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar px-4 py-3.5">
+              <div className="grid grid-cols-2 gap-2.5">
+                {NAMECARDS.map((card) => {
+                  const isSelected = card.id === activeNamecard.id;
+                  return (
+                    <button
+                      key={card.id}
+                      type="button"
+                      onClick={() => setSelectedNamecard(card.id)}
+                      aria-label={card.name}
+                      aria-pressed={isSelected}
+                      className={`relative h-[76px] w-full rounded-xl overflow-hidden bg-[#242C42] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C8A86B] shadow-sm ${
+                        isSelected
+                          ? 'ring-2 ring-[#C87C24] border-2 border-[#FFE7A5] scale-[1.01]'
+                          : 'border border-[#D3BC8E] hover:border-[#9C5A14]'
+                      }`}
+                    >
                       <img
                         src={card.bgImage}
                         alt={card.name}
-                        className="absolute inset-0 w-full h-full object-cover object-center scale-[1.24]"
+                        className="absolute inset-0 w-full h-full object-cover object-center scale-[1.24] pointer-events-none select-none"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#192032]/75 via-transparent to-transparent" />
                       {isSelected && (
-                        <span className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-[#FFE7A5] border border-[#9C5A14] text-[#242735] flex items-center justify-center shadow">
+                        <span className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-[#FFE7A5] border border-[#9C5A14] text-[#242735] flex items-center justify-center shadow-md">
                           <Check className="w-3.5 h-3.5 stroke-[3]" />
                         </span>
                       )}
-                      <span className="absolute bottom-1.5 left-2 px-1.5 py-0.5 rounded bg-[#192032]/82 border border-[#FFE7A5]/35 text-[9px] font-semibold text-[#FFE7A5]">
-                        {card.region}
-                      </span>
-                    </div>
-
-                    <div className="p-2 text-[#242735]">
-                      <div className="font-genshin text-[10.5px] leading-snug truncate">
-                        {card.name}
-                      </div>
-                      <div className="text-[9.5px] text-[#5B6073] truncate mt-0.5">
-                        {isSelected ? 'Sedang dipasang' : card.subtitle}
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Warm Parchment Modal Footer */}
-            <div className="px-4 py-3 bg-[#F4EFE4] border-t border-[#D3BC8E] shrink-0">
+            <div className="px-4 py-3 bg-[#F4EFE4] border-t border-[#E2D8C5] shrink-0">
               <GoldCapsuleButton onClick={() => setIsNamecardModalOpen(false)}>
                 Terapkan Namecard
               </GoldCapsuleButton>

@@ -322,7 +322,28 @@ export const BuffBadge: React.FC<{
   );
 };
 
-/** Floating Quick Cart Bar (Regal Indigo-Gold Floating Bar above Bottom Nav) */
+/** Authentic Genshin Wind Glider Wing Crest SVG */
+export const WindGliderIcon: React.FC<{ className?: string }> = ({
+  className = 'w-5 h-5',
+}) => (
+  <svg
+    viewBox="0 0 28 28"
+    fill="none"
+    className={className}
+    aria-hidden="true"
+  >
+    <path
+      d="M14 7.5C11.2 6.8 6.4 7.6 3 10.6C5.5 11.4 8 12.1 10.4 13.4C7.9 14.2 5.9 15.5 4.4 17.3C7.8 17.2 10.9 16.4 13.4 14.9L14 19.8L14.6 14.9C17.1 16.4 20.2 17.2 23.6 17.3C22.1 15.5 20.1 14.2 17.6 13.4C20 12.1 22.5 11.4 25 10.6C21.6 7.6 16.8 6.8 14 7.5Z"
+      fill="currentColor"
+    />
+    <path
+      d="M14 4.2L15.4 7.5L14 9.5L12.6 7.5L14 4.2Z"
+      fill="#FFE7A5"
+    />
+  </svg>
+);
+
+/** Floating Quick Cart Bar (Clean Genshin Slate Bar above Bottom Nav) */
 export const FloatingQuickCartBar: React.FC<{
   itemCount: number;
   totalMora: number;
@@ -335,12 +356,12 @@ export const FloatingQuickCartBar: React.FC<{
       <button
         type="button"
         onClick={onOpenCart}
-        className="w-full min-h-[54px] px-3.5 py-2 rounded-2xl teyvat-chrome-bar border border-[#C8A86B] shadow-[0_8px_20px_rgba(36,39,53,0.28)] flex items-center justify-between gap-2 active:scale-[0.985] transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE7A5]"
+        className="w-full min-h-[54px] px-3.5 py-2 rounded-2xl teyvat-chrome-bar border border-[#FFE7A5]/30 shadow-[0_8px_20px_rgba(32,38,56,0.28)] flex items-center justify-between gap-2 active:scale-[0.985] transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE7A5]"
       >
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-9 h-9 rounded-full bg-[#FFE7A5]/15 border border-[#FFE7A5]/60 flex items-center justify-center shrink-0 relative">
+          <div className="w-9 h-9 rounded-full bg-[#FFE7A5]/12 flex items-center justify-center shrink-0 relative">
             <ShoppingBag className="w-4 h-4 text-[#FFE7A5]" />
-            <span className="font-genshin absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[#C87C24] border border-[#FFE7A5] text-[10px] font-bold text-[#FFF9EB] flex items-center justify-center tabular-nums">
+            <span className="font-genshin absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[#C87C24] text-[10px] font-bold text-[#FFF9EB] flex items-center justify-center tabular-nums">
               {itemCount}
             </span>
           </div>
@@ -360,7 +381,7 @@ export const FloatingQuickCartBar: React.FC<{
   );
 };
 
-/** 4-Tab Bottom Navigation Bar with Regal Starry-Indigo & Brushed Gold Top Trim */
+/** 4-Tab Bottom Navigation Bar (Clean Genshin Charcoal-Indigo, Zero Brown Divider Line) */
 export const BottomNavBar: React.FC<{
   activeTab: TabId;
   cartCount: number;
@@ -380,7 +401,7 @@ export const BottomNavBar: React.FC<{
   return (
     <nav
       aria-label="Navigasi Utama"
-      className="h-[66px] teyvat-chrome-bar border-t-2 border-[#C8A86B]/75 grid grid-cols-4 items-center px-2 shrink-0"
+      className="h-[66px] teyvat-chrome-bar shadow-[0_-4px_16px_rgba(32,38,56,0.12)] grid grid-cols-4 items-center px-2 shrink-0"
     >
       {tabs.map(({ id, label, Icon }) => {
         const isActive = activeTab === id;
@@ -399,14 +420,14 @@ export const BottomNavBar: React.FC<{
           >
             {isActive && (
               <span
-                className="absolute top-0.5 w-8 h-[2.5px] rounded-full bg-[#FFE7A5]"
+                className="absolute top-0.5 w-7 h-[2px] rounded-full bg-[#FFE7A5]"
                 aria-hidden="true"
               />
             )}
             <div className="relative">
               <Icon className="w-[19px] h-[19px]" />
               {id === 'keranjang' && cartCount > 0 && (
-                <span className="font-genshin absolute -top-1.5 -right-2.5 min-w-[17px] h-[17px] px-1 rounded-full bg-[#C87C24] border border-[#FFE7A5] text-[9px] font-bold text-[#FFF9EB] flex items-center justify-center tabular-nums">
+                <span className="font-genshin absolute -top-1.5 -right-2.5 min-w-[17px] h-[17px] px-1 rounded-full bg-[#C87C24] text-[9px] font-bold text-[#FFF9EB] flex items-center justify-center tabular-nums">
                   {cartCount > 99 ? '99+' : cartCount}
                 </span>
               )}
@@ -431,9 +452,9 @@ export const TeyvatToast: React.FC<{ message: string | null }> = ({ message }) =
       aria-live="polite"
       className="absolute bottom-[78px] left-4 right-4 z-[60] pointer-events-none flex justify-center animate-modal-enter"
     >
-      <div className="px-3.5 py-2 rounded-xl bg-[#FAF8F2] border border-[#C8A86B] shadow-[0_6px_18px_rgba(36,39,53,0.22)] flex items-center gap-2 max-w-[360px]">
+      <div className="px-3.5 py-2 rounded-xl bg-[#FAF8F2] border border-[#D3BC8E] shadow-[0_6px_18px_rgba(36,39,53,0.18)] flex items-center gap-2 max-w-[360px]">
         <DiamondBullet size={7} className="text-[#C87C24]" />
-        <span className="text-[12px] font-semibold text-[#242735] leading-snug">
+        <span className="text-[12px] font-semibold text-[#2C3040] leading-snug">
           {message}
         </span>
       </div>

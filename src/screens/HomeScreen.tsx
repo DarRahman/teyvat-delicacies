@@ -68,15 +68,15 @@ export const HomeScreen: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full bg-transparent">
-      {/* Slim Regal Traveler Header Bar with Brushed Antique Gold Border */}
-      <header className="px-4 pt-3.5 pb-3 teyvat-chrome-bar border-b-2 border-[#C8A86B]/75 shrink-0">
+      {/* Clean Genshin Charcoal-Indigo Traveler Header (No brown line, borderless Mora HUD) */}
+      <header className="px-4 pt-3.5 pb-3 teyvat-chrome-bar shrink-0">
         <div className="flex items-center justify-between gap-2">
           <button
             type="button"
             onClick={() => setActiveTab('profil')}
             className="flex items-center gap-2.5 min-w-0 text-left group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE7A5] rounded-xl pr-1"
           >
-            <div className="w-10 h-10 rounded-full overflow-hidden border-[1.5px] border-[#FFE7A5] bg-[#252D44] shrink-0">
+            <div className="w-10 h-10 rounded-full overflow-hidden border-[1.5px] border-[#FFE7A5]/85 bg-[#252D44] shrink-0">
               <TeyvatImage
                 src={profile.avatarUrl}
                 fallbackSrc={profile.fallbackAvatarUrl}
@@ -94,24 +94,24 @@ export const HomeScreen: React.FC = () => {
             </div>
           </button>
 
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
               onClick={() => setActiveTab('profil')}
-              className="min-h-[36px] px-2.5 py-1 rounded-full teyvat-chrome-pill flex items-center gap-1 hover:border-[#FFE7A5] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE7A5]"
+              className="min-h-[36px] px-1 py-1 flex items-center gap-1 hover:opacity-85 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE7A5] rounded-lg"
               title="Saldo Mora Aktif"
             >
-              <MoraAmount amount={profile.moraBalance} size="xs" className="text-[#FFE7A5]" />
+              <MoraAmount amount={profile.moraBalance} size="sm" className="text-[#FFE7A5]" />
             </button>
 
             <button
               type="button"
               onClick={toggleBgm}
               aria-label={bgmEnabled ? 'Matikan musik latar' : 'Nyalakan musik latar'}
-              className={`w-9 h-9 rounded-full border flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE7A5] ${
+              className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE7A5] ${
                 bgmEnabled
-                  ? 'bg-[#FFE7A5]/15 border-[#FFE7A5]/75 text-[#FFE7A5]'
-                  : 'bg-[#161B2A]/65 border-[#FFE7A5]/30 text-[#B6C0D9] hover:text-[#FFE7A5]'
+                  ? 'bg-[#FFE7A5]/16 text-[#FFE7A5]'
+                  : 'bg-white/[0.06] text-[#B6C0D9] hover:text-[#FFE7A5]'
               }`}
             >
               {bgmEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}

@@ -30,8 +30,8 @@ export const ASSET_ICONS = {
   dishDetailBg: '/assets/backgrounds/dish_detail_bg.webp',
   constellationBg: '/assets/backgrounds/constellation_stars_bg.webp',
   resultCardBg: '/assets/ui/result_card_bg.webp',
-  teyvatMap: '/assets/map/teyvat_world_map.webp',
-  teyvatMapHd: '/assets/map/teyvat_world_map_hd.webp',
+  teyvatMap: '/assets/aistudio/z1d2ondu0f0i1_adaa1127.png',
+  teyvatMapHd: '/assets/aistudio/z1d2ondu0f0i1_adaa1127.png',
 };
 
 export const BUFF_META: Record<
@@ -575,7 +575,7 @@ export const COUPONS: Coupon[] = [
   },
 ];
 
-export const WANMIN_ORIGIN_COORDS = { x: 75, y: 45 };
+export const WANMIN_ORIGIN_COORDS = { x: 68, y: 65 };
 
 export const DELIVERY_POINTS: DeliveryPoint[] = [
   {
@@ -584,7 +584,7 @@ export const DELIVERY_POINTS: DeliveryPoint[] = [
     region: 'Mondstadt',
     landmark: 'Gerbang Utama Markas Besar · Dekat Patung Barbatos',
     etaMinutes: 15,
-    mapCoords: { x: 86, y: 56 },
+    mapCoords: { x: 75, y: 54 },
   },
   {
     id: 'wanmin-terrace',
@@ -592,7 +592,7 @@ export const DELIVERY_POINTS: DeliveryPoint[] = [
     region: 'Liyue',
     landmark: 'Pelabuhan Chihu Rock · Meja Lentera Chef Xiangling',
     etaMinutes: 12,
-    mapCoords: { x: 75, y: 45 },
+    mapCoords: { x: 68, y: 65 },
   },
   {
     id: 'narukami-shrine',
@@ -600,7 +600,7 @@ export const DELIVERY_POINTS: DeliveryPoint[] = [
     region: 'Inazuma',
     landmark: 'Puncak Mt. Yougou · Dekat Pohon Sacred Sakura',
     etaMinutes: 18,
-    mapCoords: { x: 91, y: 24 },
+    mapCoords: { x: 91, y: 81 },
   },
   {
     id: 'akademiya-courtyard',
@@ -608,7 +608,7 @@ export const DELIVERY_POINTS: DeliveryPoint[] = [
     region: 'Sumeru',
     landmark: 'Gerbang Sanctuary of Surasthana · Jalur Rampai',
     etaMinutes: 15,
-    mapCoords: { x: 63, y: 35 },
+    mapCoords: { x: 58, y: 69 },
   },
   {
     id: 'maison-cardinalice',
@@ -616,7 +616,7 @@ export const DELIVERY_POINTS: DeliveryPoint[] = [
     region: 'Fontaine',
     landmark: 'Maison Cardinalice · Palais Mermonia Plaza',
     etaMinutes: 16,
-    mapCoords: { x: 59, y: 55 },
+    mapCoords: { x: 52, y: 47 },
   },
   {
     id: 'tequemecan-springs',
@@ -624,7 +624,7 @@ export const DELIVERY_POINTS: DeliveryPoint[] = [
     region: 'Natlan',
     landmark: 'Stadium of the Sacred Flame · Teras Api Abadi',
     etaMinutes: 17,
-    mapCoords: { x: 20, y: 24 },
+    mapCoords: { x: 33, y: 74 },
   },
   {
     id: 'nasha-outpost',
@@ -632,7 +632,7 @@ export const DELIVERY_POINTS: DeliveryPoint[] = [
     region: 'Nod-Krai',
     landmark: 'Dermaga Frostmoon · Mercusuar Perbatasan Utara',
     etaMinutes: 20,
-    mapCoords: { x: 24, y: 74 },
+    mapCoords: { x: 29, y: 37 },
   },
   {
     id: 'zapolyarny-palace',
@@ -640,7 +640,7 @@ export const DELIVERY_POINTS: DeliveryPoint[] = [
     region: 'Snezhnaya',
     landmark: 'Alun-Alun Istana Salju · Gerbang Northland Bank',
     etaMinutes: 22,
-    mapCoords: { x: 52, y: 85 },
+    mapCoords: { x: 47, y: 21 },
   },
 ];
 
