@@ -1,37 +1,40 @@
-# DESIGN.md — Teyvat Delicacies Design System & Specification
+# DESIGN.md — Teyvat Delicacies Modern Design Specification
 
-Dokumen spesifikasi desain antarmuka resmi untuk **Teyvat Delicacies**, mendokumentasikan sistem token visual, hierarki tata letak, komponen diegetic, dan standar estetika RPG fantasi sesuai arsitektur implementasi terbaru.
+Dokumen spesifikasi desain antarmuka resmi untuk **Teyvat Delicacies**, mendokumentasikan sistem token visual, hierarki tata letak layar penuh (*edge-to-edge*), komponen diegetic, dan standar estetika RPG modern berbasis perpaduan *in-game Genshin Impact* dan *HoYoLAB Battle Chronicle*.
 
 ---
 
-## 1. Design Philosophy & Aesthetic Identity
+## 1. Aesthetic Identity & Design Philosophy
 
-* **Diegetic RPG Interface**: Mengadopsi bahasa antarmuka resmi *in-game Genshin Impact* (bukan template SaaS / e-commerce datar). Menghadirkan atmosfer lembaran gulungan resep kuno dan buku petualang (*adventurer's handbook*).
-* **Color Balance (65% Warm Parchment / 35% Obsidian Framing)**:
-  * Kanvas utama konten adalah lembaran perkamen antik krem tebal (`#ECE5D8` / `#E9E5DC`), memberikan keterbacaan tinggi dan nuansa kertas kuno.
-  * Langit malam obsidian berbintang (`#120F1D` / `#171421`) berfungsi sebagai bingkai luar dan penegas kedalaman kontras visual.
-* **Zero Unicode Emojis**: Dilarang total menggunakan emoji bawaan OS. Seluruh ikonografi menggunakan aset transparan PNG resolusi tinggi atau vektor SVG berlian resmi.
+* **Modern RPG & HoYoLAB Chronicle Elegance**: Mengadopsi arsitektur visual resmi HoYoLAB dan menu in-game Genshin. Menghadirkan keseimbangan antara kanvas kosmik yang bernafas (*breathing cosmic canvas*), lembaran kartu gading kuno (*ivory parchment cards*), dan akrilik kaca transparan (*glassmorphism*).
+* **True Fullscreen / Edge-to-Edge Canvas**: 
+  * Pada perangkat smartphone mobile, antarmuka mengalir 100% penuh dari ujung ke ujung (*full bleed*), tanpa bingkai luar mengambang (*no outer inset border*) yang membungkus atau mencekik konten.
+  * Kartu-kartu data di dalam layar memiliki margin samping internal standar (`px-4`) dengan sudut membulat mewah (`rounded-2xl`).
+* **Atmospheric Translucency (Tidak Segelap Itu)**:
+  * Menghindari warna hitam pekat mati. Latar belakang kanvas mengadopsi gradasi *Midnight Slate & Cosmic Indigo* (`#1E2333` ke `#141824`) bertekstur bintang lembut.
+  * Elemen bilah atas (*top bar*), bilah tab bawah, dan kartu status mengadopsi akrilik kaca transparan (`backdrop-blur-md bg-[#1E2333]/70` berbingkai emas tipis `#FFE7A5`/25).
+* **Zero Unicode Emojis**: Seluruh ikonografi wajib menggunakan aset vektor SVG berlian resmi atau gambar transparan PNG beresolusi tinggi.
 
 ---
 
 ## 2. Color Palette & Design Tokens
 
-### Primary Surfaces & Canvases
-| Token Name | Hex Code | Penggunaan |
+### Primary Surfaces & Backdrops
+| Token Name | Hex / RGBA | Peran & Penggunaan |
 | :--- | :--- | :--- |
-| `surface-canvas-night` | `#120F1D` | Latar belakang desktop & kanvas luar viewport |
-| `surface-header-night` | `#171421` | Bilah atas header traveler & bilah tab bawah |
-| `surface-sheet-parchment`| `#ECE5D8` | Lembaran dialog utama konten menu |
-| `surface-card-parchment` | `#E9E5DC` | Permukaan tubuh kartu makanan (*two-tone bottom*) |
-| `surface-inset-cream` | `#F5F2EB` | Kolom input pencarian & wadah kartu dalam |
+| `surface-canvas-slate` | `#1A1F2C` / `#1E2333` | Kanvas latar belakang utama yang sejuk dan bernafas |
+| `surface-glass-midnight`| `rgba(28, 34, 52, 0.72)` | Bilah atas profil traveler & bilah tab navigasi bawah |
+| `surface-card-parchment`| `#F7F4EE` / `#ECE5D8` | Permukaan utama kartu hidangan, rincian pesanan, & dompet |
+| `surface-inset-parchment`| `#EFECE3` | Kolom input pencarian, catatan chef, & wadah stepper |
+| `surface-tag-glass` | `rgba(22, 27, 42, 0.65)` | Lencana statistik petualang di atas banner Namecard |
 
-### Borders & Accent Trims
-| Token Name | Hex Code | Penggunaan |
+### Accents & Borders
+| Token Name | Hex Code | Peran & Penggunaan |
 | :--- | :--- | :--- |
-| `border-gold-accent` | `#FFE7A5` | Stroke aksen emas, lencana aktif, highlight sudut |
-| `border-gold-hairline`| `#D3BC8E` | Garis pembatas kartu perkamen & pembagi berlian |
-| `border-indigo-rim` | `#5D5187` | Garis tepi luar modul dialog & ring penegas kontras |
-| `border-gold-banner` | `#C8A86B` | Bingkai kartu festival dan lisensi petualang |
+| `accent-gold-primary` | `#FFE7A5` | Teks judul aktif, pendaran status, ikon koin Mora, ring aktif |
+| `border-gold-hairline` | `#D3BC8E` | Garis tepi kartu perkamen gading & pembagi berlian |
+| `border-glass-rim` | `rgba(255, 231, 165, 0.22)`| Stroke pembatas akrilik kaca transparan |
+| `accent-anemo-teal` | `#56E2B6` | Pendaran kursor angin pelacakan kurir glider & status kilat |
 
 ### Rarity Grading Spectrum
 | Rarity Tier | Header Hex | Linear Gradient | Asset Watermark |
@@ -46,49 +49,30 @@ Dokumen spesifikasi desain antarmuka resmi untuk **Teyvat Delicacies**, mendokum
 
 ## 3. Typography Hierarchy
 
-* **Display & Title Font**: `GenshinFont` (`HYWenHei 85W` - `assets/fonts/GenshinFont.ttf`).
-  * Digunakan pada: Judul aplikasi, nama hidangan, harga Mora, nama kategori, tajuk tab, dan modal dialog.
+* **Display & RPG Title**: `GenshinFont` (`HYWenHei 85W` - `/assets/fonts/GenshinFont.ttf`).
+  * Digunakan pada: Judul aplikasi, nama hidangan, harga Mora, nama kategori, tajuk tab, dan modal dialog petualang.
 * **Body & UI Font**: `Plus Jakarta Sans`, `-apple-system`, `BlinkMacSystemFont`, `sans-serif`.
-  * Digunakan pada: Deskripsi masakan, *lore*, teks bantuan, dan teks sekunder.
-* **Numerical Standard**: Seluruh angka harga Mora, saldo, kuantitas stepper, UID, dan hitungan mundur wajib menerapkan `tabular-nums` untuk perataan presisi.
+  * Digunakan pada: Deskripsi masakan, *lore*, teks bantuan, dan teks status kurir.
+* **Numerical Standard**: Seluruh angka harga Mora, saldo dompet, kuantitas stepper, UID petualang, dan hitungan mundur wajib menerapkan `tabular-nums` untuk perataan angka monospace.
 
 ---
 
-## 4. Component Architectures
+## 4. Component Architectures & Guidelines
 
-### 1. Two-Tone Food Card
-* **Header Kelangkaan (Top 40%)**:
-  * Gradasi warna sesuai bintang kelangkaan.
-  * Watermark cincin Triquetra resmi (`bg_1star` s/d `bg_5star`) dengan `opacity: 0.35` dan `mix-blend-mode: overlay`.
-  * Ilustrasi masakan PNG transparan beresolusi tinggi yang menyembul keluar melintasi batas pembatas (*overlapping depth*).
-  * Di balik hidangan terdapat *radial illumination halo* lembut: `radial-gradient(circle at center, rgba(255, 231, 165, 0.42) 0%, transparent 68%)`.
-  * Bintang berlian 4-sisi emas di pojok kiri bawah header.
-* **Tubuh Perkamen (Bottom 60%)**:
-  * Warna dasar `#E9E5DC` dengan judul tegas font Genshin.
-  * Lencana buff tempur resmi (*ATK, DEF, HP, Stamina*).
-  * Harga Mora dengan ikon koin emas resmi dan tombol cepat `+` berlapis emas.
+### 1. Edge-to-Edge Screen Architecture
+* **Tidak Ada Pembungkus Mengambang (*No Outer Box Wrapper*)**: Konten utama mengisi 100% lebar viewport smartphone. Ruang bernafas diciptakan melalui padding horizontal internal komponen (`px-4`), bukan margin luar layout.
+* **Translucent Floating Header**: Header traveler melayang lembut di bagian atas layar dengan efek blur kaca (`backdrop-blur-md`), memperlihatkan latar belakang kosmik saat pengguna menggulir konten.
 
-### 2. Primary Gold Capsule Button (`teyvat-gold-btn`)
-* **Bentuk**: Kapsul lonjong memanjang (*full-rounded*).
-* **Gradasi**: `linear-gradient(180deg, #ECE5D8 0%, #D3BC8E 100%)`.
-* **Border**: `1.5px solid #FFE7A5`.
-* **Teks**: Bold `#3B4255`, font `GenshinFont`.
-* **Efek Interaksi**: `active:scale-[0.98]` dengan bayangan jatuh tipis metalik.
+### 2. Glider Delivery Progress Tracker (3-Point Waypoint System)
+* Menggantikan bilah persentase statis dengan lintasan penerbangan 3 stasiun resmi:
+  * **Titik 1 (Dapur Teyvat)**: Titik tolak pesanan dengan ikon tungku/koki.
+  * **Titik 2 (Kurir di Udara)**: Kursor angin melayang dengan pendaran Anemo teal `#56E2B6` dan cincin emas.
+  * **Titik 3 (Lokasi Tujuan)**: Waypoint teleportasi wilayah pemesan (misal: *Grand Narukami Shrine, Inazuma*).
+* Garis lintasan menghubungkan stasiun secara presisi dari 0% hingga 100% tanpa celah putus di ujung kanan.
 
-### 3. Quick Cart Bar (Floating Traveler's Bag)
-* Melayang di atas bilah navigasi bawah pada tab Beranda dan Katalog saat ada pesanan aktif.
-* Latar belakang `#252038` dengan border emas tipis `#FFE7A5` dan efek blur latar belakang.
-* Menampilkan jumlah hidangan, kalkulasi total Mora, dan tombol *"Buka Tas Petualang"*.
+### 3. Two-Tone Food Card
+* **Header Kelangkaan (Top 40%)**: Gradasi kelangkaan bintang dengan watermark cincin Triquetra resmi (`bg_1star` s/d `bg_5star`, `opacity: 0.35`), pendaran radial lembut di belakang hidangan PNG transparan.
+* **Tubuh Kartu Gading (Bottom 60%)**: Latar krem gading lembut `#F7F4EE` bergaris emas tipis `#D3BC8E`, lencana buff tempur resmi, harga Mora dengan koin resmi, dan tombol cepat `+`.
 
-### 4. Bottom Navigation Bar (4 Tab Resmi Dosen)
-* **Tab 1 — Beranda (`home`)**: Sambutan Traveler Badar Rahman, Banner Festival Kuliner, Kategori Cepat, 5 Rekomendasi Pilihan Chef Xiangling.
-* **Tab 2 — Katalog (`catalog`)**: Daftar lengkap 16+ hidangan Teyvat dengan FlatList/grid, bilah pencarian nama, filter 8 wilayah, dan filter stat tempur.
-* **Tab 3 — Keranjang (`cart`)**: Tas petualang, daftar pesanan, stepper jumlah (`- / +`), penukaran voucher Intertwined Fate, dan ringkasan tagihan Mora.
-* **Tab 4 — Profil (`profile`)**: Lisensi Petualang UID 14524303, dompet Teyvat (Mora/Primogem), pengaturan audio, dan riwayat pesanan.
-
----
-
-## 5. Viewport & Presentation Standard
-
-* **Desktop Presentation**: Tampil terpusat dalam bingkai smartphone presisi (`420px × 840px`) bersudut membulat `36px` dengan bayangan dramatis dan latar belakang langit konstelasi malam `constellation_stars_bg.webp`.
-* **Mobile Touch Canvas**: Otomatis memenuhi 100% layar sentuh smartphone (*100dvh full-screen viewport*) dengan area sentuh minimum 44×44px di setiap tombol interaktif.
+### 4. Floating Quick Cart Bar (Tas Petualang)
+* Melayang elegan di atas bilah navigasi dengan akrilik kaca gelap transparan (`rgba(28, 34, 52, 0.85)`), ring emas tipis, dan efek blur latar belakang.
