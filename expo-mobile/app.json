@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "Teyvat Delicacies",
+    "slug": "teyvat-delicacies",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#120F1D",
+    "ios": {
+      "supportsTablet": false
+    },
+    "android": {
+      "package": "com.darrahman.teyvatdelicacies",
+      "adaptiveIcon": {
+        "backgroundColor": "#120F1D",
+        "foregroundImage": "./assets/android-icon-foreground.png"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
