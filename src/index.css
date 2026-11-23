@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'GenshinFont';
+  src: url('/assets/fonts/GenshinFont.ttf') format('truetype');
+  font-display: swap;
+}
+
+.font-genshin {
+  font-family: 'GenshinFont', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #5D5187;
+  border-radius: 4px;
+}
