@@ -8,11 +8,135 @@
   font-display: swap;
 }
 
-.font-genshin {
-  font-family: 'GenshinFont', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background-color: #120F1D;
+    color: #E9E5DC;
+  }
 }
 
-/* Custom scrollbar */
+.font-genshin {
+  font-family: 'GenshinFont', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.teyvat-gold-btn {
+  background: linear-gradient(180deg, #ECE5D8 0%, #D3BC8E 100%);
+  border: 1.5px solid #FFE7A5;
+  color: #3B4255;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.teyvat-gold-btn:hover:not(:disabled) {
+  background: linear-gradient(180deg, #F5EFE4 0%, #DEC99E 100%);
+  box-shadow: 0 6px 18px rgba(255, 231, 165, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+.teyvat-gold-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.teyvat-parchment {
+  background-color: #E9E5DC;
+  color: #2B2D3A;
+}
+
+.teyvat-cream-input {
+  background-color: #F5F2EB;
+  color: #2B2D3A;
+  box-shadow: inset 0 2px 4px rgba(29, 26, 42, 0.08);
+}
+
+/* Subtle animations respecting compositor-only properties */
+@keyframes floatSlow {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes pulseSoft {
+  0%, 100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUpModal {
+  0% {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slideInRight {
+  0% {
+    opacity: 0;
+    transform: translateX(18px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes gliderDrift {
+  0%, 100% {
+    transform: translateY(0px) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-4px) rotate(2deg);
+  }
+}
+
+.animate-float-slow {
+  animation: floatSlow 4s ease-in-out infinite;
+}
+
+.animate-pulse-soft {
+  animation: pulseSoft 2.4s ease-in-out infinite;
+}
+
+.animate-modal-enter {
+  animation: slideUpModal 220ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-stack-enter {
+  animation: slideInRight 180ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-glider {
+  animation: gliderDrift 2.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float-slow,
+  .animate-pulse-soft,
+  .animate-modal-enter,
+  .animate-stack-enter,
+  .animate-glider {
+    animation: none;
+  }
+}
+
+/* Hide scrollbars on horizontal filter rails while keeping scroll */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Custom vertical scrollbar inside mobile canvas */
 ::-webkit-scrollbar {
   width: 4px;
   height: 4px;
@@ -21,6 +145,6 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #5D5187;
+  background: rgba(93, 81, 135, 0.65);
   border-radius: 4px;
 }
