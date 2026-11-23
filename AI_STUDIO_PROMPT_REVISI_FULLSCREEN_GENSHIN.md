@@ -1,34 +1,54 @@
-# Prompt Google AI Studio / Stitch: Redesain Antarmuka Fullscreen & Estetika HoYoLAB Chronicle
+# Unified Master Prompt for Google AI Studio / Stitch (English)
 
-Salin teks prompt di bawah ini langsung ke dalam kolom instruksi **Google AI Studio / Stitch**. Prompt ini dirancang secara deskriptif mendalam untuk mengarahkan model menghadirkan antarmuka mobile layar penuh (*edge-to-edge*) yang bernafas, cerah elegan, dan transparan layaknya aplikasi resmi HoYoLAB dan Genshin Impact.
+Copy and paste the exact prompt below directly into **Google AI Studio / Stitch**. It unifies the previous feature enhancements (Namecard showcase, Interactive Teyvat map modal, Celestia entrance) with the latest mobile fullscreen refinements, HoYoLAB Chronicle translucent aesthetics, glider tracking alignment, and official asset fixes.
 
 ---
 
 ```markdown
-Transformasikan antarmuka mobile "Teyvat Delicacies" agar mengadopsi estetika resmi modern HoYoLAB Battle Chronicle dan menu petualang in-game Genshin Impact dengan standar tata letak layar penuh (edge-to-edge), atmosfer kosmik transparan (tidak gelap pekat), dan penyelarasan komponen yang presisi:
+Please refine the visual identity, mobile screen architecture, and feature depth of "Teyvat Delicacies" to achieve full in-game Genshin Impact and official HoYoLAB Chronicle immersion, seamlessly integrating the newly added official assets in the repository:
 
-1. Konsep Tata Letak Layar Penuh (True Edge-to-Edge Fullscreen Canvas):
-- Hilangkan sepenuhnya struktur "konten dibungkus kotak mengambang" (outer inset border atau margin luar samping yang mencekik kanvas utama).
-- Pada viewport smartphone, kanvas halaman wajib membentang penuh 100% dari tepi kiri ke kanan layar (full bleed) dan mengalir mulus dari puncak status bar hingga bilah navigasi bawah.
-- Ruang bernafas diciptakan secara alami melalui padding horizontal internal di masing-masing modul kartu konten (standar px-4), bukan dengan mengecilkan wadah utama halaman.
+1. TRUE EDGE-TO-EDGE FULLSCREEN MOBILE CANVAS (ELIMINATING THE "INSET BOX" TRAP):
+   - Eliminate the restrictive outer inset container wrapper (remove outer horizontal margins like px-2.5 and rounded sheet corners that squeeze the main page into a floating card with dark borders on the left, right, and bottom).
+   - On smartphone viewports, ensure the background canvas extends 100% full bleed from edge to edge and flows naturally from the status bar down to the bottom navigation bar.
+   - Internal breathing room and gutters must be created naturally inside each content card and section (standard px-4), giving the app a native, expansive, and comfortable mobile feel.
 
-2. Palet Warna & Transparansi Bernafas (Atmospheric Translucency ala HoYoLAB):
-- Hindari warna hitam pekat mati. Kanvas utama menggunakan nuansa Midnight Slate dan Cosmic Indigo yang sejuk, lapang, dan bernafas (#1A1F2C hingga #1E2333) dengan pendaran bintang lembut di latar belakang.
-- Bilah navigasi atas (Traveler Header) dan bilah navigasi bawah (4 Tab Navigasi) menerapkan efek akrilik kaca transparan (glassmorphism: backdrop-blur-md dengan latar semi-transparan rgba(28, 34, 52, 0.75) dan garis tepi emas tipis rgba(255, 231, 165, 0.25)).
-- Permukaan kartu informasi (kartu hidangan dua warna, rincian pesanan, dan dompet petualang) menggunakan permukaan perkamen gading kuno (Ivory Parchment #F7F4EE / #ECE5D8) bergaris tepi emas tipis #D3BC8E, menghadirkan kontras tinggi yang sangat bersih dan mudah dibaca.
+2. ATMOSPHERIC TRANSLUCENCY & HOYOLAB CHRONICLE AESTHETICS (AVOIDING FLAT BLACK):
+   - Replace oppressive solid pitch-black surfaces with an elegant, breathing Midnight Slate and Cosmic Indigo palette (#1A1F2C to #1E2333) featuring subtle ambient cosmic stardust.
+   - Implement authentic glassmorphism for top traveler headers and bottom tab navigation: semi-transparent backdrops (rgba(28, 34, 52, 0.75) with backdrop-blur-md) bordered with delicate hairline gold trims (rgba(255, 231, 165, 0.25)).
+   - Data cards (recipe cards, order summaries, wallet panels) must rest on luminous, clean Ivory Parchment surfaces (#F7F4EE to #ECE5D8) with soft gold borders (#D3BC8E), delivering pristine readability and a luxurious anime-RPG finish.
 
-3. Penyelarasan Sistem Pelacakan Kurir Glider (OrderStatusScreen):
-- Rancang ulang bilah progres pengantaran kurir glider agar selaras sempurna dari titik asal hingga tujuan akhir (3-Point Waypoint Expedition):
-  * Titik 1 (Awal): Dapur Teyvat (0% progres) dengan ikon tungku persiapan.
-  * Titik 2 (Tengah): Kurir Glider di Udara (50% progres) dengan kursor angin Anemo yang melayang presisi di tengah garis dan berpendar cahaya toska-emas (#56E2B6 dan #FFE7A5).
-  * Titik 3 (Tujuan): Waypoint Teleportasi Wilayah Pemesan (100% progres, misal: Grand Narukami Shrine, Inazuma).
-- Garis lintasan emas harus terhubung penuh dan menyentuh stasiun tujuan secara proporsional tanpa terpotong atau menyisakan celah kosong di ujung kanan.
-- Bagian rincian pesanan kuliner di bawahnya menyatu dalam kartu perkamen gading edge-to-edge yang rapi.
+3. COLLECTIBLE NAMECARD SHOWCASE IN THE ADVENTURER PROFILE (`ProfileScreen.tsx`):
+   - The repository provides 8 official Genshin Namecard assets in `assets/namecards/` (Natlan Saurians, Fontaine Glory, Zhongli Rex, Raiden Shogun, Nahida Dendro, Furina Fountain, Mondstadt Favonius, Liyue Harbor).
+   - In the Adventurer License header, replace the plain card with an authentic horizontal Namecard banner (defaulting to `assets/namecards/natlan_saurian_bg.png` featuring the Natlan Saurians insignia).
+   - Overlay the traveler avatar, UID, and adventure rank with translucent glass stat badges (inspired by the HoYoLAB Battle Chronicle profile layout).
+   - Add a refined golden button "Ganti Namecard". Tapping it opens a modal displaying the collectible Namecard thumbnail grid (`_icon.png`). Selecting a card immediately updates the active profile banner and persists the selection in the store.
 
-4. Penyelarasan Aset Resmi & Kelengkapan Kartu Masakan:
-- Pada hidangan "Apple Cider" (3★ Biru), gunakan aset botol minuman resmi (/assets/dishes/apple_cider.png), bukan buah apel mentah.
-- Pada hidangan "Blazed Meat Stew" (4★ Ungu Natlan), gunakan aset masakan daging panggang berbumbu api khas Natlan (/assets/dishes/magmic_ode.png), bukan gambar ramen.
-- Pada kartu masakan kelangkaan 1★ (Common) dan 2★ (Uncommon), sematkan watermark cincin Triquetra resmi (/assets/icons/bg_1star.webp dan /assets/icons/bg_2star.webp dengan opacity 0.35 dan mix-blend-mode overlay) agar memiliki hierarki cincin yang seragam dengan bintang 3★, 4★, dan 5★.
-- Pada profil petualang (ProfileScreen), pasangkan banner Namecard horizontal Saurian Natlan (/assets/namecards/natlan_saurian_bg.png) dengan lencana statistik petualang melayang transparan di atasnya.
-- Tetap patuhi aturan anti-slop: Dilarang keras menggunakan emoji Unicode bawaan sistem operasi; seluruh angka memakai format monospace tabular-nums dan mata uang menggunakan ikon resmi koin Mora.
+4. INTERACTIVE TEYVAT DELIVERY MAP IN CHECKOUT (`CheckoutScreen.tsx`):
+   - The repository now features the latest comprehensive Teyvat world map at `assets/map/teyvat_world_map.webp` (Version 7.2 Natlan update, covering Natlan 5.x, Fontaine, Chenyu Vale, Sumeru, Inazuma, Liyue, and Mondstadt).
+   - In the delivery destination section, add an interactive "Pilih Titik Antar di Peta Teyvat" button.
+   - Tapping it opens a map modal showing Teyvat with interactive delivery waypoint pins for major regional hubs (Knights of Favonius HQ, Wanmin Restaurant Terrace, Grand Narukami Shrine, Court of Fontaine, Tequemecan Springs, etc.).
+   - Selecting a waypoint marks the location and renders a golden flight trajectory line simulating the Glider Courier path.
+
+5. PRECISE GLIDER COURIER PROGRESS TRACKING (`OrderStatusScreen.tsx`):
+   - Redesign the flight progress bar into a balanced 3-point expedition waypoint path:
+     * Node 1 (Start - 0%): Teyvat Kitchen (Wanmin Kitchen icon).
+     * Node 2 (In Transit - 50%): Glider Courier Airborne, with the wind cursor icon perfectly centered on the gold flight line and pulsing with Anemo teal (#56E2B6) and gold glow (#FFE7A5).
+     * Node 3 (Destination - 100%): Destination Waypoint (e.g., Grand Narukami Shrine, Inazuma), ensuring the golden progress fill touches 100% smoothly upon completion without awkward cutoff gaps.
+   - Render the order receipt details below in an edge-to-edge ivory parchment card with clear breakdown and chef notes.
+
+6. HIGH-FIDELITY DISH MAPPINGS & RARITY TRIQUETRA RINGS (`dishes.ts` & `CatalogScreen.tsx`):
+   - Fix "Apple Cider" (3-Star Rare) to use the authentic Mondstadt glass bottle beverage asset (`/assets/dishes/apple_cider.png`), replacing the raw apple fruit.
+   - Fix "Blazed Meat Stew" (4-Star Epic Natlan) to use the authentic fiery roasted meat asset (`/assets/dishes/magmic_ode.png`), replacing the placeholder ramen bowl.
+   - Ensure 1-Star (Common) and 2-Star (Uncommon) food cards display their official watermark Triquetra rings (`/assets/icons/bg_1star.webp` and `/assets/icons/bg_2star.webp` with opacity 0.35 and mix-blend-mode: overlay) so all rarity tiers share a unified, authentic header depth.
+
+7. CINEMATIC CELESTIA GATE ENTRANCE (`CelestiaGateScreen.tsx`):
+   - Utilize the newly updated 1080p cinematic video assets (`/assets/video/celestia_door_open.mp4` and `.webm`) featuring an expansive daylight blue sky with floating clouds and ancient Celestia pillars.
+   - When the traveler taps "Ketuk untuk Masuk ke Teyvat", play the smooth 3-second stone door opening sequence transitioning seamlessly into a radiant celestial whiteout bloom that dissolves into the main menu without any black letterboxing.
+
+8. ABSOLUTE ANTI-SLOP & CODE CONSTRAINTS:
+   - ZERO Unicode emojis. Use official SVG diamond stars (◆ / ★) and vector glyphs.
+   - Display the official Mora coin icon (`/assets/icons/mora.png`) for all currency amounts with tabular monospace numbers (`tabular-nums`).
+   - Use the authentic `GenshinFont` (`HYWenHei 85W`) for all titles, prices, tabs, and modals.
+
+Please update the application files accordingly.
 ```
