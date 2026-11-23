@@ -98,32 +98,33 @@ export const CatalogScreen: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full bg-transparent">
-      {/* Translucent Glassmorphic Header & Multi-Filter Control Deck (Full-Bleed Edge-to-Edge) */}
-      <header className="px-4 pt-3.5 pb-3 hoyolab-glass-bar border-b border-[#FFE7A5]/25 shrink-0 space-y-2.5">
-        <div className="flex items-center justify-between gap-2">
-          <div>
-            <h1 className="font-genshin text-[17px] text-[#FFE7A5] tracking-wide">
-              Katalog Kuliner Teyvat
-            </h1>
-            <p className="text-[11px] text-[#C2CAE0]">
-              Cari hidangan, saring efek buff tempur &amp; 8 wilayah
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setActiveTab('profil')}
-            className="min-h-[34px] px-2.5 py-1 rounded-full hoyolab-stat-badge flex items-center gap-1 shrink-0 hover:border-[#FFE7A5] transition-colors"
-            title="Saldo Mora"
-          >
-            <MoraAmount amount={profile.moraBalance} size="xs" className="text-[#FFE7A5]" />
-          </button>
+      {/* Slim Regal Title Ribbon */}
+      <header className="px-4 pt-3.5 pb-3 teyvat-chrome-bar border-b-2 border-[#C8A86B]/75 shrink-0 flex items-center justify-between gap-2">
+        <div>
+          <h1 className="font-genshin text-[17px] text-[#FFE7A5] tracking-wide">
+            Katalog Kuliner Teyvat
+          </h1>
+          <p className="text-[11px] text-[#C8D0E4]">
+            Cari hidangan, saring efek buff tempur &amp; 8 wilayah
+          </p>
         </div>
+        <button
+          type="button"
+          onClick={() => setActiveTab('profil')}
+          className="min-h-[34px] px-2.5 py-1 rounded-full teyvat-chrome-pill flex items-center gap-1 shrink-0 hover:border-[#FFE7A5] transition-colors"
+          title="Saldo Mora"
+        >
+          <MoraAmount amount={profile.moraBalance} size="xs" className="text-[#FFE7A5]" />
+        </button>
+      </header>
 
-        {/* Luminous Soft-Cream Search Input + Region/Rarity Toggle */}
+      {/* Luminous Warm Parchment Filter Control Deck */}
+      <div className="px-4 py-3 bg-[#F4EFE4] border-b border-[#D3BC8E] shrink-0 space-y-2.5 shadow-[0_2px_8px_rgba(74,58,30,0.06)]">
+        {/* Search Input + Region/Rarity Toggle */}
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
             <Search
-              className="w-4 h-4 text-[#6B647A] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+              className="w-4 h-4 text-[#736957] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
               aria-hidden="true"
             />
             <input
@@ -132,14 +133,14 @@ export const CatalogScreen: React.FC = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari kuliner Teyvat atau efek buff..."
               aria-label="Cari kuliner Teyvat atau efek buff"
-              className="teyvat-cream-input w-full h-[40px] pl-9 pr-8 rounded-xl border border-[#D3BC8E] text-[12.5px] placeholder:text-[#787285] focus:outline-none focus:ring-2 focus:ring-[#FFE7A5]"
+              className="teyvat-cream-input w-full h-[40px] pl-9 pr-8 rounded-xl border border-[#C8B592] text-[12.5px] placeholder:text-[#7F7666] focus:outline-none focus:ring-2 focus:ring-[#C8A86B]"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
                 aria-label="Hapus pencarian"
-                className="w-7 h-7 flex items-center justify-center absolute right-1 top-1/2 -translate-y-1/2 text-[#5B5568] hover:text-[#1D1A2A]"
+                className="w-7 h-7 flex items-center justify-center absolute right-1 top-1/2 -translate-y-1/2 text-[#6B6150] hover:text-[#242735]"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -153,8 +154,8 @@ export const CatalogScreen: React.FC = () => {
             aria-label="Filter wilayah dan bintang"
             className={`min-h-[40px] px-3 rounded-xl border text-[11px] font-genshin font-bold inline-flex items-center gap-1.5 shrink-0 transition-colors ${
               showRegionFilters || selectedRegions.length > 0 || selectedRarity !== null
-                ? 'bg-[#FFE7A5] border-[#FFE7A5] text-[#232635]'
-                : 'hoyolab-stat-badge text-[#F7F4EE] hover:border-[#FFE7A5]'
+                ? 'bg-[#242B3E] border-[#C8A86B] text-[#FFE7A5]'
+                : 'bg-[#FAF8F2] border-[#C8B592] text-[#242735] hover:border-[#9C5A14]'
             }`}
           >
             <SlidersHorizontal className="w-3.5 h-3.5" />
@@ -177,10 +178,10 @@ export const CatalogScreen: React.FC = () => {
                 role="tab"
                 aria-selected={active}
                 onClick={() => setSelectedCategory(category)}
-                className={`min-h-[34px] px-3 py-1 rounded-full font-genshin text-[11px] whitespace-nowrap shrink-0 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE7A5] ${
+                className={`min-h-[34px] px-3 py-1 rounded-full font-genshin text-[11px] whitespace-nowrap shrink-0 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C8A86B] ${
                   active
-                    ? 'bg-[#FFE7A5] text-[#232635] border border-[#FFE7A5]'
-                    : 'bg-[#161B2A]/70 text-[#DCE2F2] border border-[#FFE7A5]/25 hover:border-[#FFE7A5]/60'
+                    ? 'bg-[#242B3E] text-[#FFE7A5] border border-[#C8A86B]'
+                    : 'bg-[#FAF8F2] text-[#454A5C] border border-[#D3BC8E] hover:border-[#9C5A14]'
                 }`}
               >
                 {CATEGORY_LABELS_ID[category]}
@@ -189,7 +190,7 @@ export const CatalogScreen: React.FC = () => {
           })}
         </div>
 
-        {/* Combat Buff Filter Strip (Official Buff Icons) */}
+        {/* Combat Buff Filter Strip */}
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
           {ALL_BUFFS.map((buff) => {
             const meta = BUFF_META[buff];
@@ -202,8 +203,8 @@ export const CatalogScreen: React.FC = () => {
                 aria-pressed={active}
                 className={`min-h-[34px] px-2.5 py-1 rounded-lg border text-[11px] font-semibold inline-flex items-center gap-1.5 shrink-0 transition-colors ${
                   active
-                    ? 'bg-[#F7F4EE] border-[#FFE7A5] text-[#232635]'
-                    : 'bg-[#161B2A]/60 border-[#FFE7A5]/20 text-[#CFD6E9] hover:border-[#FFE7A5]/50'
+                    ? 'bg-[#242B3E] border-[#C8A86B] text-[#FFE7A5]'
+                    : 'bg-[#FAF8F2] border-[#D3BC8E] text-[#3B4052] hover:border-[#9C5A14]'
                 }`}
               >
                 <TeyvatImage
@@ -220,7 +221,7 @@ export const CatalogScreen: React.FC = () => {
 
         {/* Expandable 8-Region + Rarity Filter Drawer */}
         {showRegionFilters && (
-          <div className="rounded-xl teyvat-ivory-card p-3 space-y-2.5 animate-modal-enter shadow-md">
+          <div className="rounded-xl bg-[#FAF8F2] border border-[#C8A86B] p-3 space-y-2.5 animate-modal-enter shadow-sm">
             <div>
               <div className="font-genshin text-[11px] text-[#3B4255] mb-1.5">
                 Wilayah Teyvat (8 Negara)
@@ -236,8 +237,8 @@ export const CatalogScreen: React.FC = () => {
                       aria-pressed={active}
                       className={`min-h-[30px] px-2.5 py-0.5 rounded-full text-[11px] font-semibold transition-colors ${
                         active
-                          ? 'bg-[#2C354D] text-[#FFE7A5] border border-[#FFE7A5]/60'
-                          : 'bg-[#ECE5D8] text-[#4A4F63] border border-[#D3BC8E]/75 hover:border-[#9C5A14]'
+                          ? 'bg-[#242B3E] text-[#FFE7A5] border border-[#C8A86B]'
+                          : 'bg-[#ECE5D8] text-[#4A4F63] border border-[#D3BC8E] hover:border-[#9C5A14]'
                       }`}
                     >
                       {region}
@@ -257,8 +258,8 @@ export const CatalogScreen: React.FC = () => {
                   onClick={() => setSelectedRarity(null)}
                   className={`min-h-[30px] px-2.5 rounded-lg text-[11px] font-semibold shrink-0 ${
                     selectedRarity === null
-                      ? 'bg-[#2C354D] text-[#FFE7A5]'
-                      : 'bg-[#ECE5D8] text-[#4A4F63] border border-[#D3BC8E]/75'
+                      ? 'bg-[#242B3E] text-[#FFE7A5]'
+                      : 'bg-[#ECE5D8] text-[#4A4F63] border border-[#D3BC8E]'
                   }`}
                 >
                   Semua
@@ -272,8 +273,8 @@ export const CatalogScreen: React.FC = () => {
                       onClick={() => setSelectedRarity(active ? null : rarity)}
                       className={`min-h-[30px] px-2.5 rounded-lg text-[11px] font-genshin font-bold inline-flex items-center gap-1 shrink-0 ${
                         active
-                          ? 'bg-[#2C354D] text-[#FFE7A5]'
-                          : 'bg-[#ECE5D8] text-[#6B4A1B] border border-[#D3BC8E]/75'
+                          ? 'bg-[#242B3E] text-[#FFE7A5]'
+                          : 'bg-[#ECE5D8] text-[#6B4A1B] border border-[#D3BC8E]'
                       }`}
                     >
                       <span className="tabular-nums">{rarity}</span>
@@ -285,19 +286,19 @@ export const CatalogScreen: React.FC = () => {
             </div>
           </div>
         )}
-      </header>
+      </div>
 
-      {/* Full-Bleed Scrollable 2-Column Ivory Parchment Card Grid */}
+      {/* Edge-to-Edge Warm Parchment Scrollable 2-Column Card Grid */}
       <div className="flex-1 min-h-0 overflow-y-auto px-4 pt-3.5 pb-24">
         <div className="flex items-center justify-between mb-3">
-          <span className="font-genshin text-[12px] text-[#D7DEEE] tabular-nums">
+          <span className="font-genshin text-[12px] text-[#4C4537] tabular-nums">
             Menampilkan {filteredDishes.length} hidangan
           </span>
           {(activeFilterCount > 0 || searchQuery) && (
             <button
               type="button"
               onClick={resetAllFilters}
-              className="text-[11px] font-semibold text-[#FFE7A5] inline-flex items-center gap-1 hover:underline"
+              className="text-[11px] font-semibold text-[#9C5A14] inline-flex items-center gap-1 hover:underline"
             >
               <RotateCcw className="w-3 h-3" />
               <span>Reset Filter</span>
@@ -306,8 +307,8 @@ export const CatalogScreen: React.FC = () => {
         </div>
 
         {filteredDishes.length === 0 ? (
-          <div className="rounded-2xl teyvat-ivory-card p-6 text-center mt-2 shadow-md">
-            <p className="font-genshin text-[15px] text-[#232635]">
+          <div className="rounded-2xl teyvat-ivory-card p-6 text-center mt-2">
+            <p className="font-genshin text-[15px] text-[#242735]">
               Hidangan Tidak Ditemukan
             </p>
             <p className="text-[12px] text-[#575A6B] mt-1.5">
@@ -326,9 +327,9 @@ export const CatalogScreen: React.FC = () => {
             {filteredDishes.map((dish) => (
               <article
                 key={dish.id}
-                className="rounded-2xl overflow-hidden teyvat-ivory-card shadow-md flex flex-col transition-transform duration-150 hover:-translate-y-0.5"
+                className="rounded-2xl overflow-hidden teyvat-ivory-card flex flex-col transition-transform duration-150 hover:-translate-y-0.5"
               >
-                {/* Card Top: 1*-5* Rarity Banner + Triquetra Watermark (0.35 overlay) + Radial Glow + 4-pt Stars */}
+                {/* Card Top: 1*-5* Rarity Banner + Triquetra Watermark + Radial Glow + 4-pt Stars */}
                 <RarityDishBanner
                   dish={dish}
                   heightClass="h-[108px]"
@@ -337,13 +338,13 @@ export const CatalogScreen: React.FC = () => {
                 />
 
                 {/* Card Body: Luminous Ivory Parchment */}
-                <div className="p-2.5 flex-1 flex flex-col justify-between gap-2 bg-[#F7F4EE]">
+                <div className="p-2.5 flex-1 flex flex-col justify-between gap-2 bg-[#FAF8F2]">
                   <button
                     type="button"
                     onClick={() => handleOpenDish(dish)}
                     className="text-left focus-visible:outline-none"
                   >
-                    <h3 className="font-genshin text-[13px] leading-snug text-[#232635] line-clamp-2 min-h-[34px]">
+                    <h3 className="font-genshin text-[13px] leading-snug text-[#242735] line-clamp-2 min-h-[34px]">
                       {dish.name}
                     </h3>
                     <div className="mt-1.5">
@@ -359,7 +360,7 @@ export const CatalogScreen: React.FC = () => {
                     <MoraAmount
                       amount={dish.priceMora}
                       size="xs"
-                      className="text-[#232635]"
+                      className="text-[#242735]"
                     />
                     <button
                       type="button"

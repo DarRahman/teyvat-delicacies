@@ -42,35 +42,35 @@ export const CartScreen: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full bg-transparent">
-      {/* Translucent Glassmorphic Header */}
-      <header className="px-4 pt-3.5 pb-3 hoyolab-glass-bar border-b border-[#FFE7A5]/25 shrink-0 flex items-center justify-between gap-2">
+      {/* Slim Regal Header */}
+      <header className="px-4 pt-3.5 pb-3 teyvat-chrome-bar border-b-2 border-[#C8A86B]/75 shrink-0 flex items-center justify-between gap-2">
         <div>
           <h1 className="font-genshin text-[17px] text-[#FFE7A5] tracking-wide">
             Keranjang Petualang
           </h1>
-          <p className="text-[11px] text-[#C2CAE0] tabular-nums">
+          <p className="text-[11px] text-[#C8D0E4] tabular-nums">
             {totals.itemCount > 0
               ? `${totals.itemCount} porsi siap dikirim kurir Glider`
               : 'Belum ada hidangan dipilih'}
           </p>
         </div>
         {totals.itemCount > 0 && (
-          <div className="px-2.5 py-1 rounded-full hoyolab-stat-badge">
+          <div className="px-2.5 py-1 rounded-full teyvat-chrome-pill">
             <MoraAmount amount={totals.finalTotal} size="sm" className="text-[#FFE7A5]" />
           </div>
         )}
       </header>
 
-      {/* Full-Bleed Scrollable Canvas */}
+      {/* Edge-to-Edge Warm Parchment Scrollable Canvas */}
       <div className="flex-1 min-h-0 overflow-y-auto px-4 pt-4 pb-10">
         {cart.length === 0 ? (
-          <div className="rounded-2xl teyvat-ivory-card p-6 text-center mt-4 shadow-lg">
+          <div className="rounded-2xl teyvat-ivory-card p-6 text-center mt-4">
             <TeyvatImage
               src={ASSET_ICONS.paimonHungry}
               alt="Paimon sedang lapar"
               className="w-32 h-32 object-contain mx-auto mb-3 drop-shadow"
             />
-            <h2 className="font-genshin text-[16px] text-[#232635]">
+            <h2 className="font-genshin text-[16px] text-[#242735]">
               Keranjang Masih Kosong
             </h2>
             <p className="text-[12px] text-[#565A6D] mt-1.5 leading-relaxed max-w-[260px] mx-auto">
@@ -91,7 +91,7 @@ export const CartScreen: React.FC = () => {
                 return (
                   <div
                     key={dish.id}
-                    className="rounded-2xl teyvat-ivory-card p-3 flex items-center gap-3 shadow-md"
+                    className="rounded-2xl teyvat-ivory-card p-3 flex items-center gap-3"
                   >
                     <button
                       type="button"
@@ -126,7 +126,7 @@ export const CartScreen: React.FC = () => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
-                          <h3 className="font-genshin text-[13px] text-[#232635] truncate">
+                          <h3 className="font-genshin text-[13px] text-[#242735] truncate">
                             {dish.name}
                           </h3>
                           <DiamondStarRow rarity={dish.rarity} size={9} className="mt-0.5" />
@@ -145,7 +145,7 @@ export const CartScreen: React.FC = () => {
                         <MoraAmount
                           amount={dish.priceMora * quantity}
                           size="sm"
-                          className="text-[#232635]"
+                          className="text-[#242735]"
                         />
 
                         {/* Quantity Steppers (- / +) */}
@@ -158,7 +158,7 @@ export const CartScreen: React.FC = () => {
                           >
                             <Minus className="w-3.5 h-3.5" />
                           </button>
-                          <span className="font-genshin min-w-[24px] text-center text-[13px] font-bold text-[#232635] tabular-nums">
+                          <span className="font-genshin min-w-[24px] text-center text-[13px] font-bold text-[#242735] tabular-nums">
                             {quantity}
                           </span>
                           <button
@@ -180,7 +180,7 @@ export const CartScreen: React.FC = () => {
             {/* Intertwined Fate Coupon Redemption Section */}
             <section
               aria-labelledby="coupon-heading"
-              className="rounded-2xl teyvat-ivory-card p-3.5 shadow-md"
+              className="rounded-2xl teyvat-ivory-card p-3.5"
             >
               <div className="flex items-center gap-2 mb-2.5">
                 <TeyvatImage
@@ -190,7 +190,7 @@ export const CartScreen: React.FC = () => {
                   className="w-6 h-6 object-contain shrink-0"
                 />
                 <div className="min-w-0">
-                  <h2 id="coupon-heading" className="font-genshin text-[13px] text-[#232635]">
+                  <h2 id="coupon-heading" className="font-genshin text-[13px] text-[#242735]">
                     Tebus Kupon Intertwined Fate
                   </h2>
                   <p className="text-[11px] text-[#5B5F70]">
@@ -219,7 +219,7 @@ export const CartScreen: React.FC = () => {
                       setCouponInput('');
                       setCouponFeedback(null);
                     }}
-                    className="min-h-[42px] px-3.5 rounded-xl bg-[#2C354D] text-[#F7F4EE] font-genshin text-[12px] inline-flex items-center gap-1 hover:bg-[#1E2538]"
+                    className="min-h-[42px] px-3.5 rounded-xl bg-[#242B3E] text-[#FAF8F2] font-genshin text-[12px] inline-flex items-center gap-1 hover:bg-[#192032]"
                   >
                     <X className="w-3.5 h-3.5" />
                     <span>Lepas</span>
@@ -255,7 +255,7 @@ export const CartScreen: React.FC = () => {
                       onClick={() => handleApplyCoupon(c.code)}
                       className={`min-h-[32px] px-2.5 py-1 rounded-lg border text-[11px] font-semibold inline-flex items-center gap-1.5 transition-colors ${
                         isApplied
-                          ? 'bg-[#2C354D] border-[#2C354D] text-[#FFE7A5]'
+                          ? 'bg-[#242B3E] border-[#C8A86B] text-[#FFE7A5]'
                           : 'bg-[#ECE5D8] border-[#CBB997] text-[#3B4255] hover:border-[#9C5A14]'
                       }`}
                     >
@@ -277,11 +277,11 @@ export const CartScreen: React.FC = () => {
             {/* Billing Summary Card */}
             <section
               aria-labelledby="billing-summary-heading"
-              className="rounded-2xl teyvat-ivory-card p-4 space-y-2.5 shadow-md"
+              className="rounded-2xl teyvat-ivory-card p-4 space-y-2.5"
             >
               <h2
                 id="billing-summary-heading"
-                className="font-genshin text-[14px] text-[#232635]"
+                className="font-genshin text-[14px] text-[#242735]"
               >
                 Rincian Tagihan Mora
               </h2>
@@ -289,13 +289,13 @@ export const CartScreen: React.FC = () => {
               <div className="space-y-1.5 text-[12px] text-[#4A4F63]">
                 <div className="flex items-center justify-between">
                   <span>Subtotal Hidangan ({totals.itemCount} porsi)</span>
-                  <span className="font-genshin text-[#232635] tabular-nums">
+                  <span className="font-genshin text-[#242735] tabular-nums">
                     {formatMora(totals.subtotal)} Mora
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span>Ongkir Kurir Glider</span>
-                  <span className="font-genshin text-[#232635] tabular-nums">
+                  <span className="font-genshin text-[#242735] tabular-nums">
                     {totals.deliveryFee === 0
                       ? 'Gratis'
                       : `${formatMora(totals.deliveryFee)} Mora`}
@@ -314,12 +314,12 @@ export const CartScreen: React.FC = () => {
               <DiamondDivider className="my-1" />
 
               <div className="flex items-center justify-between">
-                <span className="font-genshin text-[14px] text-[#232635]">Total Akhir</span>
+                <span className="font-genshin text-[14px] text-[#242735]">Total Akhir</span>
                 <MoraAmount
                   amount={totals.finalTotal}
                   size="md"
                   showSuffix
-                  className="text-[#232635]"
+                  className="text-[#242735]"
                 />
               </div>
             </section>

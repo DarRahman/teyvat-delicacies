@@ -120,7 +120,21 @@ export function validateCheckoutPayment(
   return { ok: true };
 }
 
-/** Exact 3-point Glider Courier progress percentage: 0% -> 50% -> 100% */
+/** Clamp continuous Anemo Glider progress cleanly within 0..100 */
+export function clampGliderProgress(progress: number): number {
+  if (!Number.isFinite(progress)) return 0;
+  return Math.min(100, Math.max(0, Math.round(progress * 10) / 10));
+}
+
+/** Derive milestone stage (0=Cooking, 1=Gliding, 2=Completed) from continuous 0..100 progress */
+export function getGliderStageFromProgress(progress: number): 0 | 1 | 2 {
+  const clamped = clampGliderProgress(progress);
+  if (clamped >= 100) return 2;
+  if (clamped >= 18) return 1;
+  return 0;
+}
+
+/** Legacy 3-point stage mapping: 0% -> 50% -> 100% */
 export function getGliderProgressPercent(stage: 0 | 1 | 2): number {
   if (stage === 0) return 0;
   if (stage === 1) return 50;

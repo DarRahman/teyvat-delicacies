@@ -322,7 +322,7 @@ export const BuffBadge: React.FC<{
   );
 };
 
-/** Floating Quick Cart Bar (Glassmorphic translucent pill bar above Bottom Nav) */
+/** Floating Quick Cart Bar (Regal Indigo-Gold Floating Bar above Bottom Nav) */
 export const FloatingQuickCartBar: React.FC<{
   itemCount: number;
   totalMora: number;
@@ -335,10 +335,10 @@ export const FloatingQuickCartBar: React.FC<{
       <button
         type="button"
         onClick={onOpenCart}
-        className="w-full min-h-[54px] px-3.5 py-2 rounded-2xl hoyolab-glass-bar border border-[#FFE7A5]/45 shadow-xl flex items-center justify-between gap-2 active:scale-[0.985] transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE7A5]"
+        className="w-full min-h-[54px] px-3.5 py-2 rounded-2xl teyvat-chrome-bar border border-[#C8A86B] shadow-[0_8px_20px_rgba(36,39,53,0.28)] flex items-center justify-between gap-2 active:scale-[0.985] transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE7A5]"
       >
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-9 h-9 rounded-full bg-[#FFE7A5]/15 border border-[#FFE7A5]/55 flex items-center justify-center shrink-0 relative">
+          <div className="w-9 h-9 rounded-full bg-[#FFE7A5]/15 border border-[#FFE7A5]/60 flex items-center justify-center shrink-0 relative">
             <ShoppingBag className="w-4 h-4 text-[#FFE7A5]" />
             <span className="font-genshin absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[#C87C24] border border-[#FFE7A5] text-[10px] font-bold text-[#FFF9EB] flex items-center justify-center tabular-nums">
               {itemCount}
@@ -360,7 +360,7 @@ export const FloatingQuickCartBar: React.FC<{
   );
 };
 
-/** 4-Tab Bottom Navigation Bar with HoYoLAB Glassmorphism & Delicate Hairline Gold Trim */
+/** 4-Tab Bottom Navigation Bar with Regal Starry-Indigo & Brushed Gold Top Trim */
 export const BottomNavBar: React.FC<{
   activeTab: TabId;
   cartCount: number;
@@ -380,7 +380,7 @@ export const BottomNavBar: React.FC<{
   return (
     <nav
       aria-label="Navigasi Utama"
-      className="h-[66px] hoyolab-glass-bar border-t border-[#FFE7A5]/25 grid grid-cols-4 items-center px-2 shrink-0"
+      className="h-[66px] teyvat-chrome-bar border-t-2 border-[#C8A86B]/75 grid grid-cols-4 items-center px-2 shrink-0"
     >
       {tabs.map(({ id, label, Icon }) => {
         const isActive = activeTab === id;
@@ -394,12 +394,12 @@ export const BottomNavBar: React.FC<{
             className={`relative min-h-[48px] flex flex-col items-center justify-center gap-1 rounded-xl transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE7A5] ${
               isActive
                 ? 'text-[#FFE7A5]'
-                : 'text-[#A6B0C9] hover:text-[#F7F4EE]'
+                : 'text-[#AEB8D1] hover:text-[#FFF8E7]'
             }`}
           >
             {isActive && (
               <span
-                className="absolute top-0.5 w-8 h-[2px] rounded-full bg-[#FFE7A5]"
+                className="absolute top-0.5 w-8 h-[2.5px] rounded-full bg-[#FFE7A5]"
                 aria-hidden="true"
               />
             )}
@@ -421,7 +421,7 @@ export const BottomNavBar: React.FC<{
   );
 };
 
-/** Subtle Ivory Parchment Toast Notification */
+/** Luminous Ivory Parchment Toast Notification */
 export const TeyvatToast: React.FC<{ message: string | null }> = ({ message }) => {
   if (!message) return null;
 
@@ -429,11 +429,11 @@ export const TeyvatToast: React.FC<{ message: string | null }> = ({ message }) =
     <div
       role="status"
       aria-live="polite"
-      className="absolute top-16 left-4 right-4 z-50 pointer-events-none flex justify-center animate-modal-enter"
+      className="absolute bottom-[78px] left-4 right-4 z-[60] pointer-events-none flex justify-center animate-modal-enter"
     >
-      <div className="px-3.5 py-2 rounded-xl bg-[#F7F4EE] border border-[#D3BC8E] shadow-lg flex items-center gap-2 max-w-[360px]">
+      <div className="px-3.5 py-2 rounded-xl bg-[#FAF8F2] border border-[#C8A86B] shadow-[0_6px_18px_rgba(36,39,53,0.22)] flex items-center gap-2 max-w-[360px]">
         <DiamondBullet size={7} className="text-[#C87C24]" />
-        <span className="text-[12px] font-semibold text-[#232635] leading-snug">
+        <span className="text-[12px] font-semibold text-[#242735] leading-snug">
           {message}
         </span>
       </div>

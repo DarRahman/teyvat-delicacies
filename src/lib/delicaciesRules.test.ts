@@ -5,13 +5,16 @@ import {
   DISHES,
   NAMECARDS,
   RARITY_META,
+  TEYVAT_REGIONS,
   WANMIN_ORIGIN_COORDS,
 } from '../data/dishes';
 import {
   buildGliderFlightArcPath,
   calculateCartTotals,
+  clampGliderProgress,
   filterDishes,
   getGliderProgressPercent,
+  getGliderStageFromProgress,
   validateCheckoutPayment,
 } from './delicaciesRules';
 
@@ -43,21 +46,37 @@ test('Collectible Namecards catalog provides 8 official banners defaulting to Na
   assert.ok(NAMECARDS.every((n) => n.bgImage.startsWith('/assets/namecards/') && n.iconImage.startsWith('/assets/namecards/')));
 });
 
-test('Glider courier progress and SVG trajectory path compute cleanly', () => {
+test('Glider courier continuous trajectory and 8-realm Teyvat delivery map compute cleanly', () => {
   assert.equal(getGliderProgressPercent(0), 0);
   assert.equal(getGliderProgressPercent(1), 50);
   assert.equal(getGliderProgressPercent(2), 100);
 
-  assert.equal(DELIVERY_POINTS.length, 6);
+  assert.equal(clampGliderProgress(-12), 0);
+  assert.equal(clampGliderProgress(47.34), 47.3);
+  assert.equal(clampGliderProgress(128), 100);
+  assert.equal(getGliderStageFromProgress(5), 0);
+  assert.equal(getGliderStageFromProgress(54), 1);
+  assert.equal(getGliderStageFromProgress(100), 2);
+
+  assert.equal(DELIVERY_POINTS.length, 8);
+  const coveredRegions = new Set(DELIVERY_POINTS.map((p) => p.region));
+  for (const region of TEYVAT_REGIONS) {
+    assert.ok(coveredRegions.has(region), `Missing delivery hub for ${region}`);
+  }
   for (const pt of DELIVERY_POINTS) {
     assert.ok(pt.mapCoords.x > 0 && pt.mapCoords.x < 100);
     assert.ok(pt.mapCoords.y > 0 && pt.mapCoords.y < 100);
   }
 
-  const narukami = DELIVERY_POINTS.find((p) => p.id === 'narukami-shrine')!;
-  const arc = buildGliderFlightArcPath(WANMIN_ORIGIN_COORDS, narukami.mapCoords);
+  const snezhnaya = DELIVERY_POINTS.find((p) => p.id === 'zapolyarny-palace')!;
+  const arc = buildGliderFlightArcPath(WANMIN_ORIGIN_COORDS, snezhnaya.mapCoords);
   assert.ok(arc.startsWith('M 75.0 45.0 Q '));
-  assert.ok(arc.endsWith('91.0 24.0'));
+  assert.ok(arc.endsWith('52.0 85.0'));
+
+  const nodKrai = DELIVERY_POINTS.find((p) => p.id === 'nasha-outpost')!;
+  const arcNod = buildGliderFlightArcPath(WANMIN_ORIGIN_COORDS, nodKrai.mapCoords);
+  assert.ok(arcNod.startsWith('M 75.0 45.0 Q '));
+  assert.ok(arcNod.endsWith('24.0 74.0'));
 
   const sameSpot = buildGliderFlightArcPath(WANMIN_ORIGIN_COORDS, WANMIN_ORIGIN_COORDS);
   assert.equal(sameSpot, '');

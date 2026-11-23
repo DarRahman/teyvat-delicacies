@@ -47,14 +47,14 @@ export const ProfileScreen: React.FC = () => {
 
   return (
     <div className="relative flex flex-col h-full bg-transparent">
-      {/* Translucent Glassmorphic Header */}
-      <header className="px-4 pt-3.5 pb-3 hoyolab-glass-bar border-b border-[#FFE7A5]/25 shrink-0 flex items-center justify-between gap-2">
+      {/* Slim Regal Header */}
+      <header className="px-4 pt-3.5 pb-3 teyvat-chrome-bar border-b-2 border-[#C8A86B]/75 shrink-0 flex items-center justify-between gap-2">
         <div>
           <h1 className="font-genshin text-[17px] text-[#FFE7A5] tracking-wide">
             Lisensi Petualang
           </h1>
-          <p className="text-[11px] text-[#C2CAE0]">
-            HoYoLAB Battle Chronicle · Namecard &amp; riwayat jamuan
+          <p className="text-[11px] text-[#C8D0E4]">
+            Adventurers&apos; Guild · Koleksi Namecard &amp; riwayat jamuan
           </p>
         </div>
 
@@ -68,32 +68,28 @@ export const ProfileScreen: React.FC = () => {
         </button>
       </header>
 
-      {/* Full-Bleed Scrollable Canvas */}
+      {/* Edge-to-Edge Warm Antique Parchment Scrollable Canvas */}
       <div className="flex-1 min-h-0 overflow-y-auto px-4 pt-4 pb-16 space-y-4">
-        {/* Authentic Collectible Horizontal Namecard Showcase (HoYoLAB Chronicle Style) */}
+        {/* Authentic In-Game Adventurer Namecard Showcase (Symmetrical Full-Bleed Corners) */}
         <section
           aria-label="Kartu Namecard Petualang"
-          className="rounded-2xl overflow-hidden border border-[#FFE7A5]/55 shadow-xl bg-[#192032]"
+          className="rounded-2xl overflow-hidden border-2 border-[#C8A86B] shadow-[0_6px_18px_rgba(74,58,30,0.14)] bg-[#FAF8F2]"
         >
-          {/* Vibrant Horizontal Namecard Art Strip */}
-          <div className="relative h-[126px] w-full overflow-hidden bg-gradient-to-r from-[#1A2136] via-[#222B44] to-[#1A1F2C]">
+          {/* Symmetrical Full-Bleed Namecard Banner (zoomed cleanly to crop built-in PNG right curve) */}
+          <div className="relative h-[132px] w-full overflow-hidden bg-[#242C42]">
             <img
               src={activeNamecard.bgImage}
               alt={`Namecard ${activeNamecard.name}`}
-              className="absolute inset-0 w-full h-full object-cover object-right pointer-events-none select-none"
+              className="absolute inset-0 w-full h-full object-cover object-center scale-[1.22] pointer-events-none select-none"
             />
-            {/* Measured left-only fade preserving full Namecard vibrancy on center/right */}
+            {/* Measured left readability fade preserving vivid Namecard artwork across center & right */}
             <div
               aria-hidden="true"
-              className="absolute inset-0 bg-gradient-to-r from-[#151B2B]/85 via-[#151B2B]/32 to-transparent pointer-events-none"
-            />
-            <div
-              aria-hidden="true"
-              className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-[#192032] via-[#192032]/50 to-transparent pointer-events-none"
+              className="absolute inset-0 bg-gradient-to-r from-[#1A2133]/82 via-[#1A2133]/35 to-transparent pointer-events-none"
             />
 
             <div className="relative z-10 h-full px-4 py-3.5 flex items-center gap-3.5">
-              <div className="w-[62px] h-[62px] rounded-full overflow-hidden border-2 border-[#FFE7A5] bg-[#1C2234] shadow-lg shrink-0">
+              <div className="w-[62px] h-[62px] rounded-full overflow-hidden border-2 border-[#FFE7A5] bg-[#1E263A] shadow-lg shrink-0">
                 <TeyvatImage
                   src={profile.avatarUrl}
                   fallbackSrc={profile.fallbackAvatarUrl}
@@ -103,13 +99,13 @@ export const ProfileScreen: React.FC = () => {
               </div>
 
               <div className="min-w-0 flex-1">
-                <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md hoyolab-stat-badge text-[10px] font-genshin text-[#FFE7A5] mb-1">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#192032]/78 border border-[#FFE7A5]/55 text-[10px] font-genshin text-[#FFE7A5] mb-1">
                   <span className="truncate">{activeNamecard.name}</span>
                 </div>
-                <h2 className="font-genshin text-[18px] text-[#FFF8E7] leading-tight truncate drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]">
+                <h2 className="font-genshin text-[18px] text-[#FFFDF5] leading-tight truncate drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]">
                   {profile.username}
                 </h2>
-                <div className="mt-1 flex items-center gap-1.5 text-[11px] font-semibold text-[#F2ECE0] drop-shadow-[0_1px_3px_rgba(0,0,0,0.75)]">
+                <div className="mt-1 flex items-center gap-1.5 text-[11px] font-semibold text-[#F7F1E3] drop-shadow-[0_1px_3px_rgba(0,0,0,0.75)]">
                   <TeyvatImage
                     src={ASSET_ICONS.crownOfInsight}
                     alt="Reputasi Knights of Favonius"
@@ -121,42 +117,50 @@ export const ProfileScreen: React.FC = () => {
             </div>
           </div>
 
-          {/* Translucent HoYoLAB Glass Stat Badges Strip */}
-          <div className="px-3.5 pb-3.5 pt-2 bg-[#192032]/90 border-t border-[#FFE7A5]/15 grid grid-cols-4 gap-1.5">
-            <div className="rounded-xl hoyolab-stat-badge px-2 py-1.5 text-center">
-              <div className="text-[9.5px] text-[#BFC8DF] uppercase tracking-wider">UID</div>
-              <div className="font-genshin text-[11px] text-[#FFF8E7] tabular-nums truncate mt-0.5">
+          {/* Warm Ivory Adventurer Stat Strip */}
+          <div className="px-3.5 py-3 bg-[#FAF8F2] border-t border-[#D3BC8E] grid grid-cols-4 gap-2">
+            <div className="rounded-xl bg-[#EFEAE0] border border-[#D3BC8E] px-2 py-1.5 text-center">
+              <div className="text-[9.5px] font-semibold text-[#6B5A3E] uppercase tracking-wider">
+                UID
+              </div>
+              <div className="font-genshin text-[11px] text-[#242735] tabular-nums truncate mt-0.5">
                 {profile.uid}
               </div>
             </div>
-            <div className="rounded-xl hoyolab-stat-badge px-2 py-1.5 text-center">
-              <div className="text-[9.5px] text-[#BFC8DF] uppercase tracking-wider">AR</div>
-              <div className="font-genshin text-[14px] text-[#FFE7A5] tabular-nums mt-0.5">
+            <div className="rounded-xl bg-[#EFEAE0] border border-[#D3BC8E] px-2 py-1.5 text-center">
+              <div className="text-[9.5px] font-semibold text-[#6B5A3E] uppercase tracking-wider">
+                AR
+              </div>
+              <div className="font-genshin text-[14px] text-[#9C5A14] tabular-nums mt-0.5">
                 {profile.adventureRank}
               </div>
             </div>
-            <div className="rounded-xl hoyolab-stat-badge px-2 py-1.5 text-center">
-              <div className="text-[9.5px] text-[#BFC8DF] uppercase tracking-wider">WL</div>
-              <div className="font-genshin text-[14px] text-[#FFE7A5] tabular-nums mt-0.5">
+            <div className="rounded-xl bg-[#EFEAE0] border border-[#D3BC8E] px-2 py-1.5 text-center">
+              <div className="text-[9.5px] font-semibold text-[#6B5A3E] uppercase tracking-wider">
+                WL
+              </div>
+              <div className="font-genshin text-[14px] text-[#9C5A14] tabular-nums mt-0.5">
                 {profile.worldLevel}
               </div>
             </div>
-            <div className="rounded-xl hoyolab-stat-badge px-2 py-1.5 text-center">
-              <div className="text-[9.5px] text-[#BFC8DF] uppercase tracking-wider">Pesanan</div>
-              <div className="font-genshin text-[14px] text-[#56E2B6] tabular-nums mt-0.5">
+            <div className="rounded-xl bg-[#EFEAE0] border border-[#D3BC8E] px-2 py-1.5 text-center">
+              <div className="text-[9.5px] font-semibold text-[#6B5A3E] uppercase tracking-wider">
+                Pesanan
+              </div>
+              <div className="font-genshin text-[14px] text-[#2D6E4E] tabular-nums mt-0.5">
                 {orders.length}
               </div>
             </div>
           </div>
         </section>
 
-        {/* Teyvat Wallet (Ivory Parchment Card) */}
+        {/* Teyvat Wallet (Luminous Ivory Card) */}
         <section
           aria-labelledby="wallet-heading"
-          className="rounded-2xl teyvat-ivory-card p-4 space-y-3 shadow-md"
+          className="rounded-2xl teyvat-ivory-card p-4 space-y-3"
         >
           <div className="flex items-center justify-between gap-2">
-            <h2 id="wallet-heading" className="font-genshin text-[14px] text-[#232635]">
+            <h2 id="wallet-heading" className="font-genshin text-[14px] text-[#242735]">
               Dompet Teyvat
             </h2>
             <button
@@ -176,14 +180,14 @@ export const ProfileScreen: React.FC = () => {
                 <MoraAmount
                   amount={profile.moraBalance}
                   size="md"
-                  className="text-[#232635]"
+                  className="text-[#242735]"
                 />
               </div>
             </div>
 
             <div className="rounded-xl bg-[#ECE5D8] border border-[#D4C7AE] p-3">
               <div className="text-[11px] text-[#5B5F70]">Simpanan Primogem</div>
-              <div className="font-genshin mt-1 inline-flex items-center gap-1.5 font-bold text-[15px] text-[#232635] tabular-nums">
+              <div className="font-genshin mt-1 inline-flex items-center gap-1.5 font-bold text-[15px] text-[#242735] tabular-nums">
                 <TeyvatImage
                   src={ASSET_ICONS.primogem}
                   fallbackSrc={ASSET_ICONS.primogemCdn}
@@ -214,7 +218,7 @@ export const ProfileScreen: React.FC = () => {
                     className="w-7 h-7 object-contain shrink-0"
                   />
                   <div className="min-w-0 flex-1">
-                    <div className="font-genshin text-[12px] text-[#232635] truncate">
+                    <div className="font-genshin text-[12px] text-[#242735] truncate">
                       {coupon.title}
                     </div>
                     <div className="text-[11px] text-[#5B5F70] truncate">
@@ -229,9 +233,9 @@ export const ProfileScreen: React.FC = () => {
         </section>
 
         {/* Audio Settings */}
-        <section className="rounded-2xl teyvat-ivory-card p-3.5 flex items-center justify-between gap-2 shadow-md">
+        <section className="rounded-2xl teyvat-ivory-card p-3.5 flex items-center justify-between gap-2">
           <div>
-            <h2 className="font-genshin text-[13px] text-[#232635]">
+            <h2 className="font-genshin text-[13px] text-[#242735]">
               Pengaturan Audio Teyvat
             </h2>
             <p className="text-[11px] text-[#5B5F70]">
@@ -244,7 +248,7 @@ export const ProfileScreen: React.FC = () => {
               onClick={toggleBgm}
               className={`min-h-[36px] px-3 rounded-lg border font-genshin text-[11px] inline-flex items-center gap-1 transition-colors ${
                 bgmEnabled
-                  ? 'bg-[#2C354D] border-[#2C354D] text-[#FFE7A5]'
+                  ? 'bg-[#242B3E] border-[#C8A86B] text-[#FFE7A5]'
                   : 'bg-[#ECE5D8] border-[#CBB997] text-[#4A4F63]'
               }`}
             >
@@ -256,7 +260,7 @@ export const ProfileScreen: React.FC = () => {
               onClick={toggleSfx}
               className={`min-h-[36px] px-3 rounded-lg border font-genshin text-[11px] inline-flex items-center gap-1 transition-colors ${
                 sfxEnabled
-                  ? 'bg-[#2C354D] border-[#2C354D] text-[#FFE7A5]'
+                  ? 'bg-[#242B3E] border-[#C8A86B] text-[#FFE7A5]'
                   : 'bg-[#ECE5D8] border-[#CBB997] text-[#4A4F63]'
               }`}
             >
@@ -270,7 +274,7 @@ export const ProfileScreen: React.FC = () => {
           <section aria-labelledby="favorites-heading">
             <h2
               id="favorites-heading"
-              className="font-genshin text-[14px] text-[#FFE7A5] mb-2.5"
+              className="font-genshin text-[14.5px] text-[#242735] mb-2.5"
             >
               Hidangan Favorit ({favoriteDishes.length})
             </h2>
@@ -282,7 +286,7 @@ export const ProfileScreen: React.FC = () => {
                     key={dish.id}
                     type="button"
                     onClick={() => pushStack({ name: 'dish', dishId: dish.id })}
-                    className="w-[122px] shrink-0 rounded-xl overflow-hidden teyvat-ivory-card text-left hover:border-[#FFE7A5] transition-colors shadow-md"
+                    className="w-[122px] shrink-0 rounded-xl overflow-hidden teyvat-ivory-card text-left hover:border-[#C87C24] transition-colors"
                   >
                     <div
                       className="relative h-14 flex items-center justify-center p-1 overflow-hidden"
@@ -311,7 +315,7 @@ export const ProfileScreen: React.FC = () => {
                       </div>
                     </div>
                     <div className="p-2">
-                      <div className="font-genshin text-[11px] text-[#232635] truncate">
+                      <div className="font-genshin text-[11px] text-[#242735] truncate">
                         {dish.name}
                       </div>
                       <div className="font-genshin text-[10px] text-[#6B4A1B] tabular-nums mt-0.5">
@@ -329,7 +333,7 @@ export const ProfileScreen: React.FC = () => {
         <section aria-labelledby="order-history-heading" className="space-y-2.5">
           <h2
             id="order-history-heading"
-            className="font-genshin text-[14px] text-[#FFE7A5]"
+            className="font-genshin text-[14.5px] text-[#242735]"
           >
             Riwayat Pesanan Kuliner
           </h2>
@@ -337,11 +341,11 @@ export const ProfileScreen: React.FC = () => {
           {orders.map((order) => (
             <article
               key={order.id}
-              className="rounded-2xl teyvat-ivory-card p-3.5 space-y-2.5 shadow-md"
+              className="rounded-2xl teyvat-ivory-card p-3.5 space-y-2.5"
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <div className="font-genshin text-[12px] text-[#232635] tabular-nums">
+                  <div className="font-genshin text-[12px] text-[#242735] tabular-nums">
                     {order.id}
                   </div>
                   <div className="text-[11px] text-[#5C6072] mt-0.5">
@@ -377,7 +381,7 @@ export const ProfileScreen: React.FC = () => {
                   amount={order.totalMora}
                   size="sm"
                   showSuffix
-                  className="text-[#232635]"
+                  className="text-[#242735]"
                 />
                 <button
                   type="button"
@@ -393,17 +397,17 @@ export const ProfileScreen: React.FC = () => {
         </section>
       </div>
 
-      {/* COLLECTIBLE NAMECARD SELECTION MODAL (All 8 Official Genshin Namecards) */}
+      {/* WARM PARCHMENT COLLECTIBLE NAMECARD MODAL (All 8 Symmetrical Illustrated Banners) */}
       {isNamecardModalOpen && (
         <div
           role="dialog"
           aria-modal="true"
           aria-labelledby="namecard-modal-title"
-          className="absolute inset-0 z-50 bg-[#121622]/82 backdrop-blur-sm flex items-center justify-center p-4"
+          className="absolute inset-0 z-50 bg-[#1B2234]/68 backdrop-blur-sm flex items-center justify-center p-4"
         >
-          <div className="w-full max-w-[388px] max-h-[86%] rounded-[24px] overflow-hidden border-2 border-[#FFE7A5]/75 bg-[#1D2335] shadow-2xl flex flex-col animate-modal-enter">
-            {/* Modal Header */}
-            <div className="px-4 py-3.5 hoyolab-glass-bar border-b border-[#FFE7A5]/25 flex items-center justify-between gap-2 shrink-0">
+          <div className="w-full max-w-[388px] max-h-[88%] rounded-[24px] overflow-hidden border-2 border-[#C8A86B] bg-[#ECE5D8] shadow-2xl flex flex-col animate-modal-enter">
+            {/* Ornamental Slim Indigo Header Crest */}
+            <div className="px-4 py-3.5 teyvat-chrome-bar border-b-2 border-[#C8A86B]/75 flex items-center justify-between gap-2 shrink-0">
               <div>
                 <h2
                   id="namecard-modal-title"
@@ -411,7 +415,7 @@ export const ProfileScreen: React.FC = () => {
                 >
                   Koleksi Namecard Teyvat
                 </h2>
-                <p className="text-[11px] text-[#C2CAE0]">
+                <p className="text-[11px] text-[#C8D0E4]">
                   Pilih 1 dari {NAMECARDS.length} Namecard resmi untuk spanduk profil
                 </p>
               </div>
@@ -419,36 +423,36 @@ export const ProfileScreen: React.FC = () => {
                 type="button"
                 onClick={() => setIsNamecardModalOpen(false)}
                 aria-label="Tutup pilihan Namecard"
-                className="w-9 h-9 rounded-full hoyolab-stat-badge text-[#FFE7A5] flex items-center justify-center hover:border-[#FFE7A5]"
+                className="w-9 h-9 rounded-full teyvat-chrome-pill text-[#FFE7A5] flex items-center justify-center hover:border-[#FFE7A5]"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Live Selected Banner Preview */}
-            <div className="px-4 pt-3 shrink-0">
-              <div className="relative h-[74px] rounded-xl overflow-hidden border border-[#FFE7A5]/55 bg-[#161B2A]">
+            {/* Live Selected Symmetrical Banner Preview */}
+            <div className="px-4 pt-3.5 shrink-0">
+              <div className="relative h-[78px] rounded-xl overflow-hidden border-2 border-[#C8A86B] bg-[#242C42] shadow-sm">
                 <img
                   src={activeNamecard.bgImage}
                   alt={activeNamecard.name}
-                  className="absolute inset-0 w-full h-full object-cover object-right"
+                  className="absolute inset-0 w-full h-full object-cover object-center scale-[1.22]"
                 />
-                <div className="absolute inset-0 bg-gradient-to-r from-[#161B2A]/90 via-[#161B2A]/45 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#192032]/86 via-[#192032]/40 to-transparent" />
                 <div className="relative z-10 h-full px-3.5 flex flex-col justify-center">
                   <span className="text-[10px] uppercase tracking-wider text-[#FFE7A5] font-semibold">
                     Aktif · {activeNamecard.region}
                   </span>
-                  <span className="font-genshin text-[13.5px] text-[#FFF8E7]">
+                  <span className="font-genshin text-[13.5px] text-[#FFFDF5]">
                     {activeNamecard.name}
                   </span>
-                  <span className="text-[10.5px] text-[#D0D7EA] truncate">
+                  <span className="text-[10.5px] text-[#E6EBF5] truncate">
                     {activeNamecard.subtitle}
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* 2-Column Collectible Namecards Grid */}
+            {/* 2-Column Collectible Namecards Grid on Warm Parchment */}
             <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3 grid grid-cols-2 gap-2.5">
               {NAMECARDS.map((card) => {
                 const isSelected = card.id === activeNamecard.id;
@@ -458,30 +462,30 @@ export const ProfileScreen: React.FC = () => {
                     type="button"
                     onClick={() => setSelectedNamecard(card.id)}
                     aria-pressed={isSelected}
-                    className={`rounded-xl overflow-hidden text-left border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE7A5] flex flex-col ${
+                    className={`rounded-xl overflow-hidden text-left border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C8A86B] flex flex-col shadow-sm ${
                       isSelected
-                        ? 'border-[#FFE7A5] ring-2 ring-[#FFE7A5]/50 bg-[#F7F4EE]'
-                        : 'border-[#D3BC8E]/60 bg-[#EFEAE0] hover:border-[#FFE7A5]'
+                        ? 'border-[#C87C24] ring-2 ring-[#C8A86B]/60 bg-[#FAF8F2]'
+                        : 'border-[#D3BC8E] bg-[#FAF8F2] hover:border-[#9C5A14]'
                     }`}
                   >
-                    <div className="relative h-[66px] w-full bg-[#1C2234] overflow-hidden">
+                    <div className="relative h-[68px] w-full bg-[#242C42] overflow-hidden">
                       <img
                         src={card.bgImage}
                         alt={card.name}
-                        className="absolute inset-0 w-full h-full object-cover object-right"
+                        className="absolute inset-0 w-full h-full object-cover object-center scale-[1.24]"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#161B2A]/82 via-[#161B2A]/10 to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#192032]/75 via-transparent to-transparent" />
                       {isSelected && (
-                        <span className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-[#FFE7A5] text-[#232635] flex items-center justify-center shadow">
+                        <span className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-[#FFE7A5] border border-[#9C5A14] text-[#242735] flex items-center justify-center shadow">
                           <Check className="w-3.5 h-3.5 stroke-[3]" />
                         </span>
                       )}
-                      <span className="absolute bottom-1.5 left-2 px-1.5 py-0.5 rounded bg-[#161B2A]/78 border border-[#FFE7A5]/30 text-[9px] font-semibold text-[#FFE7A5]">
+                      <span className="absolute bottom-1.5 left-2 px-1.5 py-0.5 rounded bg-[#192032]/82 border border-[#FFE7A5]/35 text-[9px] font-semibold text-[#FFE7A5]">
                         {card.region}
                       </span>
                     </div>
 
-                    <div className="p-2 text-[#232635]">
+                    <div className="p-2 text-[#242735]">
                       <div className="font-genshin text-[10.5px] leading-snug truncate">
                         {card.name}
                       </div>
@@ -494,8 +498,8 @@ export const ProfileScreen: React.FC = () => {
               })}
             </div>
 
-            {/* Modal Footer */}
-            <div className="px-4 py-3 hoyolab-glass-bar border-t border-[#FFE7A5]/25 shrink-0">
+            {/* Warm Parchment Modal Footer */}
+            <div className="px-4 py-3 bg-[#F4EFE4] border-t border-[#D3BC8E] shrink-0">
               <GoldCapsuleButton onClick={() => setIsNamecardModalOpen(false)}>
                 Terapkan Namecard
               </GoldCapsuleButton>

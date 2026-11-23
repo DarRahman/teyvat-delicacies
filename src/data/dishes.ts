@@ -584,7 +584,7 @@ export const DELIVERY_POINTS: DeliveryPoint[] = [
     region: 'Mondstadt',
     landmark: 'Gerbang Utama Markas Besar · Dekat Patung Barbatos',
     etaMinutes: 15,
-    mapCoords: { x: 86, y: 55 },
+    mapCoords: { x: 86, y: 56 },
   },
   {
     id: 'wanmin-terrace',
@@ -603,14 +603,6 @@ export const DELIVERY_POINTS: DeliveryPoint[] = [
     mapCoords: { x: 91, y: 24 },
   },
   {
-    id: 'maison-cardinalice',
-    name: 'Court of Fontaine',
-    region: 'Fontaine',
-    landmark: 'Maison Cardinalice · Palais Mermonia Plaza',
-    etaMinutes: 16,
-    mapCoords: { x: 59, y: 54 },
-  },
-  {
     id: 'akademiya-courtyard',
     name: 'Akademiya Courtyard',
     region: 'Sumeru',
@@ -619,12 +611,36 @@ export const DELIVERY_POINTS: DeliveryPoint[] = [
     mapCoords: { x: 63, y: 35 },
   },
   {
+    id: 'maison-cardinalice',
+    name: 'Court of Fontaine',
+    region: 'Fontaine',
+    landmark: 'Maison Cardinalice · Palais Mermonia Plaza',
+    etaMinutes: 16,
+    mapCoords: { x: 59, y: 55 },
+  },
+  {
     id: 'tequemecan-springs',
     name: 'Tequemecan Springs',
     region: 'Natlan',
     landmark: 'Stadium of the Sacred Flame · Teras Api Abadi',
     etaMinutes: 17,
-    mapCoords: { x: 21, y: 24 },
+    mapCoords: { x: 20, y: 24 },
+  },
+  {
+    id: 'nasha-outpost',
+    name: 'Nasha Town Outpost',
+    region: 'Nod-Krai',
+    landmark: 'Dermaga Frostmoon · Mercusuar Perbatasan Utara',
+    etaMinutes: 20,
+    mapCoords: { x: 24, y: 74 },
+  },
+  {
+    id: 'zapolyarny-palace',
+    name: 'Zapolyarny Palace Square',
+    region: 'Snezhnaya',
+    landmark: 'Alun-Alun Istana Salju · Gerbang Northland Bank',
+    etaMinutes: 22,
+    mapCoords: { x: 52, y: 85 },
   },
 ];
 

@@ -51,9 +51,9 @@ export const DishDetailScreen: React.FC<DishDetailScreenProps> = ({ dishId }) =>
   };
 
   return (
-    <div className="flex flex-col h-full bg-transparent animate-stack-enter">
+    <div className="flex flex-col h-full bg-[#FAF8F2] animate-stack-enter">
       {/* Scrollable Edge-to-Edge Content */}
-      <div className="flex-1 overflow-y-auto pb-8">
+      <div className="flex-1 overflow-y-auto pb-8 bg-[#FAF8F2]">
         {/* Full-Bleed Hero Rarity Backdrop with Triquetra Watermark & Centered Radial Illumination */}
         <div
           className="relative h-[222px] overflow-hidden flex flex-col justify-between"
@@ -63,7 +63,7 @@ export const DishDetailScreen: React.FC<DishDetailScreenProps> = ({ dishId }) =>
             src={ASSET_ICONS.dishDetailBg}
             alt=""
             aria-hidden="true"
-            className="absolute inset-0 w-full h-full object-cover opacity-35 mix-blend-multiply pointer-events-none"
+            className="absolute inset-0 w-full h-full object-cover opacity-30 mix-blend-multiply pointer-events-none"
           />
           <img
             src={rarityStyle.bgAsset}
@@ -73,7 +73,7 @@ export const DishDetailScreen: React.FC<DishDetailScreenProps> = ({ dishId }) =>
             style={{ opacity: 0.35, mixBlendMode: 'overlay' }}
           />
           <div
-            className="absolute inset-0 bg-gradient-to-b from-[#1A1F2C]/55 via-transparent to-[#1A1F2C]/80 pointer-events-none"
+            className="absolute inset-0 bg-gradient-to-b from-[#1B2234]/50 via-transparent to-[#1B2234]/45 pointer-events-none"
             aria-hidden="true"
           />
 
@@ -83,12 +83,12 @@ export const DishDetailScreen: React.FC<DishDetailScreenProps> = ({ dishId }) =>
               type="button"
               onClick={popStack}
               aria-label="Kembali"
-              className="w-10 h-10 rounded-full hoyolab-stat-badge text-[#FFE7A5] flex items-center justify-center hover:border-[#FFE7A5] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE7A5]"
+              className="w-10 h-10 rounded-full teyvat-chrome-pill text-[#FFE7A5] flex items-center justify-center hover:border-[#FFE7A5] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE7A5]"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
 
-            <span className="font-genshin text-[13px] text-[#FFE7A5] tracking-wider drop-shadow">
+            <span className="font-genshin text-[13px] text-[#FFF8E7] tracking-wider drop-shadow">
               Dossier Resep
             </span>
 
@@ -97,37 +97,37 @@ export const DishDetailScreen: React.FC<DishDetailScreenProps> = ({ dishId }) =>
               onClick={() => toggleFavorite(dish.id)}
               aria-label={isFavorite ? 'Hapus dari favorit' : 'Simpan ke favorit'}
               aria-pressed={isFavorite}
-              className={`w-10 h-10 rounded-full backdrop-blur-md border flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE7A5] ${
+              className={`w-10 h-10 rounded-full border flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE7A5] ${
                 isFavorite
                   ? 'bg-[#FFE7A5] border-[#FFE7A5] text-[#9C2B3B]'
-                  : 'hoyolab-stat-badge text-[#FFE7A5] hover:border-[#FFE7A5]'
+                  : 'teyvat-chrome-pill text-[#FFE7A5] hover:border-[#FFE7A5]'
               }`}
             >
               <Heart className={`w-5 h-5 ${isFavorite ? 'fill-current' : ''}`} />
             </button>
           </header>
 
-          {/* Large Transparent Dish Illustration with Exact Soft Centered Radial Illumination */}
+          {/* Large Transparent Dish Illustration with Centered Radial Illumination */}
           <div className="relative z-10 flex-1 flex items-center justify-center pb-5">
             <div
               className="w-[156px] h-[156px] rounded-full flex items-center justify-center animate-float-slow"
               style={{
                 background:
-                  'radial-gradient(circle at center, rgba(255, 231, 165, 0.42) 0%, transparent 68%)',
+                  'radial-gradient(circle at center, rgba(255, 231, 165, 0.45) 0%, transparent 68%)',
               }}
             >
               <TeyvatImage
                 src={dish.image}
                 fallbackSrc={dish.fallbackImage}
                 alt={dish.name}
-                className="w-[132px] h-[132px] object-contain drop-shadow-[0_10px_14px_rgba(18,12,8,0.5)]"
+                className="w-[132px] h-[132px] object-contain drop-shadow-[0_10px_14px_rgba(18,12,8,0.45)]"
               />
             </div>
           </div>
         </div>
 
-        {/* Full-Bleed Ivory Parchment Dossier Surface (Zero side margins; px-4 internal gutters) */}
-        <div className="-mt-4 relative z-20 rounded-t-[26px] bg-[#F7F4EE] border-t-2 border-[#D3BC8E] px-4 pt-5 pb-6 space-y-4 text-[#232635] shadow-xl">
+        {/* Full-Bleed Ivory Parchment Dossier Surface */}
+        <div className="-mt-4 relative z-20 rounded-t-[26px] bg-[#FAF8F2] border-t-2 border-[#C8A86B] px-4 pt-5 pb-6 space-y-4 text-[#242735]">
           {/* Title, 4-Point Diamond Stars, Region & Mora Price */}
           <div>
             <div className="flex items-center justify-between gap-2">
@@ -137,7 +137,7 @@ export const DishDetailScreen: React.FC<DishDetailScreenProps> = ({ dishId }) =>
               </span>
             </div>
 
-            <h1 className="font-genshin text-[22px] text-[#232635] leading-snug mt-2">
+            <h1 className="font-genshin text-[22px] text-[#242735] leading-snug mt-2">
               {dish.name}
             </h1>
 
@@ -146,7 +146,7 @@ export const DishDetailScreen: React.FC<DishDetailScreenProps> = ({ dishId }) =>
                 amount={dish.priceMora}
                 size="md"
                 showSuffix
-                className="text-[#232635]"
+                className="text-[#242735]"
               />
               <span
                 className="font-genshin text-[11px] tracking-wide"
@@ -178,7 +178,7 @@ export const DishDetailScreen: React.FC<DishDetailScreenProps> = ({ dishId }) =>
             <div className="min-w-0">
               <h2
                 id="buff-dossier-heading"
-                className="font-genshin text-[12px] text-[#232635] flex items-center gap-1.5"
+                className="font-genshin text-[12px] text-[#242735] flex items-center gap-1.5"
               >
                 <span>{buffMeta.label}</span>
                 <span className="text-[#9C5A14]">({dish.buffLabel})</span>
@@ -193,7 +193,7 @@ export const DishDetailScreen: React.FC<DishDetailScreenProps> = ({ dishId }) =>
           <section aria-labelledby="lore-heading">
             <h2
               id="lore-heading"
-              className="font-genshin text-[13px] text-[#232635] mb-2"
+              className="font-genshin text-[13px] text-[#242735] mb-2"
             >
               Kisah &amp; Asal Hidangan
             </h2>
@@ -223,7 +223,7 @@ export const DishDetailScreen: React.FC<DishDetailScreenProps> = ({ dishId }) =>
             <div className="flex items-center justify-between mb-2.5">
               <h2
                 id="ingredients-heading"
-                className="font-genshin text-[13px] text-[#232635]"
+                className="font-genshin text-[13px] text-[#242735]"
               >
                 Bahan Baku Resep
               </h2>
@@ -238,13 +238,13 @@ export const DishDetailScreen: React.FC<DishDetailScreenProps> = ({ dishId }) =>
                   key={ing.name}
                   className="rounded-xl bg-[#EFEAE0] border border-[#D3BC8E] p-1.5 flex flex-col items-center text-center"
                 >
-                  <div className="relative w-full aspect-square rounded-lg bg-[#232A3E] border border-[#5D698A]/60 flex items-center justify-center overflow-hidden p-1.5">
+                  <div className="relative w-full aspect-square rounded-lg bg-[#E4DAC7] border border-[#C8A86B]/70 flex items-center justify-center overflow-hidden p-1.5">
                     <TeyvatImage
                       src={ing.icon}
                       alt={ing.name}
                       className="w-9 h-9 object-contain"
                     />
-                    <span className="font-genshin absolute bottom-0 right-0 px-1.5 py-0.5 rounded-tl-md bg-[#161B2A]/90 text-[#FFE7A5] text-[10px] leading-none tabular-nums border-t border-l border-[#D3BC8E]/45">
+                    <span className="font-genshin absolute bottom-0 right-0 px-1.5 py-0.5 rounded-tl-md bg-[#242B3E] text-[#FFE7A5] text-[10px] leading-none tabular-nums border-t border-l border-[#C8A86B]/60">
                       ×{ing.count * quantity}
                     </span>
                   </div>
@@ -258,10 +258,10 @@ export const DishDetailScreen: React.FC<DishDetailScreenProps> = ({ dishId }) =>
         </div>
       </div>
 
-      {/* Glassmorphic Bottom Sticky Action Bar */}
-      <div className="px-4 py-3 hoyolab-glass-bar border-t border-[#FFE7A5]/25 flex items-center gap-3 shrink-0">
+      {/* Regal Bottom Sticky Action Bar */}
+      <div className="px-4 py-3 teyvat-chrome-bar border-t-2 border-[#C8A86B]/75 flex items-center gap-3 shrink-0">
         {/* Portion Stepper */}
-        <div className="inline-flex items-center gap-1 hoyolab-stat-badge rounded-full p-1 shrink-0">
+        <div className="inline-flex items-center gap-1 teyvat-chrome-pill rounded-full p-1 shrink-0">
           <button
             type="button"
             onClick={() => setQuantity((q) => Math.max(1, q - 1))}
