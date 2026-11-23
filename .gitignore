@@ -1,0 +1,23 @@
+# Node / Expo
+node_modules/
+.expo/
+dist/
+web-build/
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Python / Scripts
+__pycache__/
+*.pyc
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
