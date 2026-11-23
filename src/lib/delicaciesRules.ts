@@ -5,6 +5,7 @@ import {
   Dish,
   DishCategory,
   DishRarity,
+  MapCoordinates,
   PaymentMethod,
   TeyvatRegion,
 } from '../types';
@@ -117,4 +118,30 @@ export function validateCheckoutPayment(
     };
   }
   return { ok: true };
+}
+
+/** Exact 3-point Glider Courier progress percentage: 0% -> 50% -> 100% */
+export function getGliderProgressPercent(stage: 0 | 1 | 2): number {
+  if (stage === 0) return 0;
+  if (stage === 1) return 50;
+  return 100;
+}
+
+/** Compute an arched quadratic Bezier SVG path string from Wanmin Kitchen to a destination waypoint */
+export function buildGliderFlightArcPath(
+  origin: MapCoordinates,
+  destination: MapCoordinates
+): string {
+  const dx = destination.x - origin.x;
+  const dy = destination.y - origin.y;
+  const dist = Math.hypot(dx, dy);
+  if (dist < 0.5) {
+    return '';
+  }
+  const midX = (origin.x + destination.x) / 2;
+  const midY = (origin.y + destination.y) / 2;
+  const lift = Math.min(14, Math.max(5, dist * 0.24));
+  const ctrlX = midX;
+  const ctrlY = Math.max(4, midY - lift);
+  return `M ${origin.x.toFixed(1)} ${origin.y.toFixed(1)} Q ${ctrlX.toFixed(1)} ${ctrlY.toFixed(1)} ${destination.x.toFixed(1)} ${destination.y.toFixed(1)}`;
 }

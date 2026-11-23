@@ -52,12 +52,27 @@ export interface Coupon {
   icon: string;
 }
 
+export interface MapCoordinates {
+  x: number;
+  y: number;
+}
+
 export interface DeliveryPoint {
   id: string;
   name: string;
   region: TeyvatRegion;
   landmark: string;
   etaMinutes: number;
+  mapCoords: MapCoordinates;
+}
+
+export interface Namecard {
+  id: string;
+  name: string;
+  region: TeyvatRegion;
+  subtitle: string;
+  bgImage: string;
+  iconImage: string;
 }
 
 export type PaymentMethod = 'MORA_COD' | 'NORTHLAND_BANK_CARD';

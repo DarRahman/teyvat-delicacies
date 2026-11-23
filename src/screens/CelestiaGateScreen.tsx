@@ -36,7 +36,7 @@ export const CelestiaGateScreen: React.FC = () => {
     setWhiteoutBloom(true);
     const crossfadeTimer = window.setTimeout(() => {
       enterTeyvat(pendingBgmRef.current);
-    }, 420);
+    }, 450);
     timersRef.current.push(crossfadeTimer);
   };
 
@@ -49,7 +49,7 @@ export const CelestiaGateScreen: React.FC = () => {
         finishedRef.current = true;
         enterTeyvat(pendingBgmRef.current);
       }
-    }, 650);
+    }, 620);
     timersRef.current.push(timer);
   };
 
@@ -58,10 +58,10 @@ export const CelestiaGateScreen: React.FC = () => {
     pendingBgmRef.current = withBgm;
     setTransitionMode('video');
 
-    // Safety timer: peak whiteout bloom at ~2.5s when stone doors swing open
+    // Safety timer aligned with ~3-second daylight Celestia door-opening video
     const peakTimer = window.setTimeout(() => {
       triggerWhiteoutAndEnter();
-    }, 2500);
+    }, 2950);
     timersRef.current.push(peakTimer);
   };
 
@@ -76,7 +76,6 @@ export const CelestiaGateScreen: React.FC = () => {
     const playPromise = videoEl.play();
     if (playPromise && typeof playPromise.catch === 'function') {
       playPromise.catch(() => {
-        // Browser policy blocked autoplay -> smooth CSS celestial whiteout flare
         clearTimers();
         triggerFallbackFlare();
       });
@@ -86,13 +85,13 @@ export const CelestiaGateScreen: React.FC = () => {
   const handleTimeUpdate = () => {
     const videoEl = videoRef.current;
     if (!videoEl || finishedRef.current) return;
-    if (videoEl.currentTime >= 2.35) {
+    if (videoEl.currentTime >= 2.65) {
       triggerWhiteoutAndEnter();
     }
   };
 
   return (
-    <div className="relative w-full h-full flex flex-col justify-between overflow-hidden bg-[#120F1D]">
+    <div className="relative w-full h-full flex flex-col justify-between overflow-hidden bg-[#1A1F2C]">
       {/* Static Celestia Door Background (idle & fallback base) */}
       <img
         src={ASSET_ICONS.celestiaDoor}
@@ -102,7 +101,7 @@ export const CelestiaGateScreen: React.FC = () => {
         }`}
       />
 
-      {/* Full-Screen Cinematic Gate-Opening Video Container */}
+      {/* Full-Screen Cinematic Gate-Opening Video (Zero Black Letterboxing via object-cover) */}
       {transitionMode === 'video' && (
         <video
           ref={videoRef}
@@ -123,7 +122,7 @@ export const CelestiaGateScreen: React.FC = () => {
         </video>
       )}
 
-      {/* Celestial White Light Bloom Crossfade Overlay */}
+      {/* Radiant Celestial Whiteout Bloom Crossfade Overlay */}
       <div
         aria-hidden="true"
         className={`absolute inset-0 z-30 pointer-events-none transition-opacity duration-500 ${
@@ -131,19 +130,19 @@ export const CelestiaGateScreen: React.FC = () => {
         }`}
         style={{
           background:
-            'radial-gradient(circle at 50% 48%, #FFFFFF 0%, #FFF9EC 48%, #FFE7A5 100%)',
+            'radial-gradient(circle at 50% 48%, #FFFFFF 0%, #FFFBF2 52%, #FFE7A5 100%)',
         }}
       />
 
-      {/* Measured contrast scrim while idle */}
+      {/* Balanced Contrast Scrims while Idle (Midnight Slate tint, preserving sky visibility) */}
       <div
-        className={`absolute inset-0 z-10 bg-gradient-to-b from-[#120F1D]/82 via-[#171421]/15 to-[#120F1D]/96 transition-opacity duration-300 ${
+        className={`absolute inset-0 z-10 bg-gradient-to-b from-[#1A1F2C]/80 via-[#1E2333]/12 to-[#1A1F2C]/92 transition-opacity duration-300 ${
           transitionMode !== 'idle' ? 'opacity-0 pointer-events-none' : 'opacity-100'
         }`}
         aria-hidden="true"
       />
       <div
-        className={`absolute inset-x-0 bottom-0 h-[44%] z-10 bg-gradient-to-t from-[#120F1D] via-[#120F1D]/80 to-transparent pointer-events-none transition-opacity duration-300 ${
+        className={`absolute inset-x-0 bottom-0 h-[44%] z-10 bg-gradient-to-t from-[#1A1F2C] via-[#1A1F2C]/82 to-transparent pointer-events-none transition-opacity duration-300 ${
           transitionMode !== 'idle' ? 'opacity-0' : 'opacity-100'
         }`}
         aria-hidden="true"
@@ -156,10 +155,10 @@ export const CelestiaGateScreen: React.FC = () => {
         }`}
       >
         <div
-          className="w-14 h-14 rounded-full bg-[#ECE5D8] border-2 border-[#FFE7A5] flex items-center justify-center mb-3 animate-float-slow"
+          className="w-14 h-14 rounded-full bg-[#F7F4EE] border-2 border-[#FFE7A5] flex items-center justify-center mb-3 animate-float-slow shadow-lg"
           style={{
             background:
-              'radial-gradient(circle at center, #FFF8E7 0%, #E9E5DC 75%)',
+              'radial-gradient(circle at center, #FFFDF8 0%, #EFEAE0 78%)',
           }}
         >
           <TeyvatImage
@@ -178,7 +177,7 @@ export const CelestiaGateScreen: React.FC = () => {
         <div className="w-44 mt-3">
           <DiamondDivider dark />
         </div>
-        <div className="mt-2.5 inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#120F1D]/65 border border-[#FFE7A5]/40 backdrop-blur-sm animate-pulse-soft">
+        <div className="mt-2.5 inline-flex items-center gap-2 px-3.5 py-1 rounded-full hoyolab-stat-badge animate-pulse-soft">
           <DiamondStar size={10} />
           <span className="font-genshin text-[11px] tracking-[0.08em] text-[#FFF8E7]">
             Gerbang Dapur Teyvat Terbuka
@@ -190,15 +189,15 @@ export const CelestiaGateScreen: React.FC = () => {
       {/* Center Unobstructed View of the Celestia Stone Door */}
       <div className="relative z-10 flex-1 pointer-events-none" />
 
-      {/* Bottom Interactive Entry Controls (Warm Parchment License Card + Gold CTA) */}
+      {/* Bottom Interactive Entry Controls */}
       <footer
         className={`relative z-10 px-6 pb-8 pt-4 flex flex-col items-center gap-3 transition-opacity duration-300 ${
           transitionMode !== 'idle' ? 'opacity-0 pointer-events-none' : 'opacity-100'
         }`}
       >
-        <div className="w-full rounded-2xl bg-[#ECE5D8]/95 border border-[#D3BC8E] px-4 py-3 flex items-center justify-between shadow-md">
+        <div className="w-full rounded-2xl teyvat-ivory-card px-4 py-3 flex items-center justify-between shadow-lg">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-9 h-9 rounded-full overflow-hidden border-[1.5px] border-[#C8A86B] bg-[#252038] shrink-0">
+            <div className="w-9 h-9 rounded-full overflow-hidden border-[1.5px] border-[#C8A86B] bg-[#1E2333] shrink-0">
               <TeyvatImage
                 src={profile.avatarUrl}
                 fallbackSrc={profile.fallbackAvatarUrl}
@@ -228,7 +227,7 @@ export const CelestiaGateScreen: React.FC = () => {
         <button
           type="button"
           onClick={() => startGateTransition(false)}
-          className="min-h-[40px] px-4 py-1.5 rounded-full bg-[#171421]/80 border border-[#FFE7A5]/35 text-[12px] font-medium text-[#FFF8E7] hover:border-[#FFE7A5] hover:text-[#FFE7A5] inline-flex items-center gap-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE7A5]"
+          className="min-h-[40px] px-4 py-1.5 rounded-full hoyolab-stat-badge text-[12px] font-medium text-[#FFF8E7] hover:border-[#FFE7A5] hover:text-[#FFE7A5] inline-flex items-center gap-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE7A5]"
         >
           <VolumeX className="w-3.5 h-3.5" />
           <span>Masuk tanpa musik latar</span>

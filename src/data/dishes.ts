@@ -5,6 +5,7 @@ import {
   Dish,
   DishCategory,
   DishRarity,
+  Namecard,
   Order,
   TeyvatRegion,
   TravelerProfile,
@@ -29,6 +30,8 @@ export const ASSET_ICONS = {
   dishDetailBg: '/assets/backgrounds/dish_detail_bg.webp',
   constellationBg: '/assets/backgrounds/constellation_stars_bg.webp',
   resultCardBg: '/assets/ui/result_card_bg.webp',
+  teyvatMap: '/assets/map/teyvat_world_map.webp',
+  teyvatMapHd: '/assets/map/teyvat_world_map_hd.webp',
 };
 
 export const BUFF_META: Record<
@@ -199,7 +202,7 @@ export const DISHES: Dish[] = [
   },
   {
     id: 4116,
-    name: 'Magmic Ode',
+    name: 'Blazed Meat Stew',
     rarity: 4,
     category: 'Main Dish',
     region: 'Natlan',
@@ -209,7 +212,7 @@ export const DISHES: Dish[] = [
     image: '/assets/dishes/magmic_ode.png',
     fallbackImage: 'https://gi.yatta.moe/assets/UI/UI_ItemIcon_108733.png',
     description:
-      'Hidangan panggang berempah bara api khas Stadium of the Sacred Flame, Natlan. Panas rempah ember-nya menyulut tekad tempur para pejuang suku-suku Natlan.',
+      'Semur daging panggang bara api berempah pekat khas Stadium of the Sacred Flame, Natlan. Panas rempah ember-nya menyulut tekad tempur para pejuang suku-suku Natlan.',
     effect:
       'Meningkatkan ATK seluruh anggota party sebesar 312 dan CRIT DMG 10% selama 300 detik.',
     prepMinutes: 15,
@@ -572,6 +575,8 @@ export const COUPONS: Coupon[] = [
   },
 ];
 
+export const WANMIN_ORIGIN_COORDS = { x: 75, y: 45 };
+
 export const DELIVERY_POINTS: DeliveryPoint[] = [
   {
     id: 'favonius-hq',
@@ -579,6 +584,7 @@ export const DELIVERY_POINTS: DeliveryPoint[] = [
     region: 'Mondstadt',
     landmark: 'Gerbang Utama Markas Besar · Dekat Patung Barbatos',
     etaMinutes: 15,
+    mapCoords: { x: 86, y: 55 },
   },
   {
     id: 'wanmin-terrace',
@@ -586,6 +592,7 @@ export const DELIVERY_POINTS: DeliveryPoint[] = [
     region: 'Liyue',
     landmark: 'Pelabuhan Chihu Rock · Meja Lentera Chef Xiangling',
     etaMinutes: 12,
+    mapCoords: { x: 75, y: 45 },
   },
   {
     id: 'narukami-shrine',
@@ -593,13 +600,15 @@ export const DELIVERY_POINTS: DeliveryPoint[] = [
     region: 'Inazuma',
     landmark: 'Puncak Mt. Yougou · Dekat Pohon Sacred Sakura',
     etaMinutes: 18,
+    mapCoords: { x: 91, y: 24 },
   },
   {
     id: 'maison-cardinalice',
-    name: 'Maison Cardinalice',
+    name: 'Court of Fontaine',
     region: 'Fontaine',
-    landmark: 'Court of Fontaine · Palais Mermonia Plaza',
+    landmark: 'Maison Cardinalice · Palais Mermonia Plaza',
     etaMinutes: 16,
+    mapCoords: { x: 59, y: 54 },
   },
   {
     id: 'akademiya-courtyard',
@@ -607,13 +616,82 @@ export const DELIVERY_POINTS: DeliveryPoint[] = [
     region: 'Sumeru',
     landmark: 'Gerbang Sanctuary of Surasthana · Jalur Rampai',
     etaMinutes: 15,
+    mapCoords: { x: 63, y: 35 },
   },
   {
-    id: 'sacred-flame-stadium',
-    name: 'Stadium of the Sacred Flame',
+    id: 'tequemecan-springs',
+    name: 'Tequemecan Springs',
     region: 'Natlan',
-    landmark: 'Arena Utama · Teras Api Abadi',
+    landmark: 'Stadium of the Sacred Flame · Teras Api Abadi',
     etaMinutes: 17,
+    mapCoords: { x: 21, y: 24 },
+  },
+];
+
+export const NAMECARDS: Namecard[] = [
+  {
+    id: 'natlan_saurian',
+    name: 'Natlan · Divine Flame',
+    region: 'Natlan',
+    subtitle: 'Kehormatan Stadium of the Sacred Flame',
+    bgImage: '/assets/namecards/natlan_saurian_bg.png',
+    iconImage: '/assets/namecards/natlan_saurian_icon.png',
+  },
+  {
+    id: 'furina_fountain',
+    name: 'Furina · Banquet',
+    region: 'Fontaine',
+    subtitle: 'Simfoni Panggung Opera Epiclese',
+    bgImage: '/assets/namecards/furina_fountain_bg.png',
+    iconImage: '/assets/namecards/furina_fountain_icon.png',
+  },
+  {
+    id: 'fontaine_glory',
+    name: 'Fontaine · Completeness',
+    region: 'Fontaine',
+    subtitle: 'Panji Kemegahan Court of Fontaine',
+    bgImage: '/assets/namecards/fontaine_glory_bg.png',
+    iconImage: '/assets/namecards/fontaine_glory_icon.png',
+  },
+  {
+    id: 'nahida_dendro',
+    name: 'Nahida · Crescent',
+    region: 'Sumeru',
+    subtitle: 'Kebijaksanaan Sanctuary of Surasthana',
+    bgImage: '/assets/namecards/nahida_dendro_bg.png',
+    iconImage: '/assets/namecards/nahida_dendro_icon.png',
+  },
+  {
+    id: 'raiden_shogun',
+    name: 'Raiden Shogun · Enlightenment',
+    region: 'Inazuma',
+    subtitle: 'Keabadian Petir Pulau Narukami',
+    bgImage: '/assets/namecards/raiden_shogun_bg.png',
+    iconImage: '/assets/namecards/raiden_shogun_icon.png',
+  },
+  {
+    id: 'zhongli_rex',
+    name: 'Zhongli · Planet Befall',
+    region: 'Liyue',
+    subtitle: 'Kontrak Abadi Geo Archon',
+    bgImage: '/assets/namecards/zhongli_rex_bg.png',
+    iconImage: '/assets/namecards/zhongli_rex_icon.png',
+  },
+  {
+    id: 'liyue_harbor',
+    name: 'Liyue · Stillness of Stone',
+    region: 'Liyue',
+    subtitle: 'Lentera Pelabuhan Chihu Rock',
+    bgImage: '/assets/namecards/liyue_harbor_bg.png',
+    iconImage: '/assets/namecards/liyue_harbor_bg.png',
+  },
+  {
+    id: 'mondstadt_favonius',
+    name: 'Mondstadt · Hero\'s Fame',
+    region: 'Mondstadt',
+    subtitle: 'Kebebasan Angin Knights of Favonius',
+    bgImage: '/assets/namecards/mondstadt_favonius_bg.png',
+    iconImage: '/assets/namecards/mondstadt_favonius_bg.png',
   },
 ];
 

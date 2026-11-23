@@ -41,296 +41,296 @@ export const CartScreen: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#171421]">
-      {/* Compact Night-Sky Header */}
-      <header className="px-4 pt-3.5 pb-2.5 bg-[#171421] shrink-0 flex items-center justify-between gap-2">
+    <div className="flex flex-col h-full bg-transparent">
+      {/* Translucent Glassmorphic Header */}
+      <header className="px-4 pt-3.5 pb-3 hoyolab-glass-bar border-b border-[#FFE7A5]/25 shrink-0 flex items-center justify-between gap-2">
         <div>
           <h1 className="font-genshin text-[17px] text-[#FFE7A5] tracking-wide">
             Keranjang Petualang
           </h1>
-          <p className="text-[11px] text-[#BEB5D4] tabular-nums">
+          <p className="text-[11px] text-[#C2CAE0] tabular-nums">
             {totals.itemCount > 0
               ? `${totals.itemCount} porsi siap dikirim kurir Glider`
               : 'Belum ada hidangan dipilih'}
           </p>
         </div>
         {totals.itemCount > 0 && (
-          <MoraAmount amount={totals.finalTotal} size="sm" className="text-[#FFE7A5]" />
+          <div className="px-2.5 py-1 rounded-full hoyolab-stat-badge">
+            <MoraAmount amount={totals.finalTotal} size="sm" className="text-[#FFE7A5]" />
+          </div>
         )}
       </header>
 
-      {/* Warm Parchment Main Sheet (65% Warm Parchment Balance) */}
-      <div className="flex-1 min-h-0 px-2.5 pb-2">
-        <div className="h-full rounded-[24px] bg-[#ECE5D8] border border-[#D3BC8E] ring-1 ring-[#5D5187]/45 overflow-y-auto px-3.5 pt-4 pb-8 text-[#232635]">
-          {cart.length === 0 ? (
-            <div className="rounded-2xl bg-[#F5F2EB] border border-[#D3BC8E] p-6 text-center mt-4">
-              <TeyvatImage
-                src={ASSET_ICONS.paimonHungry}
-                alt="Paimon sedang lapar"
-                className="w-32 h-32 object-contain mx-auto mb-3 drop-shadow"
-              />
-              <h2 className="font-genshin text-[16px] text-[#232635]">
-                Keranjang Masih Kosong
-              </h2>
-              <p className="text-[12px] text-[#565A6D] mt-1.5 leading-relaxed max-w-[260px] mx-auto">
-                Perut Paimon sudah keroncongan! Jelajahi katalog kuliner Teyvat dan pilih hidangan favoritmu.
-              </p>
-              <div className="mt-5">
-                <GoldCapsuleButton onClick={() => setActiveTab('katalog')}>
-                  Jelajahi Katalog Kuliner
-                </GoldCapsuleButton>
-              </div>
+      {/* Full-Bleed Scrollable Canvas */}
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 pt-4 pb-10">
+        {cart.length === 0 ? (
+          <div className="rounded-2xl teyvat-ivory-card p-6 text-center mt-4 shadow-lg">
+            <TeyvatImage
+              src={ASSET_ICONS.paimonHungry}
+              alt="Paimon sedang lapar"
+              className="w-32 h-32 object-contain mx-auto mb-3 drop-shadow"
+            />
+            <h2 className="font-genshin text-[16px] text-[#232635]">
+              Keranjang Masih Kosong
+            </h2>
+            <p className="text-[12px] text-[#565A6D] mt-1.5 leading-relaxed max-w-[260px] mx-auto">
+              Perut Paimon sudah keroncongan! Jelajahi katalog kuliner Teyvat dan pilih hidangan favoritmu.
+            </p>
+            <div className="mt-5">
+              <GoldCapsuleButton onClick={() => setActiveTab('katalog')}>
+                Jelajahi Katalog Kuliner
+              </GoldCapsuleButton>
             </div>
-          ) : (
-            <div className="space-y-4">
-              {/* Active Order List */}
-              <section aria-label="Daftar Pesanan Aktif" className="space-y-2.5">
-                {cart.map(({ dish, quantity }) => {
-                  const rarityStyle = RARITY_META[dish.rarity];
-                  return (
-                    <div
-                      key={dish.id}
-                      className="rounded-2xl bg-[#F5F2EB] border border-[#CBB997] p-3 flex items-center gap-3"
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {/* Active Order List */}
+            <section aria-label="Daftar Pesanan Aktif" className="space-y-2.5">
+              {cart.map(({ dish, quantity }) => {
+                const rarityStyle = RARITY_META[dish.rarity];
+                return (
+                  <div
+                    key={dish.id}
+                    className="rounded-2xl teyvat-ivory-card p-3 flex items-center gap-3 shadow-md"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => pushStack({ name: 'dish', dishId: dish.id })}
+                      className="relative w-[64px] h-[64px] rounded-xl shrink-0 flex items-center justify-center p-1 overflow-hidden border border-[#FFE7A5]/70"
+                      style={{ background: rarityStyle.gradient }}
+                      aria-label={`Lihat ${dish.name}`}
                     >
-                      <button
-                        type="button"
-                        onClick={() => pushStack({ name: 'dish', dishId: dish.id })}
-                        className="relative w-[64px] h-[64px] rounded-xl shrink-0 flex items-center justify-center p-1 overflow-hidden border border-[#FFE7A5]/70"
-                        style={{ background: rarityStyle.gradient }}
-                        aria-label={`Lihat ${dish.name}`}
+                      <img
+                        src={rarityStyle.bgAsset}
+                        alt=""
+                        aria-hidden="true"
+                        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                        style={{ opacity: 0.35, mixBlendMode: 'overlay' }}
+                      />
+                      <div
+                        className="relative z-10 w-13 h-13 flex items-center justify-center rounded-full"
+                        style={{
+                          background:
+                            'radial-gradient(circle at center, rgba(255, 231, 165, 0.42) 0%, transparent 68%)',
+                        }}
                       >
-                        <img
-                          src={rarityStyle.bgAsset}
-                          alt=""
-                          aria-hidden="true"
-                          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                          style={{ opacity: 0.35, mixBlendMode: 'overlay' }}
+                        <TeyvatImage
+                          src={dish.image}
+                          fallbackSrc={dish.fallbackImage}
+                          alt={dish.name}
+                          className="w-12 h-12 object-contain drop-shadow"
                         />
-                        <div
-                          className="relative z-10 w-13 h-13 flex items-center justify-center rounded-full"
-                          style={{
-                            background:
-                              'radial-gradient(circle at center, rgba(255, 231, 165, 0.42) 0%, transparent 68%)',
-                          }}
-                        >
-                          <TeyvatImage
-                            src={dish.image}
-                            fallbackSrc={dish.fallbackImage}
-                            alt={dish.name}
-                            className="w-12 h-12 object-contain drop-shadow"
-                          />
-                        </div>
-                      </button>
+                      </div>
+                    </button>
 
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0">
-                            <h3 className="font-genshin text-[13px] text-[#232635] truncate">
-                              {dish.name}
-                            </h3>
-                            <DiamondStarRow rarity={dish.rarity} size={9} className="mt-0.5" />
-                          </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <h3 className="font-genshin text-[13px] text-[#232635] truncate">
+                            {dish.name}
+                          </h3>
+                          <DiamondStarRow rarity={dish.rarity} size={9} className="mt-0.5" />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeFromCart(dish.id)}
+                          aria-label={`Hapus ${dish.name} dari keranjang`}
+                          className="w-8 h-8 -mr-1 -mt-1 rounded-lg flex items-center justify-center text-[#7A6F85] hover:text-[#A33B3B] hover:bg-[#A33B3B]/10 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <div className="mt-2 flex items-center justify-between gap-2">
+                        <MoraAmount
+                          amount={dish.priceMora * quantity}
+                          size="sm"
+                          className="text-[#232635]"
+                        />
+
+                        {/* Quantity Steppers (- / +) */}
+                        <div className="inline-flex items-center gap-1 bg-[#ECE5D8] border border-[#CBB997] rounded-full p-0.5">
                           <button
                             type="button"
-                            onClick={() => removeFromCart(dish.id)}
-                            aria-label={`Hapus ${dish.name} dari keranjang`}
-                            className="w-8 h-8 -mr-1 -mt-1 rounded-lg flex items-center justify-center text-[#7A6F85] hover:text-[#A33B3B] hover:bg-[#A33B3B]/10 transition-colors"
+                            onClick={() => updateQuantity(dish.id, quantity - 1)}
+                            aria-label={`Kurangi porsi ${dish.name}`}
+                            className="w-8 h-8 rounded-full flex items-center justify-center text-[#3B4255] hover:bg-[#DDD3BF] transition-colors"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Minus className="w-3.5 h-3.5" />
                           </button>
-                        </div>
-
-                        <div className="mt-2 flex items-center justify-between gap-2">
-                          <MoraAmount
-                            amount={dish.priceMora * quantity}
-                            size="sm"
-                            className="text-[#232635]"
-                          />
-
-                          {/* Quantity Steppers (- / +) */}
-                          <div className="inline-flex items-center gap-1 bg-[#ECE5D8] border border-[#CBB997] rounded-full p-0.5">
-                            <button
-                              type="button"
-                              onClick={() => updateQuantity(dish.id, quantity - 1)}
-                              aria-label={`Kurangi porsi ${dish.name}`}
-                              className="w-8 h-8 rounded-full flex items-center justify-center text-[#3B4255] hover:bg-[#DDD3BF] transition-colors"
-                            >
-                              <Minus className="w-3.5 h-3.5" />
-                            </button>
-                            <span className="font-genshin min-w-[24px] text-center text-[13px] font-bold text-[#232635] tabular-nums">
-                              {quantity}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => updateQuantity(dish.id, quantity + 1)}
-                              aria-label={`Tambah porsi ${dish.name}`}
-                              className="w-8 h-8 rounded-full flex items-center justify-center text-[#3B4255] hover:bg-[#DDD3BF] transition-colors"
-                            >
-                              <Plus className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
+                          <span className="font-genshin min-w-[24px] text-center text-[13px] font-bold text-[#232635] tabular-nums">
+                            {quantity}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => updateQuantity(dish.id, quantity + 1)}
+                            aria-label={`Tambah porsi ${dish.name}`}
+                            className="w-8 h-8 rounded-full flex items-center justify-center text-[#3B4255] hover:bg-[#DDD3BF] transition-colors"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                          </button>
                         </div>
                       </div>
                     </div>
-                  );
-                })}
-              </section>
-
-              {/* Intertwined Fate Coupon Redemption Section */}
-              <section
-                aria-labelledby="coupon-heading"
-                className="rounded-2xl bg-[#F5F2EB] border border-[#C8A86B] p-3.5"
-              >
-                <div className="flex items-center gap-2 mb-2.5">
-                  <TeyvatImage
-                    src={ASSET_ICONS.intertwinedFate}
-                    fallbackSrc={ASSET_ICONS.intertwinedFateCdn}
-                    alt="Kupon Intertwined Fate"
-                    className="w-6 h-6 object-contain shrink-0"
-                  />
-                  <div className="min-w-0">
-                    <h2 id="coupon-heading" className="font-genshin text-[13px] text-[#232635]">
-                      Tebus Kupon Intertwined Fate
-                    </h2>
-                    <p className="text-[11px] text-[#5B5F70]">
-                      Gunakan kode promo untuk potongan Mora atau gratis ongkir
-                    </p>
                   </div>
-                </div>
+                );
+              })}
+            </section>
 
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={couponInput}
-                    onChange={(e) => {
-                      setCouponInput(e.target.value.toUpperCase());
+            {/* Intertwined Fate Coupon Redemption Section */}
+            <section
+              aria-labelledby="coupon-heading"
+              className="rounded-2xl teyvat-ivory-card p-3.5 shadow-md"
+            >
+              <div className="flex items-center gap-2 mb-2.5">
+                <TeyvatImage
+                  src={ASSET_ICONS.intertwinedFate}
+                  fallbackSrc={ASSET_ICONS.intertwinedFateCdn}
+                  alt="Kupon Intertwined Fate"
+                  className="w-6 h-6 object-contain shrink-0"
+                />
+                <div className="min-w-0">
+                  <h2 id="coupon-heading" className="font-genshin text-[13px] text-[#232635]">
+                    Tebus Kupon Intertwined Fate
+                  </h2>
+                  <p className="text-[11px] text-[#5B5F70]">
+                    Gunakan kode promo untuk potongan Mora atau gratis ongkir
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={couponInput}
+                  onChange={(e) => {
+                    setCouponInput(e.target.value.toUpperCase());
+                    setCouponFeedback(null);
+                  }}
+                  placeholder="Contoh: PAIMONKENYANG"
+                  aria-label="Kode kupon promo"
+                  className="teyvat-cream-input flex-1 h-[42px] px-3 rounded-xl border border-[#CBB997] text-[12px] font-semibold tracking-wider uppercase placeholder:normal-case placeholder:tracking-normal placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-[#C87C24]"
+                />
+                {appliedCouponCode ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      removeCoupon();
+                      setCouponInput('');
                       setCouponFeedback(null);
                     }}
-                    placeholder="Contoh: PAIMONKENYANG"
-                    aria-label="Kode kupon promo"
-                    className="teyvat-cream-input flex-1 h-[42px] px-3 rounded-xl border border-[#CBB997] text-[12px] font-semibold tracking-wider uppercase placeholder:normal-case placeholder:tracking-normal placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-[#C87C24]"
-                  />
-                  {appliedCouponCode ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        removeCoupon();
-                        setCouponInput('');
-                        setCouponFeedback(null);
-                      }}
-                      className="min-h-[42px] px-3.5 rounded-xl bg-[#3B4255] text-[#F5F2EB] font-genshin text-[12px] inline-flex items-center gap-1 hover:bg-[#2B3040]"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                      <span>Lepas</span>
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => handleApplyCoupon()}
-                      className="teyvat-gold-btn min-h-[42px] px-4 rounded-xl font-genshin text-[12px] font-bold shrink-0"
-                    >
-                      Terapkan
-                    </button>
-                  )}
-                </div>
-
-                {couponFeedback && (
-                  <p
-                    className={`mt-2 text-[11px] font-medium ${
-                      couponFeedback.type === 'success' ? 'text-[#2D6E4E]' : 'text-[#A33B3B]'
-                    }`}
+                    className="min-h-[42px] px-3.5 rounded-xl bg-[#2C354D] text-[#F7F4EE] font-genshin text-[12px] inline-flex items-center gap-1 hover:bg-[#1E2538]"
                   >
-                    {couponFeedback.text}
-                  </p>
+                    <X className="w-3.5 h-3.5" />
+                    <span>Lepas</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleApplyCoupon()}
+                    className="teyvat-gold-btn min-h-[42px] px-4 rounded-xl font-genshin text-[12px] font-bold shrink-0"
+                  >
+                    Terapkan
+                  </button>
                 )}
-
-                <div className="mt-2.5 flex flex-wrap gap-1.5">
-                  {COUPONS.map((c) => {
-                    const isApplied = appliedCouponCode === c.code;
-                    return (
-                      <button
-                        key={c.code}
-                        type="button"
-                        onClick={() => handleApplyCoupon(c.code)}
-                        className={`min-h-[32px] px-2.5 py-1 rounded-lg border text-[11px] font-semibold inline-flex items-center gap-1.5 transition-colors ${
-                          isApplied
-                            ? 'bg-[#3B4255] border-[#3B4255] text-[#FFE7A5]'
-                            : 'bg-[#ECE5D8] border-[#CBB997] text-[#3B4255] hover:border-[#9C5A14]'
-                        }`}
-                      >
-                        <TeyvatImage
-                          src={c.icon}
-                          alt={c.code}
-                          className="w-4 h-4 object-contain"
-                        />
-                        <span className="font-genshin">{c.code}</span>
-                        <span className="opacity-80">
-                          {c.type === 'PERCENT' ? `(-${c.value}%)` : '(Gratis Ongkir)'}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </section>
-
-              {/* Billing Summary Card */}
-              <section
-                aria-labelledby="billing-summary-heading"
-                className="rounded-2xl bg-[#F5F2EB] border border-[#CBB997] p-4 space-y-2.5"
-              >
-                <h2
-                  id="billing-summary-heading"
-                  className="font-genshin text-[14px] text-[#232635]"
-                >
-                  Rincian Tagihan Mora
-                </h2>
-
-                <div className="space-y-1.5 text-[12px] text-[#4A4F63]">
-                  <div className="flex items-center justify-between">
-                    <span>Subtotal Hidangan ({totals.itemCount} porsi)</span>
-                    <span className="font-genshin text-[#232635] tabular-nums">
-                      {formatMora(totals.subtotal)} Mora
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span>Ongkir Kurir Glider</span>
-                    <span className="font-genshin text-[#232635] tabular-nums">
-                      {totals.deliveryFee === 0
-                        ? 'Gratis'
-                        : `${formatMora(totals.deliveryFee)} Mora`}
-                    </span>
-                  </div>
-                  {totals.discount > 0 && (
-                    <div className="flex items-center justify-between text-[#2D6E4E]">
-                      <span>Potongan Kupon ({appliedCouponCode})</span>
-                      <span className="font-genshin font-bold tabular-nums">
-                        -{formatMora(totals.discount)} Mora
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                <DiamondDivider className="my-1" />
-
-                <div className="flex items-center justify-between">
-                  <span className="font-genshin text-[14px] text-[#232635]">Total Akhir</span>
-                  <MoraAmount
-                    amount={totals.finalTotal}
-                    size="md"
-                    showSuffix
-                    className="text-[#232635]"
-                  />
-                </div>
-              </section>
-
-              <div className="pt-1 pb-2">
-                <GoldCapsuleButton onClick={() => pushStack({ name: 'checkout' })}>
-                  Lanjut Pengantaran Glider
-                </GoldCapsuleButton>
               </div>
+
+              {couponFeedback && (
+                <p
+                  className={`mt-2 text-[11px] font-medium ${
+                    couponFeedback.type === 'success' ? 'text-[#2D6E4E]' : 'text-[#A33B3B]'
+                  }`}
+                >
+                  {couponFeedback.text}
+                </p>
+              )}
+
+              <div className="mt-2.5 flex flex-wrap gap-1.5">
+                {COUPONS.map((c) => {
+                  const isApplied = appliedCouponCode === c.code;
+                  return (
+                    <button
+                      key={c.code}
+                      type="button"
+                      onClick={() => handleApplyCoupon(c.code)}
+                      className={`min-h-[32px] px-2.5 py-1 rounded-lg border text-[11px] font-semibold inline-flex items-center gap-1.5 transition-colors ${
+                        isApplied
+                          ? 'bg-[#2C354D] border-[#2C354D] text-[#FFE7A5]'
+                          : 'bg-[#ECE5D8] border-[#CBB997] text-[#3B4255] hover:border-[#9C5A14]'
+                      }`}
+                    >
+                      <TeyvatImage
+                        src={c.icon}
+                        alt={c.code}
+                        className="w-4 h-4 object-contain"
+                      />
+                      <span className="font-genshin">{c.code}</span>
+                      <span className="opacity-80">
+                        {c.type === 'PERCENT' ? `(-${c.value}%)` : '(Gratis Ongkir)'}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* Billing Summary Card */}
+            <section
+              aria-labelledby="billing-summary-heading"
+              className="rounded-2xl teyvat-ivory-card p-4 space-y-2.5 shadow-md"
+            >
+              <h2
+                id="billing-summary-heading"
+                className="font-genshin text-[14px] text-[#232635]"
+              >
+                Rincian Tagihan Mora
+              </h2>
+
+              <div className="space-y-1.5 text-[12px] text-[#4A4F63]">
+                <div className="flex items-center justify-between">
+                  <span>Subtotal Hidangan ({totals.itemCount} porsi)</span>
+                  <span className="font-genshin text-[#232635] tabular-nums">
+                    {formatMora(totals.subtotal)} Mora
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>Ongkir Kurir Glider</span>
+                  <span className="font-genshin text-[#232635] tabular-nums">
+                    {totals.deliveryFee === 0
+                      ? 'Gratis'
+                      : `${formatMora(totals.deliveryFee)} Mora`}
+                  </span>
+                </div>
+                {totals.discount > 0 && (
+                  <div className="flex items-center justify-between text-[#2D6E4E]">
+                    <span>Potongan Kupon ({appliedCouponCode})</span>
+                    <span className="font-genshin font-bold tabular-nums">
+                      -{formatMora(totals.discount)} Mora
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <DiamondDivider className="my-1" />
+
+              <div className="flex items-center justify-between">
+                <span className="font-genshin text-[14px] text-[#232635]">Total Akhir</span>
+                <MoraAmount
+                  amount={totals.finalTotal}
+                  size="md"
+                  showSuffix
+                  className="text-[#232635]"
+                />
+              </div>
+            </section>
+
+            <div className="pt-1 pb-2">
+              <GoldCapsuleButton onClick={() => pushStack({ name: 'checkout' })}>
+                Lanjut Pengantaran Glider
+              </GoldCapsuleButton>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

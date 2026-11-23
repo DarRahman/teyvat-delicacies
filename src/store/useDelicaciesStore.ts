@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { COUPONS, INITIAL_ORDERS, INITIAL_PROFILE } from '../data/dishes';
+import { COUPONS, INITIAL_ORDERS, INITIAL_PROFILE, NAMECARDS } from '../data/dishes';
 import { teyvatAudio } from '../lib/audio';
 import {
   CartTotals,
@@ -41,9 +41,10 @@ interface DelicaciesState {
   cart: CartItem[];
   appliedCouponCode: string | null;
 
-  // Favorites, Profile & Orders
+  // Favorites, Profile, Namecard & Orders
   favoriteIds: number[];
   profile: TravelerProfile;
+  selectedNamecardId: string;
   orders: Order[];
 
   // Toast Feedback
@@ -71,6 +72,7 @@ interface DelicaciesState {
 
   toggleFavorite: (dishId: number) => void;
   topUpMora: (amount: number) => void;
+  setSelectedNamecard: (namecardId: string) => void;
 
   placeOrder: (input: PlaceOrderInput) => { ok: boolean; order?: Order; error?: string };
   updateOrderStatus: (orderId: string, status: OrderStatus) => void;
@@ -100,6 +102,7 @@ export const useDelicaciesStore = create<DelicaciesState>()(
 
       favoriteIds: [5101, 4102, 4116],
       profile: INITIAL_PROFILE,
+      selectedNamecardId: NAMECARDS[0].id,
       orders: INITIAL_ORDERS,
 
       toastMessage: null,
@@ -256,6 +259,14 @@ export const useDelicaciesStore = create<DelicaciesState>()(
         );
       },
 
+      setSelectedNamecard: (namecardId) => {
+        const match = NAMECARDS.find((n) => n.id === namecardId);
+        if (!match) return;
+        set({ selectedNamecardId: match.id });
+        teyvatAudio.playSfx('epic', get().sfxEnabled);
+        get().showToast(`Namecard "${match.name}" dipasang`);
+      },
+
       placeOrder: ({ deliveryPoint, paymentMethod, kitchenNotes }) => {
         const state = get();
         const totals = state.getCartTotals();
@@ -369,6 +380,7 @@ export const useDelicaciesStore = create<DelicaciesState>()(
         appliedCouponCode: state.appliedCouponCode,
         favoriteIds: state.favoriteIds,
         profile: state.profile,
+        selectedNamecardId: state.selectedNamecardId,
         orders: state.orders,
         sfxEnabled: state.sfxEnabled,
       }),
