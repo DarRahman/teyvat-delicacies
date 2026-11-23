@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,38 +6,30 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
-  Platform,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
+import { formatMora } from '../../src/data/dishes';
+import { useDelicaciesStore } from '../../src/store/useDelicaciesStore';
 
-/**
- * Halaman Konfirmasi & Status Pesanan - Teyvat Delicacies
- * 
- * Memenuhi Ketentuan Soal 4: Fitur 6 (Simulasi Checkout & Konfirmasi):
- * • Setelah checkout dilakukan, tampilkan pesan bahwa pesanan berhasil dibuat atau tampilkan halaman konfirmasi pesanan.
- * • Mengambil parameter ID pesanan rute Expo Router (useLocalSearchParams).
- */
 export default function OrderStatusScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [deliveryStage, setDeliveryStage] = useState(1); // 0: Masak, 1: Glider Meluncur, 2: Tiba
+  const [deliveryStage, setDeliveryStage] = useState(1);
 
-  // Simulasi pergerakan kurir glider seiring waktu
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDeliveryStage(2);
-    }, 4500);
-    return () => clearTimeout(timer);
-  }, []);
+  const orders = useDelicaciesStore((s) => s.orders);
+  const matchedOrder = orders.find((o) => o.id === id) ?? orders[0];
 
   const stages = [
-    { label: 'Dimasak di Dapur Wanmin', desc: 'Chef Xiangling meracik bumbu segar khas Liyue' },
-    { label: 'Kurir Glider Meluncur di Udara', desc: 'Membawa jamuan hangat melintasi langit Teyvat' },
-    { label: 'Hidangan Mendarat di Lokasi', desc: 'Jamuan siap dinikmati oleh Traveler' },
+    { title: 'Dimasak di Dapur Wanmin', desc: 'Chef Xiangling meracik bumbu segar khas Teyvat' },
+    { title: 'Kurir Glider Meluncur di Udara', desc: 'Melintasi langit Teyvat menuju titik pendaratan' },
+    { title: 'Hidangan Mendarat di Lokasi', desc: 'Jamuan siap dinikmati oleh Traveler' },
   ];
+
+  const handleAccelerate = () => {
+    setDeliveryStage(2);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header Status */}
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
@@ -46,95 +38,124 @@ export default function OrderStatusScreen() {
         >
           <Text style={styles.backButtonText}>‹ Beranda</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Status Pelacakan Jamuan</Text>
-        <View style={{ width: 70 }} />
+        <Text style={styles.headerTitle}>Pelacakan Kurir Glider</Text>
+        <View style={styles.headerSpacer} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Banner Konfirmasi Sukses (Ketentuan Soal) */}
         <View style={styles.successBanner}>
           <Text style={styles.successIcon}>✨</Text>
-          <Text style={styles.successTitle}>Pesanan Berhasil Dikonfirmasi!</Text>
-          <Text style={styles.orderIdText}>Nomor Pesanan: {id || 'ORD-TEYVAT-7775'}</Text>
+          <Text style={styles.successTitle}>Pesanan Berhasil Diproses!</Text>
+          <Text style={styles.orderIdText}>ID: {id || matchedOrder?.id || 'ORD-TEYVAT-LATEST'}</Text>
           <Text style={styles.successDesc}>
-            Terima kasih telah memesan jamuan lezat khas Teyvat. Pesanan sedang diproses.
+            Kurir Glider Teyvat telah bertolak dari Wanmin Restaurant membawa hidangan pesanan Anda.
           </Text>
         </View>
 
-        {/* Pelacakan Kurir Glider Berbasis Tahapan */}
-        <View style={styles.trackingCard}>
-          <Text style={styles.trackingHeading}>🦅 Lintasan Terbang Kurir Glider</Text>
-          
+        <View style={styles.trackerCard}>
+          <Text style={styles.sectionTitle}>Status Pengantaran Udara</Text>
+
           <View style={styles.timeline}>
-            {stages.map((stg, idx) => {
+            {stages.map((stage, idx) => {
               const isPassed = idx <= deliveryStage;
               const isCurrent = idx === deliveryStage;
               return (
-                <View key={idx} style={styles.timelineItem}>
-                  <View style={styles.nodeColumn}>
+                <View key={idx} style={styles.stageRow}>
+                  <View style={styles.indicatorCol}>
                     <View
                       style={[
-                        styles.timelineNode,
-                        isPassed && styles.timelineNodeActive,
-                        isCurrent && styles.timelineNodeCurrent,
+                        styles.indicatorDot,
+                        isPassed && styles.activeIndicatorDot,
+                        isCurrent && styles.currentIndicatorDot,
                       ]}
                     >
-                      <Text style={[styles.nodeIcon, isPassed && styles.nodeIconActive]}>
-                        {isPassed ? '✓' : '•'}
+                      <Text style={[styles.dotText, isPassed && styles.activeDotText]}>
+                        {isPassed ? '✓' : idx + 1}
                       </Text>
                     </View>
                     {idx < stages.length - 1 && (
                       <View
                         style={[
-                          styles.timelineLine,
-                          idx < deliveryStage && styles.timelineLineActive,
+                          styles.indicatorLine,
+                          idx < deliveryStage && styles.activeIndicatorLine,
                         ]}
                       />
                     )}
                   </View>
-                  <View style={styles.timelineContent}>
+
+                  <View style={styles.stageContent}>
                     <Text
                       style={[
-                        styles.timelineTitle,
-                        isPassed && styles.timelineTitleActive,
+                        styles.stageTitle,
+                        isPassed && styles.activeStageTitle,
                       ]}
                     >
-                      {stg.label}
+                      {stage.title}
                     </Text>
-                    <Text style={styles.timelineDesc}>{stg.desc}</Text>
+                    <Text style={styles.stageDesc}>{stage.desc}</Text>
                   </View>
                 </View>
               );
             })}
           </View>
+
+          {deliveryStage < 2 && (
+            <TouchableOpacity
+              style={styles.accelerateBtn}
+              onPress={handleAccelerate}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.accelerateBtnText}>Percepat Pendaratan Kurir Glider ⚡</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
-        {/* Ringkasan Bukti Pengantaran */}
-        <View style={styles.receiptCard}>
-          <Text style={styles.receiptTitle}>Struk Ringkasan Pesanan</Text>
-          <View style={styles.receiptRow}>
-            <Text style={styles.receiptItem}>Adeptus&apos; Temptation ×2</Text>
-            <Text style={styles.receiptPrice}>🪙 50,000 Mora</Text>
-          </View>
-          <View style={styles.receiptRow}>
-            <Text style={styles.receiptItem}>Barbatos Ratatouille ×1</Text>
-            <Text style={styles.receiptPrice}>🪙 5,500 Mora</Text>
-          </View>
-          <View style={styles.divider} />
-          <View style={styles.receiptRow}>
-            <Text style={styles.totalLabel}>Total Pembayaran</Text>
-            <Text style={styles.totalValue}>🪙 55,500 Mora</Text>
-          </View>
-          <Text style={styles.payNote}>Metode: Bayar Tunai Mora saat Terima (COD)</Text>
-        </View>
+        {matchedOrder && (
+          <View style={styles.detailsCard}>
+            <Text style={styles.sectionTitle}>Rincian Pesanan</Text>
 
-        {/* Tombol Kembali ke Beranda */}
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Tujuan Pengantaran:</Text>
+              <Text style={styles.infoVal}>
+                {matchedOrder.deliveryPoint.region} · {matchedOrder.deliveryPoint.name}
+              </Text>
+            </View>
+
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Metode Pembayaran:</Text>
+              <Text style={styles.infoVal}>{matchedOrder.paymentMethod}</Text>
+            </View>
+
+            <View style={styles.divider} />
+
+            <View style={styles.itemsList}>
+              {matchedOrder.items.map((item, idx) => (
+                <View key={idx} style={styles.orderItemLine}>
+                  <Text style={styles.orderItemName}>
+                    {item.dish.name} ×{item.quantity}
+                  </Text>
+                  <Text style={styles.orderItemPrice}>
+                    {formatMora(item.dish.priceMora * item.quantity)} Mora
+                  </Text>
+                </View>
+              ))}
+            </View>
+
+            <View style={styles.divider} />
+
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>Total Pembayaran:</Text>
+              <Text style={styles.totalVal}>{formatMora(matchedOrder.totalMora)} Mora</Text>
+            </View>
+          </View>
+        )}
+
         <TouchableOpacity
-          style={styles.doneBtn}
+          style={styles.homeBtn}
           onPress={() => router.push('/(tabs)')}
           activeOpacity={0.8}
         >
-          <Text style={styles.doneBtnText}>Kembali ke Beranda Utama ➔</Text>
+          <Text style={styles.homeBtnText}>Kembali ke Beranda Utama</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -145,214 +166,223 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#ECE5D8',
-    paddingTop: Platform.OS === 'android' ? 28 : 0,
   },
   header: {
+    backgroundColor: '#1C2232',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#1E2435',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#C8A86B50',
+    borderBottomColor: '#C8A86B40',
   },
   backButton: {
     paddingVertical: 4,
     paddingHorizontal: 8,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255, 231, 165, 0.12)',
   },
   backButtonText: {
     color: '#FFE7A5',
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: 'bold',
   },
   headerTitle: {
-    color: '#FFE7A5',
     fontSize: 15,
     fontWeight: 'bold',
+    color: '#FFF8E7',
+  },
+  headerSpacer: {
+    width: 60,
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 40,
+    gap: 16,
+    paddingBottom: 36,
   },
   successBanner: {
-    backgroundColor: '#272038',
-    borderRadius: 18,
-    padding: 20,
+    backgroundColor: '#242B3D',
+    borderRadius: 14,
+    padding: 18,
     alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: '#C8A86B',
-    marginBottom: 16,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#C8A86B60',
   },
   successIcon: {
     fontSize: 32,
     marginBottom: 6,
   },
   successTitle: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: 'bold',
-    color: '#FFE7A5',
-    textAlign: 'center',
+    color: '#FFF8E7',
     marginBottom: 4,
   },
   orderIdText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#C8D0E4',
-    marginBottom: 8,
+    fontSize: 12,
+    color: '#FFE7A5',
+    fontWeight: '700',
+    backgroundColor: '#2A354C',
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 6,
+    marginBottom: 10,
   },
   successDesc: {
-    fontSize: 11.5,
-    color: '#E9E5DC',
+    fontSize: 12,
+    color: '#D0D4DF',
     textAlign: 'center',
     lineHeight: 18,
   },
-  trackingCard: {
-    backgroundColor: '#FAF8F2',
-    borderRadius: 16,
-    padding: 18,
-    borderWidth: 1.5,
-    borderColor: '#C8A86B',
-    marginBottom: 16,
-    elevation: 2,
+  trackerCard: {
+    backgroundColor: '#FDFBF7',
+    borderRadius: 14,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#E2D7C3',
+    gap: 14,
   },
-  trackingHeading: {
-    fontSize: 14,
+  sectionTitle: {
+    fontSize: 13,
     fontWeight: 'bold',
-    color: '#242735',
-    marginBottom: 16,
+    color: '#2F3542',
   },
   timeline: {
-    paddingLeft: 6,
+    gap: 10,
   },
-  timelineItem: {
+  stageRow: {
     flexDirection: 'row',
-    marginBottom: 16,
+    gap: 12,
   },
-  nodeColumn: {
+  indicatorCol: {
     alignItems: 'center',
-    marginRight: 14,
+    width: 24,
   },
-  timelineNode: {
+  indicatorDot: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#EAE3D4',
-    borderWidth: 1.5,
-    borderColor: '#C8A86B',
+    backgroundColor: '#E4DAC8',
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 2,
   },
-  timelineNodeActive: {
-    backgroundColor: '#C8A86B',
-    borderColor: '#8A5D1C',
+  activeIndicatorDot: {
+    backgroundColor: '#2B5838',
   },
-  timelineNodeCurrent: {
-    backgroundColor: '#272038',
-    borderColor: '#FFE7A5',
+  currentIndicatorDot: {
+    backgroundColor: '#D4AF37',
   },
-  nodeIcon: {
+  dotText: {
     fontSize: 11,
-    color: '#8A5D1C',
     fontWeight: 'bold',
+    color: '#8A7B68',
   },
-  nodeIconActive: {
-    color: '#FFFDF5',
+  activeDotText: {
+    color: '#FFFFFF',
   },
-  timelineLine: {
+  indicatorLine: {
     width: 2,
     flex: 1,
-    backgroundColor: '#DDD5C4',
-    marginVertical: 2,
+    backgroundColor: '#E4DAC8',
+    marginVertical: 4,
   },
-  timelineLineActive: {
-    backgroundColor: '#C8A86B',
+  activeIndicatorLine: {
+    backgroundColor: '#2B5838',
   },
-  timelineContent: {
+  stageContent: {
     flex: 1,
-    paddingTop: 1,
+    paddingBottom: 14,
   },
-  timelineTitle: {
+  stageTitle: {
     fontSize: 13,
     fontWeight: 'bold',
-    color: '#656C80',
-    marginBottom: 2,
+    color: '#8A7B68',
   },
-  timelineTitleActive: {
-    color: '#242735',
+  activeStageTitle: {
+    color: '#2F3542',
   },
-  timelineDesc: {
+  stageDesc: {
     fontSize: 11,
-    color: '#70778B',
-    lineHeight: 15,
+    color: '#706452',
+    marginTop: 2,
   },
-  receiptCard: {
-    backgroundColor: '#FAF8F2',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#D3BC8E',
-    marginBottom: 20,
-    elevation: 1,
+  accelerateBtn: {
+    backgroundColor: '#D4AF37',
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
   },
-  receiptTitle: {
-    fontSize: 13.5,
+  accelerateBtnText: {
+    color: '#1C2232',
     fontWeight: 'bold',
-    color: '#242735',
-    marginBottom: 10,
+    fontSize: 12,
   },
-  receiptRow: {
+  detailsCard: {
+    backgroundColor: '#FDFBF7',
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#E2D7C3',
+    gap: 10,
+  },
+  infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 4,
   },
-  receiptItem: {
+  infoLabel: {
     fontSize: 12,
-    color: '#242735',
+    color: '#655743',
   },
-  receiptPrice: {
+  infoVal: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#242735',
+    color: '#2F3542',
   },
   divider: {
     height: 1,
-    backgroundColor: '#DDD5C4',
-    marginVertical: 8,
+    backgroundColor: '#E4DAC8',
+  },
+  itemsList: {
+    gap: 6,
+  },
+  orderItemLine: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  orderItemName: {
+    fontSize: 12,
+    color: '#2F3542',
+  },
+  orderItemPrice: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#B57A1E',
+  },
+  totalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   totalLabel: {
     fontSize: 13,
     fontWeight: 'bold',
-    color: '#242735',
+    color: '#2F3542',
   },
-  totalValue: {
+  totalVal: {
     fontSize: 15,
     fontWeight: 'bold',
-    color: '#8A5D1C',
+    color: '#B57A1E',
   },
-  payNote: {
-    fontSize: 10.5,
-    color: '#7A8194',
-    marginTop: 6,
-    fontStyle: 'italic',
-  },
-  doneBtn: {
-    backgroundColor: '#C8A86B',
+  homeBtn: {
+    backgroundColor: '#242B3D',
+    borderRadius: 12,
     paddingVertical: 14,
-    borderRadius: 24,
     alignItems: 'center',
-    shadowColor: '#C8A86B',
-    shadowOpacity: 0.35,
-    shadowRadius: 6,
-    elevation: 4,
+    borderWidth: 1,
+    borderColor: '#C8A86B60',
   },
-  doneBtnText: {
-    fontSize: 13.5,
+  homeBtnText: {
+    color: '#FFE7A5',
+    fontSize: 13,
     fontWeight: 'bold',
-    color: '#1A1426',
   },
 });

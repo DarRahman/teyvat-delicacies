@@ -6,50 +6,64 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
-  Platform,
+  TextInput,
   Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import { DELIVERY_POINTS, formatMora } from '../../src/data/dishes';
+import { useDelicaciesStore } from '../../src/store/useDelicaciesStore';
+import { PaymentMethod } from '../../src/types';
 
-/**
- * Halaman Simulasi Checkout - Teyvat Delicacies
- * 
- * Memenuhi Ketentuan Soal 4: Fitur 6 (Simulasi Checkout):
- * • Menampilkan ringkasan pesanan.
- * • Menampilkan total harga pesanan.
- * • Menyediakan tombol checkout.
- * • Setelah checkout dilakukan, tampilkan pesan bahwa pesanan berhasil dibuat atau tampilkan halaman konfirmasi pesanan.
- */
 export default function CheckoutScreen() {
-  const [selectedPointId, setSelectedPointId] = useState(DELIVERY_POINTS[0].id);
-  const [paymentMethod, setPaymentMethod] = useState<'MORA_COD' | 'NORTHLAND_BANK'>('MORA_COD');
+  const cart = useDelicaciesStore((s) => s.cart);
+  const selectedDeliveryPointId = useDelicaciesStore((s) => s.selectedDeliveryPointId);
+  const setSelectedDeliveryPointId = useDelicaciesStore((s) => s.setSelectedDeliveryPointId);
+  const getCartTotals = useDelicaciesStore((s) => s.getCartTotals);
+  const placeOrder = useDelicaciesStore((s) => s.placeOrder);
+
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('Mora Saldo');
+  const [kitchenNotes, setKitchenNotes] = useState('');
 
   const selectedPoint =
-    DELIVERY_POINTS.find((p) => p.id === selectedPointId) ?? DELIVERY_POINTS[0];
+    DELIVERY_POINTS.find((p) => p.id === selectedDeliveryPointId) ?? DELIVERY_POINTS[0];
 
-  const subtotalMora = 55500;
-  const deliveryFeeMora = selectedPoint.region === 'Liyue' ? 0 : 3500;
-  const grandTotalMora = subtotalMora + deliveryFeeMora;
+  const totals = getCartTotals(selectedPoint);
+
+  const handleSelectPoint = (pointId: string) => {
+    setSelectedDeliveryPointId(pointId);
+  };
 
   const handleConfirmOrder = () => {
-    // Generate order ID
-    const orderId = 'ORD-TEYVAT-7775';
-    Alert.alert(
-      'Pesanan Berhasil Dibuat!',
-      `Jamuan Teyvat sedang dimasak di Dapur Wanmin dan akan diantar oleh Kurir Glider menuju ${selectedPoint.name}.`,
-      [
-        {
-          text: 'Lihat Pelacakan Kurir ➔',
-          onPress: () => router.push(`/order/${orderId}`),
-        },
-      ]
-    );
+    if (cart.length === 0) {
+      Alert.alert('Keranjang Kosong', 'Silakan pilih hidangan terlebih dahulu sebelum checkout.');
+      return;
+    }
+
+    const result = placeOrder({
+      deliveryPoint: selectedPoint,
+      paymentMethod,
+      kitchenNotes,
+    });
+
+    if (result.ok && result.order) {
+      const orderId = result.order.id;
+      Alert.alert(
+        'Pesanan Berhasil Dibuat!',
+        `Jamuan Teyvat sedang diproses di Dapur Wanmin dan akan dikirim oleh Kurir Glider ke ${selectedPoint.name}.`,
+        [
+          {
+            text: 'Lihat Status Pelacakan ➔',
+            onPress: () => router.push(`/order/${orderId}`),
+          },
+        ]
+      );
+    } else {
+      Alert.alert('Gagal Membuat Pesanan', result.error ?? 'Terjadi kesalahan pada transaksi.');
+    }
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header Checkout */}
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
@@ -58,129 +72,148 @@ export default function CheckoutScreen() {
         >
           <Text style={styles.backButtonText}>‹ Kembali</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Checkout Pengantaran</Text>
-        <View style={{ width: 70 }} />
+        <Text style={styles.headerTitle}>Simulasi Checkout</Text>
+        <View style={styles.headerSpacer} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Titik Pengantaran Peta Teyvat (Ketentuan Titik Antar) */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>📍 Titik Pendaratan Kurir Glider</Text>
-          <Text style={styles.cardSubtitle}>
-            Pilih wilayah pendaratan kurir di delapan bangsa Teyvat:
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>Pilih Titik Pengantaran Teyvat</Text>
+          <Text style={styles.sectionSubtitle}>
+            Tentukan tujuan pendaratan kurir glider melintasi 8 wilayah
           </Text>
 
-          <View style={styles.pointSelector}>
-            {DELIVERY_POINTS.map((pt) => {
-              const isSelected = pt.id === selectedPoint.id;
+          <View style={styles.pointsList}>
+            {DELIVERY_POINTS.map((point) => {
+              const isSelected = point.id === selectedPoint.id;
               return (
                 <TouchableOpacity
-                  key={pt.id}
-                  style={[styles.pointChip, isSelected && styles.pointChipActive]}
-                  onPress={() => setSelectedPointId(pt.id)}
+                  key={point.id}
+                  style={[styles.pointItem, isSelected && styles.selectedPointItem]}
+                  onPress={() => handleSelectPoint(point.id)}
                   activeOpacity={0.7}
                 >
-                  <Text
-                    style={[
-                      styles.pointChipText,
-                      isSelected && styles.pointChipTextActive,
-                    ]}
-                  >
-                    {pt.region} · {pt.name}
+                  <View style={styles.pointHeader}>
+                    <Text style={[styles.pointRegion, isSelected && styles.selectedText]}>
+                      {point.region} · {point.name}
+                    </Text>
+                    <Text style={styles.pointDuration}>{point.estimatedMinutes} menit</Text>
+                  </View>
+                  <Text style={styles.pointDescription} numberOfLines={1}>
+                    {point.description}
+                  </Text>
+                  <Text style={styles.pointFee}>
+                    Biaya Kurir: {point.deliveryFeeMora === 0 ? 'Gratis (Lokal Liyue)' : `${formatMora(point.deliveryFeeMora)} Mora`}
                   </Text>
                 </TouchableOpacity>
               );
             })}
           </View>
+        </View>
 
-          <View style={styles.selectedPointBox}>
-            <Text style={styles.selectedPointName}>{selectedPoint.name}</Text>
-            <Text style={styles.selectedPointLandmark}>{selectedPoint.landmark}</Text>
-            <Text style={styles.selectedPointEta}>
-              ⚡ Estimasi Luncuran Glider: {selectedPoint.etaMinutes} Menit
-            </Text>
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>Ringkasan Pesanan Jamuan</Text>
+          <View style={styles.itemsList}>
+            {cart.map((item) => (
+              <View key={item.dish.id} style={styles.orderItemRow}>
+                <View style={styles.itemMeta}>
+                  <Text style={styles.itemTitle}>{item.dish.name}</Text>
+                  <Text style={styles.itemSub}>
+                    {item.quantity} porsi × {formatMora(item.dish.priceMora)} Mora
+                  </Text>
+                </View>
+                <Text style={styles.itemTotal}>
+                  {formatMora(item.dish.priceMora * item.quantity)} Mora
+                </Text>
+              </View>
+            ))}
           </View>
         </View>
 
-        {/* Ringkasan Pesanan (Ketentuan Soal: Menampilkan ringkasan pesanan) */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>📋 Ringkasan Pesanan</Text>
-          <View style={styles.orderItem}>
-            <Text style={styles.itemName}>Adeptus&apos; Temptation ×2</Text>
-            <Text style={styles.itemPrice}>🪙 50,000 Mora</Text>
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>Metode Pembayaran</Text>
+          <View style={styles.paymentRow}>
+            <TouchableOpacity
+              style={[
+                styles.paymentChip,
+                paymentMethod === 'Mora Saldo' && styles.selectedPaymentChip,
+              ]}
+              onPress={() => setPaymentMethod('Mora Saldo')}
+            >
+              <Text
+                style={[
+                  styles.paymentChipText,
+                  paymentMethod === 'Mora Saldo' && styles.selectedPaymentText,
+                ]}
+              >
+                🪙 Mora Dompet Traveler
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.paymentChip,
+                paymentMethod === 'Northland Bank Note' && styles.selectedPaymentChip,
+              ]}
+              onPress={() => setPaymentMethod('Northland Bank Note')}
+            >
+              <Text
+                style={[
+                  styles.paymentChipText,
+                  paymentMethod === 'Northland Bank Note' && styles.selectedPaymentText,
+                ]}
+              >
+                🏛️ Wesel Bank Northland
+              </Text>
+            </TouchableOpacity>
           </View>
-          <View style={styles.orderItem}>
-            <Text style={styles.itemName}>Barbatos Ratatouille ×1</Text>
-            <Text style={styles.itemPrice}>🪙 5,500 Mora</Text>
+        </View>
+
+        <View style={styles.sectionCard}>
+          <Text style={styles.sectionTitle}>Catatan Dapur untuk Chef</Text>
+          <TextInput
+            style={styles.notesInput}
+            placeholder="Contoh: Kurangi cabai Jueyun, kuah dipisah..."
+            placeholderTextColor="#8B7E66"
+            value={kitchenNotes}
+            onChangeText={setKitchenNotes}
+          />
+        </View>
+
+        <View style={styles.totalCard}>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Subtotal Hidangan</Text>
+            <Text style={styles.summaryVal}>{formatMora(totals.subtotalMora)} Mora</Text>
+          </View>
+
+          {totals.discountMora > 0 && (
+            <View style={styles.summaryRow}>
+              <Text style={styles.discountLabel}>Diskon Kupon Promo</Text>
+              <Text style={styles.discountVal}>−{formatMora(totals.discountMora)} Mora</Text>
+            </View>
+          )}
+
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Ongkos Kurir Glider</Text>
+            <Text style={styles.summaryVal}>
+              {totals.deliveryFeeMora === 0 ? 'Gratis (Lokal Liyue)' : `${formatMora(totals.deliveryFeeMora)} Mora`}
+            </Text>
           </View>
 
           <View style={styles.divider} />
 
-          <View style={styles.costRow}>
-            <Text style={styles.costLabel}>Subtotal Hidangan</Text>
-            <Text style={styles.costValue}>🪙 {formatMora(subtotalMora)} Mora</Text>
-          </View>
-          <View style={styles.costRow}>
-            <Text style={styles.costLabel}>Biaya Kurir Glider ({selectedPoint.region})</Text>
-            <Text style={deliveryFeeMora === 0 ? styles.freeCost : styles.costValue}>
-              {deliveryFeeMora === 0 ? 'Gratis (0 Mora)' : `🪙 ${formatMora(deliveryFeeMora)} Mora`}
-            </Text>
-          </View>
-
-          <View style={styles.divider} />
-
-          {/* Total Harga Pesanan (Ketentuan Soal: Menampilkan total harga) */}
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Total Pembayaran</Text>
-            <Text style={styles.totalValue}>🪙 {formatMora(grandTotalMora)} Mora</Text>
+          <View style={styles.finalTotalRow}>
+            <Text style={styles.finalTotalLabel}>Total Tagihan</Text>
+            <Text style={styles.finalTotalVal}>{formatMora(totals.grandTotalMora)} Mora</Text>
           </View>
         </View>
 
-        {/* Metode Pembayaran */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>💳 Metode Pembayaran</Text>
-          <TouchableOpacity
-            style={[
-              styles.paymentOption,
-              paymentMethod === 'MORA_COD' && styles.paymentOptionActive,
-            ]}
-            onPress={() => setPaymentMethod('MORA_COD')}
-          >
-            <Text style={styles.paymentRadio}>
-              {paymentMethod === 'MORA_COD' ? '●' : '○'}
-            </Text>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.paymentName}>Tunai Mora saat Terima (COD)</Text>
-              <Text style={styles.paymentSub}>Bayar langsung ke Kurir Glider saat makanan mendarat</Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.paymentOption,
-              paymentMethod === 'NORTHLAND_BANK' && styles.paymentOptionActive,
-            ]}
-            onPress={() => setPaymentMethod('NORTHLAND_BANK')}
-          >
-            <Text style={styles.paymentRadio}>
-              {paymentMethod === 'NORTHLAND_BANK' ? '●' : '○'}
-            </Text>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.paymentName}>Kartu Giro Northland Bank (Snezhnaya)</Text>
-              <Text style={styles.paymentSub}>Debit otomatis dari rekening bank Fatui Liyue</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-
-        {/* Tombol Checkout (Ketentuan Soal: Menyediakan tombol checkout) */}
         <TouchableOpacity
-          style={styles.submitCheckoutBtn}
+          style={styles.confirmButton}
           onPress={handleConfirmOrder}
           activeOpacity={0.8}
         >
-          <Text style={styles.submitCheckoutText}>
-            Konfirmasi &amp; Luncurkan Kurir Glider ➔
-          </Text>
+          <Text style={styles.confirmButtonText}>Konfirmasi & Buat Pesanan Sekarang ➔</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -191,204 +224,219 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#ECE5D8',
-    paddingTop: Platform.OS === 'android' ? 28 : 0,
   },
   header: {
+    backgroundColor: '#1C2232',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#1E2435',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#C8A86B50',
+    borderBottomColor: '#C8A86B40',
   },
   backButton: {
     paddingVertical: 4,
     paddingHorizontal: 8,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255, 231, 165, 0.12)',
   },
   backButtonText: {
     color: '#FFE7A5',
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: 'bold',
   },
   headerTitle: {
-    color: '#FFE7A5',
     fontSize: 15,
     fontWeight: 'bold',
+    color: '#FFF8E7',
+  },
+  headerSpacer: {
+    width: 60,
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 40,
+    gap: 16,
+    paddingBottom: 36,
   },
-  card: {
-    backgroundColor: '#FAF8F2',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1.5,
-    borderColor: '#C8A86B',
-    marginBottom: 14,
-    elevation: 2,
+  sectionCard: {
+    backgroundColor: '#FDFBF7',
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#E2D7C3',
+    gap: 8,
   },
-  cardTitle: {
-    fontSize: 14,
+  sectionTitle: {
+    fontSize: 13,
     fontWeight: 'bold',
-    color: '#242735',
+    color: '#2F3542',
+  },
+  sectionSubtitle: {
+    fontSize: 10,
+    color: '#8A7B68',
     marginBottom: 4,
   },
-  cardSubtitle: {
-    fontSize: 11,
-    color: '#656C80',
-    marginBottom: 10,
+  pointsList: {
+    gap: 8,
   },
-  pointSelector: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: 12,
-  },
-  pointChip: {
-    backgroundColor: '#ECE5D8',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 14,
+  pointItem: {
+    backgroundColor: '#F5EFE3',
+    borderRadius: 8,
+    padding: 10,
     borderWidth: 1,
-    borderColor: '#D3BC8E',
+    borderColor: '#D8CCA8',
   },
-  pointChipActive: {
-    backgroundColor: '#C8A86B',
-    borderColor: '#8A5D1C',
+  selectedPointItem: {
+    backgroundColor: '#242B3D',
+    borderColor: '#D4AF37',
   },
-  pointChipText: {
-    fontSize: 10.5,
-    color: '#4B5164',
-    fontWeight: '600',
-  },
-  pointChipTextActive: {
-    color: '#1A1426',
-    fontWeight: 'bold',
-  },
-  selectedPointBox: {
-    backgroundColor: '#EFE7D8',
-    borderRadius: 10,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#D3BC8E',
-  },
-  selectedPointName: {
-    fontSize: 13.5,
-    fontWeight: 'bold',
-    color: '#242735',
-  },
-  selectedPointLandmark: {
-    fontSize: 11,
-    color: '#5B6275',
-    marginTop: 2,
-  },
-  selectedPointEta: {
-    fontSize: 11,
-    fontWeight: 'bold',
-    color: '#8A5D1C',
-    marginTop: 6,
-  },
-  orderItem: {
+  pointHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 5,
+    alignItems: 'center',
   },
-  itemName: {
+  pointRegion: {
     fontSize: 12,
-    color: '#242735',
+    fontWeight: 'bold',
+    color: '#3A3226',
   },
-  itemPrice: {
+  selectedText: {
+    color: '#FFE7A5',
+  },
+  pointDuration: {
+    fontSize: 10,
+    color: '#8A6D3B',
+    fontWeight: '600',
+  },
+  pointDescription: {
+    fontSize: 10,
+    color: '#756855',
+    marginVertical: 2,
+  },
+  pointFee: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#B57A1E',
+  },
+  itemsList: {
+    gap: 8,
+  },
+  orderItemRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EDE5D4',
+  },
+  itemMeta: {
+    flex: 1,
+  },
+  itemTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#2F3542',
+  },
+  itemSub: {
+    fontSize: 10,
+    color: '#8A7B68',
+  },
+  itemTotal: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#B57A1E',
+  },
+  paymentRow: {
+    gap: 8,
+  },
+  paymentChip: {
+    padding: 10,
+    borderRadius: 8,
+    backgroundColor: '#F5EFE3',
+    borderWidth: 1,
+    borderColor: '#D8CCA8',
+  },
+  selectedPaymentChip: {
+    backgroundColor: '#242B3D',
+    borderColor: '#D4AF37',
+  },
+  paymentChipText: {
+    fontSize: 12,
+    color: '#3A3226',
+    fontWeight: '600',
+  },
+  selectedPaymentText: {
+    color: '#FFE7A5',
+  },
+  notesInput: {
+    backgroundColor: '#F5EFE3',
+    borderRadius: 8,
+    padding: 10,
+    fontSize: 12,
+    color: '#2F3542',
+    borderWidth: 1,
+    borderColor: '#D8CCA8',
+  },
+  totalCard: {
+    backgroundColor: '#FDFBF7',
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#E2D7C3',
+    gap: 8,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  summaryLabel: {
+    fontSize: 12,
+    color: '#655743',
+  },
+  summaryVal: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#242735',
+    color: '#2F3542',
+  },
+  discountLabel: {
+    fontSize: 12,
+    color: '#2B5838',
+  },
+  discountVal: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#2B5838',
   },
   divider: {
     height: 1,
-    backgroundColor: '#DDD5C4',
-    marginVertical: 10,
+    backgroundColor: '#E4DAC8',
+    marginVertical: 4,
   },
-  costRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 6,
-  },
-  costLabel: {
-    fontSize: 11.5,
-    color: '#555B6E',
-  },
-  costValue: {
-    fontSize: 11.5,
-    fontWeight: '600',
-    color: '#242735',
-  },
-  freeCost: {
-    fontSize: 11.5,
-    fontWeight: 'bold',
-    color: '#2D6E4E',
-  },
-  totalRow: {
+  finalTotalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  totalLabel: {
+  finalTotalLabel: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#2F3542',
+  },
+  finalTotalVal: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#B57A1E',
+  },
+  confirmButton: {
+    backgroundColor: '#242B3D',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#D4AF37',
+  },
+  confirmButtonText: {
+    color: '#FFE7A5',
     fontSize: 13,
     fontWeight: 'bold',
-    color: '#242735',
-  },
-  totalValue: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#8A5D1C',
-  },
-  paymentOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 10,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#D3BC8E',
-    backgroundColor: '#EFEAE0',
-    marginBottom: 8,
-  },
-  paymentOptionActive: {
-    borderColor: '#C8A86B',
-    backgroundColor: '#FFFDF5',
-  },
-  paymentRadio: {
-    fontSize: 16,
-    color: '#8A5D1C',
-    marginRight: 10,
-  },
-  paymentName: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#242735',
-  },
-  paymentSub: {
-    fontSize: 10,
-    color: '#656C80',
-    marginTop: 1,
-  },
-  submitCheckoutBtn: {
-    backgroundColor: '#C8A86B',
-    paddingVertical: 14,
-    borderRadius: 24,
-    alignItems: 'center',
-    shadowColor: '#C8A86B',
-    shadowOpacity: 0.35,
-    shadowRadius: 6,
-    elevation: 4,
-    marginBottom: 16,
-  },
-  submitCheckoutText: {
-    fontSize: 13.5,
-    fontWeight: 'bold',
-    color: '#1A1426',
   },
 });

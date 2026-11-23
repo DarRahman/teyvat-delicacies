@@ -1,15 +1,12 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { View, Text, StyleSheet, Platform } from 'react-native';
+import { useDelicaciesStore } from '../../src/store/useDelicaciesStore';
 
-/**
- * Bottom Tab Navigator - Teyvat Delicacies (Expo Router)
- * 
- * Memenuhi Ketentuan Penerapan Expo Router Soal 4:
- * 3. Tab Navigation: Menggunakan Tab Navigator dengan menu Beranda, Katalog, Keranjang, Profil.
- * 4. Nested Navigation: Berada di dalam tumpukan Root Stack Navigator.
- */
 export default function TabLayout() {
+  const cart = useDelicaciesStore((s) => s.cart);
+  const totalCartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
+
   return (
     <Tabs
       screenOptions={{
@@ -30,50 +27,53 @@ export default function TabLayout() {
         },
       }}
     >
-      {/* 1. Halaman Beranda */}
       <Tabs.Screen
         name="index"
         options={{
           title: 'Beranda',
           tabBarLabel: 'Beranda',
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon label="◆" color={color} focused={focused} />
+            <TabIcon symbol="◆" color={color} focused={focused} />
           ),
         }}
       />
 
-      {/* 2. Halaman Katalog Makanan */}
       <Tabs.Screen
         name="catalog"
         options={{
           title: 'Katalog',
           tabBarLabel: 'Katalog',
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon label="✦" color={color} focused={focused} />
+            <TabIcon symbol="✦" color={color} focused={focused} />
           ),
         }}
       />
 
-      {/* 3. Halaman Keranjang Belanja */}
       <Tabs.Screen
         name="cart"
         options={{
           title: 'Keranjang',
           tabBarLabel: 'Keranjang',
+          tabBarBadge: totalCartCount > 0 ? totalCartCount : undefined,
+          tabBarBadgeStyle: {
+            backgroundColor: '#C24B38',
+            color: '#FFFFFF',
+            fontSize: 10,
+            fontWeight: 'bold',
+          },
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon label="◈" color={color} focused={focused} />
+            <TabIcon symbol="◈" color={color} focused={focused} />
           ),
         }}
       />
 
-      {/* 4. Halaman Profil Pengguna */}
       <Tabs.Screen
         name="profile"
         options={{
           title: 'Profil',
           tabBarLabel: 'Profil',
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon label="❖" color={color} focused={focused} />
+            <TabIcon symbol="❖" color={color} focused={focused} />
           ),
         }}
       />
@@ -81,10 +81,10 @@ export default function TabLayout() {
   );
 }
 
-function TabIcon({ label, color, focused }: { label: string; color: string; focused: boolean }) {
+function TabIcon({ symbol, color, focused }: { symbol: string; color: string; focused: boolean }) {
   return (
     <View style={[styles.iconContainer, focused && styles.activeIconContainer]}>
-      <Text style={[styles.iconText, { color }]}>{label}</Text>
+      <Text style={[styles.iconText, { color }]}>{symbol}</Text>
     </View>
   );
 }

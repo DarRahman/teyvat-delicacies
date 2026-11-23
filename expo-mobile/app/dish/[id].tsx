@@ -7,33 +7,22 @@ import {
   Image,
   StyleSheet,
   SafeAreaView,
-  Platform,
   Alert,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { DISHES, formatMora } from '../../src/data/dishes';
+import { useDelicaciesStore } from '../../src/store/useDelicaciesStore';
 
-/**
- * Halaman Detail Makanan - Teyvat Delicacies
- * 
- * Memenuhi Ketentuan Soal 4:
- * • Fitur 3 (Halaman Detail Makanan):
- *   - Menampilkan informasi detail makanan yang dipilih (gambar, nama, kategori, harga, deskripsi).
- *   - Menampilkan tombol untuk menambahkan makanan ke keranjang.
- *   - Menerima parameter makanan yang dikirim dari halaman katalog atau beranda.
- * • Ketentuan Navigasi dan Parameter:
- *   - Mengambil parameter yang dikirim pada halaman detail menggunakan fitur Expo Router (useLocalSearchParams).
- *   - Menggunakan router.back() untuk kembali ke halaman sebelumnya.
- */
 export default function DishDetailScreen() {
-  // Mengambil parameter rute menggunakan fitur resmi Expo Router
   const { id } = useLocalSearchParams<{ id: string }>();
   const [portionCount, setPortionCount] = useState(1);
 
-  // Cari data hidangan berdasarkan parameter ID
+  const addToCart = useDelicaciesStore((s) => s.addToCart);
+
   const dish = DISHES.find((d) => d.id === Number(id)) ?? DISHES[0];
 
   const handleAddToCart = () => {
+    addToCart(dish, portionCount);
     Alert.alert(
       'Berhasil Ditambahkan',
       `${portionCount} porsi "${dish.name}" telah masuk ke Keranjang Jamuan.`,
@@ -46,7 +35,6 @@ export default function DishDetailScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header dengan Tombol Kembali (router.back) */}
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
@@ -58,95 +46,84 @@ export default function DishDetailScreen() {
         <Text style={styles.headerTitle} numberOfLines={1}>
           Detail Resep Teyvat
         </Text>
-        <View style={{ width: 70 }} />
+        <View style={styles.headerSpacer} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Banner Gambar Hidangan */}
-        <View style={styles.heroCard}>
+        <View style={styles.imageWrapper}>
           <Image
-            source={{ uri: dish.image }}
+            source={{ uri: dish.fallbackImage || dish.image }}
             style={styles.heroImage}
-            resizeMode="contain"
           />
-          <View style={styles.rarityPill}>
-            <Text style={styles.rarityText}>{'★'.repeat(dish.rarity)} Bintang {dish.rarity}</Text>
+          <View style={styles.imageOverlayBadge}>
+            <Text style={styles.imageBadgeText}>{dish.region}</Text>
           </View>
         </View>
 
-        {/* Informasi Utama Hidangan */}
-        <View style={styles.infoCard}>
-          <View style={styles.metaRow}>
-            <Text style={styles.regionBadge}>{dish.region}</Text>
-            <Text style={styles.metaDot}>•</Text>
-            <Text style={styles.categoryBadge}>{dish.category}</Text>
-            <Text style={styles.metaDot}>•</Text>
-            <Text style={styles.buffBadge}>{dish.buffLabel}</Text>
+        <View style={styles.detailCard}>
+          <View style={styles.dishHeaderRow}>
+            <Text style={styles.stars}>{'★'.repeat(dish.rarity)}</Text>
+            <Text style={styles.categoryLabel}>{dish.category}</Text>
           </View>
 
-          <Text style={styles.dishTitle}>{dish.name}</Text>
-          <Text style={styles.priceMora}>🪙 {formatMora(dish.priceMora)} Mora / porsi</Text>
+          <Text style={styles.dishName}>{dish.name}</Text>
+          <Text style={styles.dishPrice}>{formatMora(dish.priceMora)} Mora</Text>
 
           <View style={styles.divider} />
 
-          {/* Deskripsi Hidangan (Ketentuan Soal) */}
           <Text style={styles.sectionHeading}>Deskripsi Kuliner</Text>
-          <Text style={styles.descText}>{dish.description}</Text>
-
-          {/* Khasiat Tempur & Petualangan */}
-          <View style={styles.buffBox}>
-            <Text style={styles.buffTitle}>✦ Khasiat Khusus Jamuan Teyvat:</Text>
-            <Text style={styles.buffEffect}>{dish.effect}</Text>
-          </View>
-
-          {/* Resep Bahan Alami Teyvat */}
-          {dish.ingredients && dish.ingredients.length > 0 && (
-            <View style={styles.ingredientsSection}>
-              <Text style={styles.sectionHeading}>Komposisi Bahan Masakan</Text>
-              <View style={styles.ingredientGrid}>
-                {dish.ingredients.map((ing, idx) => (
-                  <View key={idx} style={styles.ingredientChip}>
-                    <Text style={styles.ingredientText}>
-                      • {ing.name} ({ing.count}x)
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-          )}
+          <Text style={styles.description}>{dish.description}</Text>
 
           <View style={styles.divider} />
 
-          {/* Pengatur Porsi & Tombol Tambah ke Keranjang (Ketentuan Soal) */}
-          <View style={styles.actionRow}>
-            <View style={styles.stepperContainer}>
-              <TouchableOpacity
-                style={styles.stepBtn}
-                onPress={() => setPortionCount((c) => Math.max(1, c - 1))}
-              >
-                <Text style={styles.stepBtnText}>−</Text>
-              </TouchableOpacity>
-              <Text style={styles.stepperValue}>{portionCount}</Text>
-              <TouchableOpacity
-                style={styles.stepBtn}
-                onPress={() => setPortionCount((c) => c + 1)}
-              >
-                <Text style={styles.stepBtnText}>+</Text>
-              </TouchableOpacity>
-            </View>
+          <Text style={styles.sectionHeading}>Bahan Masakan</Text>
+          <View style={styles.ingredientsRow}>
+            {dish.ingredients.map((ing, idx) => (
+              <View key={idx} style={styles.ingredientBadge}>
+                <Text style={styles.ingredientText}>
+                  {ing.name} ×{ing.count}
+                </Text>
+              </View>
+            ))}
+          </View>
 
-            <TouchableOpacity
-              style={styles.addToCartBtn}
-              onPress={handleAddToCart}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.addToCartText}>
-                + Tambah ke Keranjang (🪙 {formatMora(dish.priceMora * portionCount)} Mora)
-              </Text>
-            </TouchableOpacity>
+          <View style={styles.divider} />
+
+          <Text style={styles.sectionHeading}>Khasiat Tempur</Text>
+          <View style={styles.buffBox}>
+            <Text style={styles.buffBadge}>✦ {dish.buffType} BOOST</Text>
+            <Text style={styles.buffEffect}>{dish.buffEffect}</Text>
           </View>
         </View>
       </ScrollView>
+
+      <View style={styles.bottomBar}>
+        <View style={styles.quantityContainer}>
+          <TouchableOpacity
+            style={styles.quantityBtn}
+            onPress={() => setPortionCount((prev) => Math.max(1, prev - 1))}
+          >
+            <Text style={styles.quantityBtnText}>−</Text>
+          </TouchableOpacity>
+          <Text style={styles.quantityText}>{portionCount}</Text>
+          <TouchableOpacity
+            style={styles.quantityBtn}
+            onPress={() => setPortionCount((prev) => prev + 1)}
+          >
+            <Text style={styles.quantityBtnText}>+</Text>
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity
+          style={styles.addToCartBtn}
+          onPress={handleAddToCart}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.addToCartText}>
+            Tambah ke Keranjang · {formatMora(dish.priceMora * portionCount)} Mora
+          </Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
@@ -155,212 +132,197 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#ECE5D8',
-    paddingTop: Platform.OS === 'android' ? 28 : 0,
   },
   header: {
+    backgroundColor: '#1C2232',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#1E2435',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#C8A86B50',
+    borderBottomColor: '#C8A86B40',
   },
   backButton: {
     paddingVertical: 4,
     paddingHorizontal: 8,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255, 231, 165, 0.12)',
   },
   backButtonText: {
     color: '#FFE7A5',
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: 'bold',
   },
   headerTitle: {
-    color: '#FFE7A5',
     fontSize: 15,
     fontWeight: 'bold',
+    color: '#FFF8E7',
+  },
+  headerSpacer: {
+    width: 60,
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 40,
+    gap: 16,
+    paddingBottom: 24,
   },
-  heroCard: {
-    backgroundColor: '#272038',
-    borderRadius: 18,
-    padding: 24,
+  imageWrapper: {
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: '#C8A86B',
-    marginBottom: 16,
+    backgroundColor: '#242B3D',
+    borderRadius: 16,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: '#C8A86B60',
     position: 'relative',
   },
   heroImage: {
-    width: 140,
-    height: 140,
-  },
-  rarityPill: {
-    position: 'absolute',
-    bottom: 12,
-    backgroundColor: 'rgba(0, 0, 0, 0.55)',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#D3BC8E',
-  },
-  rarityText: {
-    color: '#FFE7A5',
-    fontSize: 11,
-    fontWeight: 'bold',
-  },
-  infoCard: {
-    backgroundColor: '#FAF8F2',
+    width: 150,
+    height: 150,
     borderRadius: 16,
-    padding: 18,
-    borderWidth: 1.5,
-    borderColor: '#C8A86B',
-    elevation: 2,
   },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 6,
+  imageOverlayBadge: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
+    backgroundColor: '#D4AF3725',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#D4AF3760',
   },
-  regionBadge: {
-    fontSize: 10.5,
-    fontWeight: 'bold',
-    color: '#8A5D1C',
-    textTransform: 'uppercase',
-  },
-  metaDot: {
-    marginHorizontal: 5,
-    color: '#A09786',
+  imageBadgeText: {
+    color: '#FFE7A5',
     fontSize: 10,
-  },
-  categoryBadge: {
-    fontSize: 10.5,
-    color: '#555B6E',
-  },
-  buffBadge: {
-    fontSize: 10.5,
     fontWeight: 'bold',
-    color: '#9C3D12',
   },
-  dishTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#242735',
-    marginBottom: 4,
+  detailCard: {
+    backgroundColor: '#FDFBF7',
+    borderRadius: 14,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#E2D7C3',
+    gap: 10,
   },
-  priceMora: {
-    fontSize: 14,
+  dishHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  stars: {
+    color: '#E6A23C',
+    fontSize: 13,
+  },
+  categoryLabel: {
+    fontSize: 11,
+    color: '#8A7B68',
+    fontWeight: '600',
+  },
+  dishName: {
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#8A5D1C',
-    marginBottom: 12,
+    color: '#2F3542',
+  },
+  dishPrice: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#B57A1E',
   },
   divider: {
     height: 1,
-    backgroundColor: '#DDD5C4',
-    marginVertical: 12,
+    backgroundColor: '#E4DAC8',
+    marginVertical: 4,
   },
   sectionHeading: {
-    fontSize: 13,
-    fontWeight: 'bold',
-    color: '#242735',
-    marginBottom: 6,
-  },
-  descText: {
     fontSize: 12,
-    color: '#555B6E',
-    lineHeight: 18,
-    marginBottom: 14,
-  },
-  buffBox: {
-    backgroundColor: '#EFE7D8',
-    borderRadius: 10,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#D3BC8E',
-    marginBottom: 14,
-  },
-  buffTitle: {
-    fontSize: 11.5,
     fontWeight: 'bold',
-    color: '#6E4515',
-    marginBottom: 3,
+    color: '#4A3E2F',
   },
-  buffEffect: {
-    fontSize: 11,
-    color: '#34384A',
-    lineHeight: 16,
+  description: {
+    fontSize: 12,
+    color: '#554C3E',
+    lineHeight: 18,
   },
-  ingredientsSection: {
-    marginBottom: 6,
-  },
-  ingredientGrid: {
+  ingredientsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 6,
   },
-  ingredientChip: {
-    backgroundColor: '#EAE3D4',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 8,
+  ingredientBadge: {
+    backgroundColor: '#ECE5D8',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#D4C6AB',
   },
   ingredientText: {
     fontSize: 11,
-    color: '#4A4F62',
+    color: '#4B3F2F',
   },
-  actionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginTop: 4,
-  },
-  stepperContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#EAE3D4',
-    borderRadius: 10,
+  buffBox: {
+    backgroundColor: '#F4EFE6',
+    borderRadius: 8,
+    padding: 10,
+    gap: 4,
     borderWidth: 1,
-    borderColor: '#D3BC8E',
+    borderColor: '#D8CCB5',
   },
-  stepBtn: {
-    width: 34,
-    height: 38,
+  buffBadge: {
+    color: '#8A5810',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  buffEffect: {
+    fontSize: 11,
+    color: '#4B3F2F',
+    lineHeight: 16,
+  },
+  bottomBar: {
+    backgroundColor: '#1C2232',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#C8A86B40',
+  },
+  quantityContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#262E44',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#C8A86B60',
+  },
+  quantityBtn: {
+    width: 32,
+    height: 36,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  stepBtnText: {
+  quantityBtnText: {
+    color: '#FFE7A5',
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#242735',
   },
-  stepperValue: {
+  quantityText: {
+    color: '#FFF8E7',
     fontSize: 13,
     fontWeight: 'bold',
-    color: '#242735',
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
   },
   addToCartBtn: {
     flex: 1,
-    backgroundColor: '#C8A86B',
-    paddingVertical: 12,
-    borderRadius: 20,
+    backgroundColor: '#D4AF37',
+    borderRadius: 8,
+    paddingVertical: 11,
     alignItems: 'center',
-    shadowColor: '#C8A86B',
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 3,
   },
   addToCartText: {
+    color: '#1C2232',
     fontSize: 12,
     fontWeight: 'bold',
-    color: '#1A1426',
   },
 });

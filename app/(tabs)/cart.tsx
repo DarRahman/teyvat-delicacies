@@ -7,188 +7,202 @@ import {
   Image,
   StyleSheet,
   SafeAreaView,
-  Platform,
+  TextInput,
+  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
-import { DISHES, formatMora } from '../../src/data/dishes';
+import { formatMora } from '../../src/data/dishes';
+import { useDelicaciesStore } from '../../src/store/useDelicaciesStore';
 
-/**
- * Halaman Keranjang - Teyvat Delicacies
- * 
- * Memenuhi Ketentuan Soal 4: Fitur 4 (Halaman Keranjang):
- * • Menampilkan daftar makanan yang telah ditambahkan.
- * • Menampilkan nama makanan, harga, jumlah, dan subtotal.
- * • Pengguna dapat menambah atau mengurangi jumlah makanan.
- * • Menampilkan total harga seluruh pesanan.
- * • Pengguna dapat menghapus makanan dari keranjang.
- */
 export default function CartScreen() {
-  // Simulasi state keranjang aktif dengan data pesanan awal
-  const [cartItems, setCartItems] = useState([
-    {
-      dish: DISHES.find((d) => d.id === 5101) ?? DISHES[0], // Adeptus' Temptation
-      quantity: 2,
-    },
-    {
-      dish: DISHES.find((d) => d.id === 4101) ?? DISHES[1], // Barbatos Ratatouille
-      quantity: 1,
-    },
-  ]);
+  const [couponInput, setCouponInput] = useState('');
 
-  // Tambah kuantitas (+1)
-  const handleIncrease = (dishId: number) => {
-    setCartItems((prev) =>
-      prev.map((item) =>
-        item.dish.id === dishId
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
-      )
-    );
+  const cart = useDelicaciesStore((s) => s.cart);
+  const updateQuantity = useDelicaciesStore((s) => s.updateQuantity);
+  const removeFromCart = useDelicaciesStore((s) => s.removeFromCart);
+  const clearCart = useDelicaciesStore((s) => s.clearCart);
+  const appliedCouponCode = useDelicaciesStore((s) => s.appliedCouponCode);
+  const applyCoupon = useDelicaciesStore((s) => s.applyCoupon);
+  const removeCoupon = useDelicaciesStore((s) => s.removeCoupon);
+  const getCartTotals = useDelicaciesStore((s) => s.getCartTotals);
+
+  const totals = getCartTotals();
+
+  const handleApplyCoupon = () => {
+    if (!couponInput.trim()) return;
+    const result = applyCoupon(couponInput.trim());
+    if (result.ok) {
+      Alert.alert('Kupon Diterapkan', result.message);
+      setCouponInput('');
+    } else {
+      Alert.alert('Kupon Gagal', result.message);
+    }
   };
 
-  // Kurangi kuantitas (-1) atau hapus jika 1
-  const handleDecrease = (dishId: number) => {
-    setCartItems((prev) =>
-      prev
-        .map((item) =>
-          item.dish.id === dishId
-            ? { ...item, quantity: Math.max(0, item.quantity - 1) }
-            : item
-        )
-        .filter((item) => item.quantity > 0)
-    );
+  const handleClearCart = () => {
+    Alert.alert('Kosongkan Keranjang', 'Apakah Anda yakin ingin menghapus semua hidangan?', [
+      { text: 'Batal', style: 'cancel' },
+      { text: 'Hapus Semua', style: 'destructive', onPress: clearCart },
+    ]);
   };
 
-  // Hapus item dari keranjang
-  const handleRemove = (dishId: number) => {
-    setCartItems((prev) => prev.filter((item) => item.dish.id !== dishId));
-  };
+  if (cart.length === 0) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Keranjang Jamuan</Text>
+          <Text style={styles.headerSubtitle}>0 Hidangan Terpilih</Text>
+        </View>
 
-  // Hitung total harga seluruh pesanan
-  const subtotalMora = cartItems.reduce(
-    (sum, item) => sum + item.dish.priceMora * item.quantity,
-    0
-  );
-  const deliveryFeeMora = subtotalMora > 0 ? 0 : 0; // Bebas Ongkir Lokal Liyue
-  const grandTotalMora = subtotalMora + deliveryFeeMora;
-
-  return (
-    <SafeAreaView style={styles.container}>
-      {/* Header Keranjang */}
-      <View style={styles.header}>
-        <Text style={styles.title}>Keranjang Jamuan</Text>
-        <Text style={styles.subtitle}>
-          {cartItems.length} hidangan siap diantar oleh Kurir Glider
-        </Text>
-      </View>
-
-      {cartItems.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyIcon}>🧺</Text>
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyIcon}>🍽️</Text>
           <Text style={styles.emptyTitle}>Keranjang Masih Kosong</Text>
-          <Text style={styles.emptyDesc}>
-            Jelajahi kelezatan kuliner Teyvat dan tambahkan hidangan favoritmu.
+          <Text style={styles.emptySubtitle}>
+            Belum ada hidangan lezat Teyvat yang Anda pilih untuk petualangan ini.
           </Text>
           <TouchableOpacity
-            style={styles.browseBtn}
+            style={styles.exploreButton}
             onPress={() => router.push('/(tabs)/catalog')}
             activeOpacity={0.8}
           >
-            <Text style={styles.browseBtnText}>Buka Katalog Kuliner ➔</Text>
+            <Text style={styles.exploreButtonText}>Pilih Hidangan di Katalog ➔</Text>
           </TouchableOpacity>
         </View>
-      ) : (
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          {/* Daftar Makanan di Keranjang (Ketentuan Soal) */}
-          <View style={styles.itemList}>
-            {cartItems.map(({ dish, quantity }) => {
-              const itemSubtotal = dish.priceMora * quantity;
-              return (
-                <View key={dish.id} style={styles.cartCard}>
-                  <Image
-                    source={{ uri: dish.image }}
-                    style={styles.cartImage}
-                    resizeMode="contain"
-                  />
-                  <View style={styles.cartBody}>
-                    <View style={styles.cardHeaderRow}>
-                      <Text style={styles.dishName} numberOfLines={1}>
-                        {dish.name}
-                      </Text>
-                      {/* Tombol Hapus Makanan */}
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.headerTitle}>Keranjang Jamuan</Text>
+          <Text style={styles.headerSubtitle}>{cart.length} Jenis Hidangan Terpilih</Text>
+        </View>
+        <TouchableOpacity onPress={handleClearCart} style={styles.clearBtn}>
+          <Text style={styles.clearBtnText}>Kosongkan</Text>
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.itemsContainer}>
+          {cart.map((item) => {
+            const itemSubtotal = item.dish.priceMora * item.quantity;
+            return (
+              <View key={item.dish.id} style={styles.cartCard}>
+                <Image
+                  source={{ uri: item.dish.fallbackImage || item.dish.image }}
+                  style={styles.itemImage}
+                />
+                <View style={styles.itemDetails}>
+                  <View style={styles.itemHeaderRow}>
+                    <Text style={styles.itemName} numberOfLines={1}>
+                      {item.dish.name}
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => removeFromCart(item.dish.id)}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                      <Text style={styles.deleteText}>Hapus</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <Text style={styles.itemCategory}>{item.dish.category} · {item.dish.region}</Text>
+                  <Text style={styles.unitPrice}>{formatMora(item.dish.priceMora)} Mora / porsi</Text>
+
+                  <View style={styles.itemFooterRow}>
+                    <View style={styles.quantityControl}>
                       <TouchableOpacity
-                        onPress={() => handleRemove(dish.id)}
-                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                        style={styles.qtyBtn}
+                        onPress={() => updateQuantity(item.dish.id, item.quantity - 1)}
                       >
-                        <Text style={styles.deleteBtn}>✕</Text>
+                        <Text style={styles.qtyBtnText}>−</Text>
+                      </TouchableOpacity>
+                      <Text style={styles.qtyValue}>{item.quantity}</Text>
+                      <TouchableOpacity
+                        style={styles.qtyBtn}
+                        onPress={() => updateQuantity(item.dish.id, item.quantity + 1)}
+                      >
+                        <Text style={styles.qtyBtnText}>+</Text>
                       </TouchableOpacity>
                     </View>
-
-                    <Text style={styles.unitPrice}>
-                      🪙 {formatMora(dish.priceMora)} Mora / porsi
+                    <Text style={styles.subtotalText}>
+                      {formatMora(itemSubtotal)} Mora
                     </Text>
-
-                    {/* Pengaturan Jumlah & Subtotal (Ketentuan Soal) */}
-                    <View style={styles.qtyRow}>
-                      <View style={styles.stepper}>
-                        <TouchableOpacity
-                          style={styles.stepBtn}
-                          onPress={() => handleDecrease(dish.id)}
-                          activeOpacity={0.7}
-                        >
-                          <Text style={styles.stepBtnText}>−</Text>
-                        </TouchableOpacity>
-                        <Text style={styles.qtyText}>{quantity}</Text>
-                        <TouchableOpacity
-                          style={styles.stepBtn}
-                          onPress={() => handleIncrease(dish.id)}
-                          activeOpacity={0.7}
-                        >
-                          <Text style={styles.stepBtnText}>+</Text>
-                        </TouchableOpacity>
-                      </View>
-
-                      <View style={styles.subtotalBox}>
-                        <Text style={styles.subtotalLabel}>Subtotal</Text>
-                        <Text style={styles.subtotalValue}>
-                          🪙 {formatMora(itemSubtotal)} Mora
-                        </Text>
-                      </View>
-                    </View>
                   </View>
                 </View>
-              );
-            })}
+              </View>
+            );
+          })}
+        </View>
+
+        <View style={styles.couponSection}>
+          <Text style={styles.sectionLabel}>Kupon Promo Festival</Text>
+          {appliedCouponCode ? (
+            <View style={styles.appliedCouponRow}>
+              <View>
+                <Text style={styles.appliedCouponText}>Kupon Aktif: {appliedCouponCode}</Text>
+                <Text style={styles.couponDiscountText}>Hemat {formatMora(totals.discountMora)} Mora</Text>
+              </View>
+              <TouchableOpacity onPress={removeCoupon} style={styles.removeCouponBtn}>
+                <Text style={styles.removeCouponText}>Lepas</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.couponInputRow}>
+              <TextInput
+                style={styles.couponInput}
+                placeholder="Contoh: PAIMONKENYANG"
+                placeholderTextColor="#8B7E66"
+                value={couponInput}
+                onChangeText={setCouponInput}
+                autoCapitalize="characters"
+              />
+              <TouchableOpacity style={styles.couponApplyBtn} onPress={handleApplyCoupon}>
+                <Text style={styles.couponApplyText}>Terapkan</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.summaryCard}>
+          <Text style={styles.summaryTitle}>Ringkasan Pembayaran</Text>
+
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Subtotal Hidangan</Text>
+            <Text style={styles.summaryVal}>{formatMora(totals.subtotalMora)} Mora</Text>
           </View>
 
-          {/* Ringkasan Total Pesanan (Ketentuan Soal) */}
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryTitle}>Ringkasan Pembayaran</Text>
+          {totals.discountMora > 0 && (
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Subtotal Hidangan</Text>
-              <Text style={styles.summaryValue}>🪙 {formatMora(subtotalMora)} Mora</Text>
+              <Text style={styles.discountLabel}>Diskon Kupon Promo</Text>
+              <Text style={styles.discountVal}>−{formatMora(totals.discountMora)} Mora</Text>
             </View>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Ongkos Kurir Glider</Text>
-              <Text style={styles.freeDelivery}>Gratis (Lokal Liyue)</Text>
-            </View>
-            <View style={styles.divider} />
-            <View style={styles.grandTotalRow}>
-              <Text style={styles.grandTotalLabel}>Total Pesanan</Text>
-              <Text style={styles.grandTotalValue}>🪙 {formatMora(grandTotalMora)} Mora</Text>
-            </View>
+          )}
 
-            {/* Tombol Menuju Checkout */}
-            <TouchableOpacity
-              style={styles.checkoutBtn}
-              onPress={() => router.push('/checkout')}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.checkoutBtnText}>Lanjut ke Checkout ➔</Text>
-            </TouchableOpacity>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Estimasi Kurir Glider</Text>
+            <Text style={styles.summaryVal}>
+              {totals.deliveryFeeMora === 0 ? 'Gratis (Lokal Liyue)' : `${formatMora(totals.deliveryFeeMora)} Mora`}
+            </Text>
           </View>
-        </ScrollView>
-      )}
+
+          <View style={styles.divider} />
+
+          <View style={styles.totalRow}>
+            <Text style={styles.totalLabel}>Total Jamuan</Text>
+            <Text style={styles.totalVal}>{formatMora(totals.grandTotalMora)} Mora</Text>
+          </View>
+        </View>
+
+        <TouchableOpacity
+          style={styles.checkoutBtn}
+          onPress={() => router.push('/checkout')}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.checkoutBtnText}>Lanjut ke Simulasi Checkout ➔</Text>
+        </TouchableOpacity>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -197,222 +211,298 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#ECE5D8',
-    paddingTop: Platform.OS === 'android' ? 28 : 0,
   },
   header: {
-    backgroundColor: '#1E2435',
+    backgroundColor: '#1C2232',
     paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 14,
+    paddingVertical: 14,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: '#C8A86B50',
+    borderBottomColor: '#C8A86B40',
   },
-  title: {
+  headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFE7A5',
-    letterSpacing: 0.5,
+    color: '#FFF8E7',
   },
-  subtitle: {
+  headerSubtitle: {
     fontSize: 11,
-    color: '#C8D0E4',
+    color: '#A7ADC0',
     marginTop: 2,
+  },
+  clearBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    backgroundColor: '#262E44',
+    borderWidth: 1,
+    borderColor: '#C8A86B50',
+  },
+  clearBtnText: {
+    color: '#E47161',
+    fontSize: 11,
+    fontWeight: '600',
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 32,
+    gap: 16,
+    paddingBottom: 36,
   },
-  itemList: {
-    marginBottom: 16,
+  itemsContainer: {
+    gap: 12,
   },
   cartCard: {
-    flexDirection: 'row',
-    backgroundColor: '#FAF8F2',
+    backgroundColor: '#FDFBF7',
     borderRadius: 14,
     padding: 12,
-    marginBottom: 12,
+    flexDirection: 'row',
+    gap: 12,
     borderWidth: 1,
-    borderColor: '#D3BC8E',
-    alignItems: 'center',
-    elevation: 2,
+    borderColor: '#E2D7C3',
   },
-  cartImage: {
+  itemImage: {
     width: 72,
     height: 72,
     borderRadius: 10,
-    backgroundColor: '#EAE4D7',
-    marginRight: 12,
+    backgroundColor: '#EBE2D2',
+    alignSelf: 'center',
   },
-  cartBody: {
+  itemDetails: {
     flex: 1,
+    justifyContent: 'space-between',
   },
-  cardHeaderRow: {
+  itemHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 2,
   },
-  dishName: {
+  itemName: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#242735',
+    color: '#2F3542',
     flex: 1,
     marginRight: 8,
   },
-  deleteBtn: {
-    fontSize: 13,
-    color: '#A09786',
-    fontWeight: 'bold',
-    padding: 2,
+  deleteText: {
+    fontSize: 11,
+    color: '#C24B38',
+    fontWeight: '600',
+  },
+  itemCategory: {
+    fontSize: 10,
+    color: '#8A7B68',
   },
   unitPrice: {
     fontSize: 11,
-    color: '#765C2B',
-    marginBottom: 8,
+    color: '#6E614F',
+    marginVertical: 2,
   },
-  qtyRow: {
+  itemFooterRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: 4,
   },
-  stepper: {
+  quantityControl: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#EFEAE0',
-    borderRadius: 8,
+    backgroundColor: '#ECE5D8',
+    borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#D3BC8E',
+    borderColor: '#D4C6AB',
   },
-  stepBtn: {
-    width: 28,
-    height: 28,
+  qtyBtn: {
+    width: 26,
+    height: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  stepBtnText: {
-    fontSize: 15,
-    fontWeight: 'bold',
-    color: '#242735',
-  },
-  qtyText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#242735',
-    paddingHorizontal: 8,
-  },
-  subtotalBox: {
-    alignItems: 'flex-end',
-  },
-  subtotalLabel: {
-    fontSize: 9.5,
-    color: '#7D8498',
-  },
-  subtotalValue: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#8A5D1C',
-  },
-  summaryCard: {
-    backgroundColor: '#FAF8F2',
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1.5,
-    borderColor: '#C8A86B',
-    elevation: 2,
-  },
-  summaryTitle: {
+  qtyBtnText: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#242735',
-    marginBottom: 12,
+    color: '#3A3226',
+  },
+  qtyValue: {
+    paddingHorizontal: 8,
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#2F3542',
+  },
+  subtotalText: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#B57A1E',
+  },
+  couponSection: {
+    backgroundColor: '#FDFBF7',
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#E2D7C3',
+    gap: 8,
+  },
+  sectionLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#3E3426',
+  },
+  couponInputRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  couponInput: {
+    flex: 1,
+    backgroundColor: '#F4ECE0',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    fontSize: 12,
+    color: '#2F3542',
+    borderWidth: 1,
+    borderColor: '#D4C6AB',
+  },
+  couponApplyBtn: {
+    backgroundColor: '#242B3D',
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    justifyContent: 'center',
+  },
+  couponApplyText: {
+    color: '#FFE7A5',
+    fontWeight: '700',
+    fontSize: 11,
+  },
+  appliedCouponRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#F2EBDF',
+    padding: 10,
+    borderRadius: 8,
+  },
+  appliedCouponText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#2B5838',
+  },
+  couponDiscountText: {
+    fontSize: 10,
+    color: '#685945',
+  },
+  removeCouponBtn: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  removeCouponText: {
+    fontSize: 11,
+    color: '#C24B38',
+    fontWeight: '600',
+  },
+  summaryCard: {
+    backgroundColor: '#FDFBF7',
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#E2D7C3',
+    gap: 8,
+  },
+  summaryTitle: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#2F3542',
+    marginBottom: 4,
   },
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    alignItems: 'center',
   },
   summaryLabel: {
-    fontSize: 11.5,
-    color: '#555B6E',
+    fontSize: 12,
+    color: '#655743',
   },
-  summaryValue: {
-    fontSize: 11.5,
+  summaryVal: {
+    fontSize: 12,
     fontWeight: '600',
-    color: '#242735',
+    color: '#2F3542',
   },
-  freeDelivery: {
-    fontSize: 11.5,
+  discountLabel: {
+    fontSize: 12,
+    color: '#2B5838',
+  },
+  discountVal: {
+    fontSize: 12,
     fontWeight: 'bold',
-    color: '#2D6E4E',
+    color: '#2B5838',
   },
   divider: {
     height: 1,
-    backgroundColor: '#DDD5C4',
-    marginVertical: 10,
+    backgroundColor: '#E4DAC8',
+    marginVertical: 4,
   },
-  grandTotalRow: {
+  totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
   },
-  grandTotalLabel: {
-    fontSize: 13,
+  totalLabel: {
+    fontSize: 14,
     fontWeight: 'bold',
-    color: '#242735',
+    color: '#2F3542',
   },
-  grandTotalValue: {
+  totalVal: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#8A5D1C',
+    color: '#B57A1E',
   },
   checkoutBtn: {
-    backgroundColor: '#C8A86B',
-    paddingVertical: 12,
-    borderRadius: 22,
+    backgroundColor: '#242B3D',
+    borderRadius: 12,
+    paddingVertical: 14,
     alignItems: 'center',
-    shadowColor: '#C8A86B',
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#D4AF3780',
   },
   checkoutBtnText: {
+    color: '#FFE7A5',
     fontSize: 13,
     fontWeight: 'bold',
-    color: '#1A1426',
   },
-  emptyContainer: {
+  emptyState: {
     flex: 1,
-    alignItems: 'center',
     justifyContent: 'center',
-    padding: 24,
+    alignItems: 'center',
+    padding: 32,
+    gap: 12,
   },
   emptyIcon: {
     fontSize: 48,
-    marginBottom: 12,
   },
   emptyTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#242735',
-    marginBottom: 4,
+    color: '#3A3226',
   },
-  emptyDesc: {
-    fontSize: 12,
-    color: '#70778B',
+  emptySubtitle: {
+    fontSize: 13,
+    color: '#7A6B53',
     textAlign: 'center',
-    marginBottom: 20,
-    maxWidth: 260,
+    lineHeight: 18,
+    marginBottom: 8,
   },
-  browseBtn: {
-    backgroundColor: '#C8A86B',
+  exploreButton: {
+    backgroundColor: '#242B3D',
     paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 20,
+    paddingVertical: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#C8A86B60',
   },
-  browseBtnText: {
-    fontSize: 12,
+  exploreButtonText: {
+    color: '#FFE7A5',
+    fontSize: 13,
     fontWeight: 'bold',
-    color: '#1A1426',
   },
 });

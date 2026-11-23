@@ -8,72 +8,80 @@ import {
   Image,
   StyleSheet,
   SafeAreaView,
-  Platform,
+  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import { DISHES, formatMora } from '../../src/data/dishes';
-import { Dish } from '../../src/types';
+import { useDelicaciesStore } from '../../src/store/useDelicaciesStore';
+import { Dish, DishCategory } from '../../src/types';
 
-/**
- * Halaman Katalog Makanan - Teyvat Delicacies
- * 
- * Memenuhi Ketentuan Soal 4: Fitur 2 (Halaman Katalog Makanan):
- * • Menampilkan minimal 10 data makanan (tersedia 16 data hidangan resmi).
- * • Setiap makanan memiliki informasi nama, kategori, harga, deskripsi, dan gambar.
- * • Menggunakan FlatList untuk menampilkan daftar makanan.
- * • Pengguna dapat mencari makanan berdasarkan nama.
- * • Pengguna dapat memilih makanan untuk membuka halaman detail.
- */
 export default function CatalogScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('Semua');
+  const [selectedRegion, setSelectedRegion] = useState<string>('Semua');
+
+  const addToCart = useDelicaciesStore((s) => s.addToCart);
 
   const categories = ['Semua', 'Main Dish', 'Snacks', 'Beverages'];
+  const regions = ['Semua', 'Mondstadt', 'Liyue', 'Inazuma', 'Sumeru', 'Fontaine', 'Natlan', 'Snezhnaya'];
 
-  // Filter daftar hidangan berdasarkan pencarian nama dan kategori
   const filteredDishes = useMemo(() => {
     return DISHES.filter((dish) => {
-      const matchSearch =
-        dish.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        dish.region.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchCategory =
+      const matchName = dish.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchCat =
         selectedCategory === 'Semua' || dish.category === selectedCategory;
-      return matchSearch && matchCategory;
+      const matchRegion =
+        selectedRegion === 'Semua' || dish.region === selectedRegion;
+      return matchName && matchCat && matchRegion;
     });
-  }, [searchQuery, selectedCategory]);
+  }, [searchQuery, selectedCategory, selectedRegion]);
+
+  const handleQuickAdd = (dish: Dish) => {
+    addToCart(dish, 1);
+    Alert.alert('Berhasil', `${dish.name} ditambahkan ke keranjang.`);
+  };
 
   const renderDishItem = ({ item }: { item: Dish }) => (
     <TouchableOpacity
       style={styles.card}
       onPress={() => router.push(`/dish/${item.id}`)}
-      activeOpacity={0.75}
+      activeOpacity={0.8}
     >
       <Image
-        source={{ uri: item.image }}
-        style={styles.cardImage}
-        resizeMode="contain"
+        source={{ uri: item.fallbackImage || item.image }}
+        style={styles.dishImage}
       />
-      <View style={styles.cardBody}>
-        <View style={styles.metaRow}>
-          <Text style={styles.badgeRegion}>{item.region}</Text>
-          <Text style={styles.badgeDot}>•</Text>
-          <Text style={styles.badgeCategory}>{item.category}</Text>
-          <Text style={styles.badgeDot}>•</Text>
-          <Text style={styles.badgeRarity}>{'★'.repeat(item.rarity)}</Text>
+      <View style={styles.cardDetails}>
+        <View style={styles.cardHeaderRow}>
+          <Text style={styles.regionTag}>{item.region}</Text>
+          <Text style={styles.stars}>{'★'.repeat(item.rarity)}</Text>
         </View>
 
         <Text style={styles.dishName} numberOfLines={1}>
           {item.name}
         </Text>
-
-        <Text style={styles.dishDesc} numberOfLines={2}>
+        <Text style={styles.categoryText}>{item.category}</Text>
+        <Text style={styles.descriptionText} numberOfLines={2}>
           {item.description}
         </Text>
 
-        <View style={styles.footerRow}>
-          <Text style={styles.priceText}>🪙 {formatMora(item.priceMora)} Mora</Text>
-          <View style={styles.orderBtn}>
-            <Text style={styles.orderBtnText}>Pesan ➔</Text>
+        <View style={styles.cardFooter}>
+          <Text style={styles.priceText}>{formatMora(item.priceMora)} Mora</Text>
+          <View style={styles.actionButtons}>
+            <TouchableOpacity
+              style={styles.detailButton}
+              onPress={() => router.push(`/dish/${item.id}`)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.detailButtonText}>Detail</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() => handleQuickAdd(item)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.addButtonText}>+</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -82,56 +90,49 @@ export default function CatalogScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header Katalog */}
       <View style={styles.header}>
-        <Text style={styles.title}>Katalog Jamuan Teyvat</Text>
-        <Text style={styles.subtitle}>
-          Daftar resep autentik 8 wilayah Teyvat ({filteredDishes.length} hidangan tersedia)
+        <Text style={styles.headerTitle}>Katalog Hidangan Teyvat</Text>
+        <Text style={styles.headerSubtitle}>
+          Daftar menu terlengkap dari seluruh penjuru bangsa
         </Text>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Cari hidangan favoritmu..."
+          placeholderTextColor="#8B7E66"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          clearButtonMode="while-editing"
+        />
+      </View>
 
-        {/* Input Pencarian Berdasarkan Nama (Ketentuan Soal) */}
-        <View style={styles.searchContainer}>
-          <Text style={styles.searchIcon}>🔍</Text>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Cari hidangan Teyvat (misal: Adeptus, Barbatos)..."
-            placeholderTextColor="#8C93A6"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            clearButtonMode="while-editing"
-          />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Text style={styles.clearIcon}>✕</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {/* Filter Kategori */}
-        <View style={styles.categoryFilterRow}>
-          {categories.map((cat) => (
+      <View style={styles.filterBar}>
+        <FlatList
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          data={categories}
+          keyExtractor={(item) => `cat-${item}`}
+          contentContainerStyle={styles.filterList}
+          renderItem={({ item }) => (
             <TouchableOpacity
-              key={cat}
               style={[
-                styles.categoryChip,
-                selectedCategory === cat && styles.categoryChipActive,
+                styles.filterChip,
+                selectedCategory === item && styles.activeFilterChip,
               ]}
-              onPress={() => setSelectedCategory(cat)}
+              onPress={() => setSelectedCategory(item)}
             >
               <Text
                 style={[
-                  styles.categoryChipText,
-                  selectedCategory === cat && styles.categoryChipTextActive,
+                  styles.filterChipText,
+                  selectedCategory === item && styles.activeFilterChipText,
                 ]}
               >
-                {cat}
+                {item === 'Semua' ? 'Semua Kategori' : item}
               </Text>
             </TouchableOpacity>
-          ))}
-        </View>
+          )}
+        />
       </View>
 
-      {/* Render Menggunakan FlatList React Native (Ketentuan Wajib Soal) */}
       <FlatList
         data={filteredDishes}
         keyExtractor={(item) => item.id.toString()}
@@ -140,10 +141,9 @@ export default function CatalogScreen() {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>🍽️</Text>
             <Text style={styles.emptyTitle}>Hidangan Tidak Ditemukan</Text>
-            <Text style={styles.emptyDesc}>
-              Tidak ada kuliner yang cocok dengan kata kunci &ldquo;{searchQuery}&rdquo;.
+            <Text style={styles.emptySubtitle}>
+              Coba cari dengan kata kunci lain atau ubah filter kategori.
             </Text>
           </View>
         }
@@ -156,144 +156,126 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#ECE5D8',
-    paddingTop: Platform.OS === 'android' ? 28 : 0,
   },
   header: {
-    backgroundColor: '#1E2435',
+    backgroundColor: '#1C2232',
     paddingHorizontal: 16,
-    paddingTop: 12,
+    paddingTop: 16,
     paddingBottom: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#C8A86B50',
+    borderBottomColor: '#C8A86B40',
   },
-  title: {
+  headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFE7A5',
-    letterSpacing: 0.5,
+    color: '#FFF8E7',
   },
-  subtitle: {
+  headerSubtitle: {
     fontSize: 11,
-    color: '#C8D0E4',
+    color: '#A7ADC0',
     marginTop: 2,
     marginBottom: 12,
   },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FAF8F2',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    height: 44,
-    borderWidth: 1,
-    borderColor: '#D3BC8E',
-    marginBottom: 10,
-  },
-  searchIcon: {
-    marginRight: 8,
-    fontSize: 14,
-  },
   searchInput: {
-    flex: 1,
-    fontSize: 12,
-    color: '#242735',
+    backgroundColor: '#FDFBF7',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    fontSize: 13,
+    color: '#2F3542',
+    borderWidth: 1,
+    borderColor: '#D4AF3780',
   },
-  clearIcon: {
-    color: '#8C93A6',
-    fontSize: 14,
-    padding: 4,
+  filterBar: {
+    backgroundColor: '#E4DAC8',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#D8CEBA',
   },
-  categoryFilterRow: {
-    flexDirection: 'row',
+  filterList: {
+    paddingHorizontal: 16,
     gap: 8,
   },
-  categoryChip: {
+  filterChip: {
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: '#F6EFE3',
     borderWidth: 1,
-    borderColor: '#C8A86B40',
+    borderColor: '#D6C8AF',
   },
-  categoryChipActive: {
-    backgroundColor: '#C8A86B',
-    borderColor: '#FFE7A5',
+  activeFilterChip: {
+    backgroundColor: '#242B3D',
+    borderColor: '#242B3D',
   },
-  categoryChipText: {
-    fontSize: 10.5,
-    color: '#D4CDE6',
+  filterChipText: {
+    fontSize: 11,
+    color: '#655743',
     fontWeight: '600',
   },
-  categoryChipTextActive: {
-    color: '#1A1426',
-    fontWeight: 'bold',
+  activeFilterChipText: {
+    color: '#FFE7A5',
   },
   listContainer: {
     padding: 16,
-    paddingBottom: 32,
+    gap: 12,
+    paddingBottom: 28,
   },
   card: {
-    flexDirection: 'row',
-    backgroundColor: '#FAF8F2',
+    backgroundColor: '#FDFBF7',
     borderRadius: 14,
     padding: 12,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#D3BC8E',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    alignItems: 'center',
-  },
-  cardImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 10,
-    backgroundColor: '#EAE4D7',
-    marginRight: 12,
-  },
-  cardBody: {
-    flex: 1,
-  },
-  metaRow: {
     flexDirection: 'row',
+    gap: 12,
+    borderWidth: 1,
+    borderColor: '#E2D7C3',
+  },
+  dishImage: {
+    width: 84,
+    height: 84,
+    borderRadius: 10,
+    backgroundColor: '#EBE2D2',
+    alignSelf: 'center',
+  },
+  cardDetails: {
+    flex: 1,
+    justifyContent: 'space-between',
+  },
+  cardHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 2,
   },
-  badgeRegion: {
+  regionTag: {
     fontSize: 10,
-    fontWeight: 'bold',
-    color: '#8A5D1C',
-    textTransform: 'uppercase',
+    color: '#8A6D3B',
+    fontWeight: '700',
+    backgroundColor: '#F3E8D2',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
   },
-  badgeDot: {
-    marginHorizontal: 4,
-    color: '#9C9482',
+  stars: {
+    color: '#E6A23C',
     fontSize: 10,
-  },
-  badgeCategory: {
-    fontSize: 10,
-    color: '#5E6477',
-  },
-  badgeRarity: {
-    fontSize: 10,
-    color: '#D97706',
-    fontWeight: 'bold',
   },
   dishName: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#242735',
-    marginBottom: 3,
+    color: '#2F3542',
+    marginTop: 2,
   },
-  dishDesc: {
-    fontSize: 10.5,
-    color: '#555B6E',
+  categoryText: {
+    fontSize: 10,
+    color: '#8A7B68',
+  },
+  descriptionText: {
+    fontSize: 11,
+    color: '#554C3E',
     lineHeight: 15,
-    marginBottom: 6,
+    marginVertical: 4,
   },
-  footerRow: {
+  cardFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -301,39 +283,54 @@ const styles = StyleSheet.create({
   },
   priceText: {
     fontSize: 12,
-    fontWeight: 'bold',
-    color: '#8A5D1C',
+    fontWeight: '700',
+    color: '#B57A1E',
   },
-  orderBtn: {
-    backgroundColor: '#C8A86B',
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 6,
+    alignItems: 'center',
+  },
+  detailButton: {
+    backgroundColor: '#ECE5D8',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#D4C6AB',
   },
-  orderBtnText: {
-    fontSize: 10.5,
-    fontWeight: 'bold',
-    color: '#1A1426',
+  detailButtonText: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#4B3F2F',
   },
-  emptyContainer: {
+  addButton: {
+    backgroundColor: '#242B3D',
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 60,
   },
-  emptyIcon: {
-    fontSize: 40,
-    marginBottom: 12,
+  addButtonText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#FFE7A5',
+    lineHeight: 16,
+  },
+  emptyContainer: {
+    paddingVertical: 48,
+    alignItems: 'center',
   },
   emptyTitle: {
     fontSize: 15,
     fontWeight: 'bold',
-    color: '#242735',
+    color: '#4B3F2F',
     marginBottom: 4,
   },
-  emptyDesc: {
+  emptySubtitle: {
     fontSize: 12,
-    color: '#70778B',
+    color: '#8A7B68',
     textAlign: 'center',
-    maxWidth: 240,
   },
 });
