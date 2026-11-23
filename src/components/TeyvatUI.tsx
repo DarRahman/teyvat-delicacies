@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Compass, ShoppingBag, User, UtensilsCrossed } from 'lucide-react';
-import { ASSET_ICONS, BUFF_META, formatMora } from '../data/dishes';
-import { BuffType, DishRarity, TabId } from '../types';
+import { Home, ShoppingBag, User, UtensilsCrossed } from 'lucide-react';
+import { ASSET_ICONS, BUFF_META, RARITY_META, formatMora } from '../data/dishes';
+import { BuffType, Dish, DishRarity, TabId } from '../types';
 
 /** Resilient Image Component: Local Asset -> Official CDN -> Styled Vector Crest */
 interface TeyvatImageProps {
@@ -54,7 +54,7 @@ export const TeyvatImage: React.FC<TeyvatImageProps> = ({
   );
 };
 
-/** Authentic 4-Point Genshin Diamond Star (Never 5-point cartoon stars) */
+/** Authentic 4-Point Genshin Diamond Star (Gold-Embossed, Never 5-point) */
 export const DiamondStar: React.FC<{ size?: number; className?: string }> = ({
   size = 13,
   className = 'text-[#FFE7A5]',
@@ -63,10 +63,16 @@ export const DiamondStar: React.FC<{ size?: number; className?: string }> = ({
     width={size}
     height={size}
     viewBox="0 0 24 24"
-    className={`shrink-0 fill-current drop-shadow-[0_1px_2px_rgba(0,0,0,0.45)] ${className}`}
+    className={`shrink-0 ${className}`}
+    style={{ filter: 'drop-shadow(0 1px 1px rgba(29, 20, 10, 0.72))' }}
     aria-hidden="true"
   >
-    <path d="M12 1.5L14.9 9.1L22.5 12L14.9 14.9L12 22.5L9.1 14.9L1.5 12L9.1 9.1L12 1.5Z" />
+    <path
+      d="M12 1.2L14.9 9.1L22.8 12L14.9 14.9L12 22.8L9.1 14.9L1.2 12L9.1 9.1L12 1.2Z"
+      fill="currentColor"
+      stroke="#9C6A1B"
+      strokeWidth="0.9"
+    />
   </svg>
 );
 
@@ -87,7 +93,7 @@ export const DiamondStarRow: React.FC<{
 
 /** Diamond Bullet Ornament */
 export const DiamondBullet: React.FC<{ className?: string; size?: number }> = ({
-  className = 'text-[#D3BC8E]',
+  className = 'text-[#C8A86B]',
   size = 8,
 }) => (
   <svg
@@ -110,23 +116,118 @@ export const DiamondDivider: React.FC<{
     <div
       className={`h-px flex-1 ${
         dark
-          ? 'bg-gradient-to-r from-transparent via-[#FFE7A5]/40 to-[#FFE7A5]/50'
-          : 'bg-gradient-to-r from-transparent via-[#B8A98E]/70 to-[#B8A98E]'
+          ? 'bg-gradient-to-r from-transparent via-[#FFE7A5]/45 to-[#FFE7A5]/55'
+          : 'bg-gradient-to-r from-transparent via-[#C9B694] to-[#C9B694]'
       }`}
     />
     <DiamondBullet
       size={7}
-      className={dark ? 'text-[#FFE7A5]/80' : 'text-[#A9926A]'}
+      className={dark ? 'text-[#FFE7A5]/85' : 'text-[#B29560]'}
     />
     <div
       className={`h-px flex-1 ${
         dark
-          ? 'bg-gradient-to-l from-transparent via-[#FFE7A5]/40 to-[#FFE7A5]/50'
-          : 'bg-gradient-to-l from-transparent via-[#B8A98E]/70 to-[#B8A98E]'
+          ? 'bg-gradient-to-l from-transparent via-[#FFE7A5]/45 to-[#FFE7A5]/55'
+          : 'bg-gradient-to-l from-transparent via-[#C9B694] to-[#C9B694]'
       }`}
     />
   </div>
 );
+
+/** Authentic Rarity Header Banner with Triquetra Seal Watermark + Centered Radial Illumination */
+export const RarityDishBanner: React.FC<{
+  dish: Dish;
+  heightClass?: string;
+  imageSizeClass?: string;
+  onClick?: () => void;
+  showRegion?: boolean;
+  alignImage?: 'center' | 'right';
+}> = ({
+  dish,
+  heightClass = 'h-[112px]',
+  imageSizeClass = 'w-[84px] h-[84px]',
+  onClick,
+  showRegion = true,
+  alignImage = 'right',
+}) => {
+  const rarityStyle = RARITY_META[dish.rarity];
+
+  const innerContent = (
+    <>
+      {/* Full 1*-5* Circular Triquetra Watermark Grading */}
+      <img
+        src={rarityStyle.bgAsset}
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+        style={{ opacity: 0.35, mixBlendMode: 'overlay' }}
+      />
+
+      {/* Fine metallic gold bottom hairline separating banner & parchment body */}
+      <div
+        className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-[#FFE7A5]/70 pointer-events-none z-20"
+        aria-hidden="true"
+      />
+
+      {/* Quiet Region Label Top-Left */}
+      {showRegion && (
+        <span className="absolute top-2 left-2.5 z-10 text-[10px] font-semibold tracking-wide text-[#FFF9EB] drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
+          {dish.region}
+        </span>
+      )}
+
+      {/* Dish Transparent PNG with Centered Soft Radial Illumination (No blurry CSS glow) */}
+      <div
+        className={`absolute inset-0 flex items-center pointer-events-none ${
+          alignImage === 'right' ? 'justify-end pr-2 pt-1' : 'justify-center'
+        }`}
+      >
+        <div
+          className="relative flex items-center justify-center rounded-full p-2"
+          style={{
+            background:
+              'radial-gradient(circle at center, rgba(255, 231, 165, 0.42) 0%, transparent 68%)',
+          }}
+        >
+          <TeyvatImage
+            src={dish.image}
+            fallbackSrc={dish.fallbackImage}
+            alt={dish.name}
+            className={`${imageSizeClass} object-contain drop-shadow-[0_4px_6px_rgba(24,18,12,0.42)]`}
+          />
+        </div>
+      </div>
+
+      {/* Gold-Embossed 4-Point Diamond Stars Bottom-Left */}
+      <div className="absolute bottom-2 left-2.5 z-10">
+        <DiamondStarRow rarity={dish.rarity} size={11} />
+      </div>
+    </>
+  );
+
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className={`relative ${heightClass} w-full text-left overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#FFE7A5]`}
+        style={{ background: rarityStyle.gradient }}
+        aria-label={`Lihat detail ${dish.name}`}
+      >
+        {innerContent}
+      </button>
+    );
+  }
+
+  return (
+    <div
+      className={`relative ${heightClass} w-full overflow-hidden`}
+      style={{ background: rarityStyle.gradient }}
+    >
+      {innerContent}
+    </div>
+  );
+};
 
 /** Primary Gold Capsule CTA Button */
 interface GoldCapsuleButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -144,7 +245,7 @@ export const GoldCapsuleButton: React.FC<GoldCapsuleButtonProps> = ({
   <button
     type="button"
     disabled={disabled}
-    className={`teyvat-gold-btn min-h-[46px] px-5 py-2.5 rounded-full font-genshin text-[13px] tracking-wide font-bold inline-flex items-center justify-center gap-2 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE7A5] focus-visible:ring-offset-2 focus-visible:ring-offset-[#171421] disabled:opacity-45 disabled:cursor-not-allowed whitespace-nowrap ${
+    className={`teyvat-gold-btn min-h-[46px] px-5 py-2.5 rounded-full font-genshin text-[13px] tracking-wide font-bold inline-flex items-center justify-center gap-2 transition-transform duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE7A5] focus-visible:ring-offset-2 focus-visible:ring-offset-[#ECE5D8] disabled:opacity-45 disabled:cursor-not-allowed whitespace-nowrap ${
       fullWidth ? 'w-full' : ''
     } ${className}`}
     {...rest}
@@ -153,7 +254,7 @@ export const GoldCapsuleButton: React.FC<GoldCapsuleButtonProps> = ({
   </button>
 );
 
-/** Mora Currency Display with Official Coin Asset */
+/** Mora Currency Display with Official Coin Asset & HYWenHei Typography */
 export const MoraAmount: React.FC<{
   amount: number;
   size?: 'xs' | 'sm' | 'md' | 'lg';
@@ -178,7 +279,9 @@ export const MoraAmount: React.FC<{
       : 'text-[18px]';
 
   return (
-    <span className={`inline-flex items-center gap-1 tabular-nums font-bold ${textSize} ${className}`}>
+    <span
+      className={`font-genshin inline-flex items-center gap-1 tabular-nums font-bold ${textSize} ${className}`}
+    >
       <TeyvatImage
         src={ASSET_ICONS.mora}
         fallbackSrc={ASSET_ICONS.moraCdn}
@@ -186,7 +289,7 @@ export const MoraAmount: React.FC<{
         className={`${iconSize} object-contain shrink-0`}
       />
       <span>{formatMora(amount)}</span>
-      {showSuffix && <span className="font-normal opacity-80 text-[0.85em]">Mora</span>}
+      {showSuffix && <span className="font-normal opacity-85 text-[0.85em]">Mora</span>}
     </span>
   );
 };
@@ -232,17 +335,17 @@ export const FloatingQuickCartBar: React.FC<{
       <button
         type="button"
         onClick={onOpenCart}
-        className="w-full min-h-[52px] px-3.5 py-2 rounded-2xl bg-[#252038]/95 border border-[#FFE7A5]/70 shadow-[0_8px_24px_rgba(0,0,0,0.55)] backdrop-blur-md flex items-center justify-between gap-2 active:scale-[0.985] transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE7A5]"
+        className="w-full min-h-[52px] px-3.5 py-2 rounded-2xl bg-[#1F1B30]/95 border border-[#FFE7A5]/80 shadow-lg backdrop-blur-md flex items-center justify-between gap-2 active:scale-[0.985] transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE7A5]"
       >
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-8 h-8 rounded-full bg-[#FFE7A5]/15 border border-[#FFE7A5]/60 flex items-center justify-center shrink-0 relative">
+          <div className="w-8 h-8 rounded-full bg-[#FFE7A5]/15 border border-[#FFE7A5]/65 flex items-center justify-center shrink-0 relative">
             <ShoppingBag className="w-4 h-4 text-[#FFE7A5]" />
-            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[#C87C24] border border-[#FFE7A5] text-[10px] font-bold text-[#FFF9EB] flex items-center justify-center tabular-nums">
+            <span className="font-genshin absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[#C87C24] border border-[#FFE7A5] text-[10px] font-bold text-[#FFF9EB] flex items-center justify-center tabular-nums">
               {itemCount}
             </span>
           </div>
           <div className="text-left min-w-0">
-            <div className="text-[10px] text-[#CFC7DE] leading-tight truncate">
+            <div className="text-[10px] text-[#D7CFE8] leading-tight truncate">
               {itemCount} hidangan siap antar
             </div>
             <MoraAmount amount={totalMora} size="sm" className="text-[#FFE7A5]" />
@@ -250,14 +353,14 @@ export const FloatingQuickCartBar: React.FC<{
         </div>
 
         <span className="teyvat-gold-btn px-3 py-1.5 rounded-full font-genshin text-[11px] font-bold shrink-0 whitespace-nowrap">
-          Buka Tas Petualang
+          Buka Keranjang
         </span>
       </button>
     </div>
   );
 };
 
-/** 4-Tab Bottom Navigation Bar */
+/** 4-Tab Bottom Navigation Bar (Academic Spec: Beranda, Katalog, Keranjang, Profil) */
 export const BottomNavBar: React.FC<{
   activeTab: TabId;
   cartCount: number;
@@ -268,16 +371,16 @@ export const BottomNavBar: React.FC<{
     label: string;
     Icon: React.ComponentType<{ className?: string }>;
   }> = [
-    { id: 'catalog', label: 'Katalog', Icon: UtensilsCrossed },
-    { id: 'explore', label: 'Eksplorasi', Icon: Compass },
-    { id: 'cart', label: 'Tas', Icon: ShoppingBag },
-    { id: 'profile', label: 'Profil', Icon: User },
+    { id: 'beranda', label: 'Beranda', Icon: Home },
+    { id: 'katalog', label: 'Katalog', Icon: UtensilsCrossed },
+    { id: 'keranjang', label: 'Keranjang', Icon: ShoppingBag },
+    { id: 'profil', label: 'Profil', Icon: User },
   ];
 
   return (
     <nav
       aria-label="Navigasi Utama"
-      className="h-[64px] bg-[#171421]/95 backdrop-blur-md border-t border-[#5D5187]/55 grid grid-cols-4 items-center px-2 shrink-0"
+      className="h-[64px] bg-[#171421] border-t border-[#D3BC8E]/45 grid grid-cols-4 items-center px-2 shrink-0"
     >
       {tabs.map(({ id, label, Icon }) => {
         const isActive = activeTab === id;
@@ -287,27 +390,28 @@ export const BottomNavBar: React.FC<{
             type="button"
             onClick={() => onSelectTab(id)}
             aria-current={isActive ? 'page' : undefined}
+            aria-label={id === 'keranjang' && cartCount > 0 ? `${label} (${cartCount} item)` : label}
             className={`relative min-h-[48px] flex flex-col items-center justify-center gap-1 rounded-xl transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FFE7A5] ${
               isActive
                 ? 'text-[#FFE7A5]'
-                : 'text-[#9B93B2] hover:text-[#E9E5DC]'
+                : 'text-[#A29AB8] hover:text-[#ECE5D8]'
             }`}
           >
             {isActive && (
               <span
-                className="absolute top-0.5 w-6 h-[2px] rounded-full bg-[#FFE7A5]"
+                className="absolute top-0.5 w-7 h-[2px] rounded-full bg-[#FFE7A5]"
                 aria-hidden="true"
               />
             )}
             <div className="relative">
-              <Icon className="w-[20px] h-[20px]" />
-              {id === 'cart' && cartCount > 0 && (
-                <span className="absolute -top-1.5 -right-2.5 min-w-[17px] h-[17px] px-1 rounded-full bg-[#C87C24] border border-[#FFE7A5] text-[9px] font-bold text-[#FFF9EB] flex items-center justify-center tabular-nums">
+              <Icon className="w-[19px] h-[19px]" />
+              {id === 'keranjang' && cartCount > 0 && (
+                <span className="font-genshin absolute -top-1.5 -right-2.5 min-w-[17px] h-[17px] px-1 rounded-full bg-[#C87C24] border border-[#FFE7A5] text-[9px] font-bold text-[#FFF9EB] flex items-center justify-center tabular-nums">
                   {cartCount > 99 ? '99+' : cartCount}
                 </span>
               )}
             </div>
-            <span className="text-[10px] font-semibold tracking-tight whitespace-nowrap">
+            <span className="font-genshin text-[10px] tracking-tight whitespace-nowrap">
               {label}
             </span>
           </button>
@@ -327,9 +431,9 @@ export const TeyvatToast: React.FC<{ message: string | null }> = ({ message }) =
       aria-live="polite"
       className="absolute top-16 left-4 right-4 z-50 pointer-events-none flex justify-center animate-modal-enter"
     >
-      <div className="px-3.5 py-2 rounded-xl bg-[#252038]/95 border border-[#FFE7A5]/70 shadow-xl flex items-center gap-2 max-w-[360px]">
-        <DiamondBullet size={7} className="text-[#FFE7A5]" />
-        <span className="text-[12px] font-medium text-[#F5F2EB] leading-snug">
+      <div className="px-3.5 py-2 rounded-xl bg-[#ECE5D8] border border-[#C8A86B] shadow-md flex items-center gap-2 max-w-[360px]">
+        <DiamondBullet size={7} className="text-[#B2852E]" />
+        <span className="text-[12px] font-semibold text-[#232635] leading-snug">
           {message}
         </span>
       </div>

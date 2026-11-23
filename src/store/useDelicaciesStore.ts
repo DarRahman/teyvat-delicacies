@@ -1,14 +1,15 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import {
-  COUPONS,
-  DELIVERY_FEE_MORA,
-  INITIAL_ORDERS,
-  INITIAL_PROFILE,
-} from '../data/dishes';
+import { COUPONS, INITIAL_ORDERS, INITIAL_PROFILE } from '../data/dishes';
 import { teyvatAudio } from '../lib/audio';
 import {
+  CartTotals,
+  calculateCartTotals,
+  validateCheckoutPayment,
+} from '../lib/delicaciesRules';
+import {
   CartItem,
+  CatalogFilterPreset,
   DeliveryPoint,
   Dish,
   Order,
@@ -30,6 +31,7 @@ interface DelicaciesState {
   hasEntered: boolean;
   activeTab: TabId;
   stack: StackRoute[];
+  catalogPreset: CatalogFilterPreset | null;
 
   // Audio Controls
   bgmEnabled: boolean;
@@ -50,6 +52,8 @@ interface DelicaciesState {
   // Actions
   enterTeyvat: (withBgm?: boolean) => void;
   setActiveTab: (tab: TabId) => void;
+  openCatalogWithFilter: (preset: CatalogFilterPreset) => void;
+  clearCatalogPreset: () => void;
   pushStack: (route: StackRoute) => void;
   popStack: () => void;
   resetToTab: (tab: TabId) => void;
@@ -75,14 +79,7 @@ interface DelicaciesState {
   showToast: (message: string) => void;
   clearToast: () => void;
 
-  // Derived helpers
-  getCartTotals: () => {
-    itemCount: number;
-    subtotal: number;
-    deliveryFee: number;
-    discount: number;
-    finalTotal: number;
-  };
+  getCartTotals: () => CartTotals;
 }
 
 let toastTimer: number | null = null;
@@ -91,8 +88,9 @@ export const useDelicaciesStore = create<DelicaciesState>()(
   persist(
     (set, get) => ({
       hasEntered: false,
-      activeTab: 'catalog',
+      activeTab: 'beranda',
       stack: [],
+      catalogPreset: null,
 
       bgmEnabled: false,
       sfxEnabled: true,
@@ -100,7 +98,7 @@ export const useDelicaciesStore = create<DelicaciesState>()(
       cart: [],
       appliedCouponCode: null,
 
-      favoriteIds: [5101, 4102, 3107],
+      favoriteIds: [5101, 4102, 4116],
       profile: INITIAL_PROFILE,
       orders: INITIAL_ORDERS,
 
@@ -114,13 +112,25 @@ export const useDelicaciesStore = create<DelicaciesState>()(
         set({
           hasEntered: true,
           bgmEnabled: withBgm,
-          activeTab: 'catalog',
+          activeTab: 'beranda',
           stack: [],
         });
       },
 
       setActiveTab: (tab) => {
         set({ activeTab: tab, stack: [] });
+      },
+
+      openCatalogWithFilter: (preset) => {
+        set({
+          activeTab: 'katalog',
+          stack: [],
+          catalogPreset: preset,
+        });
+      },
+
+      clearCatalogPreset: () => {
+        set({ catalogPreset: null });
       },
 
       pushStack: (route) => {
@@ -172,7 +182,7 @@ export const useDelicaciesStore = create<DelicaciesState>()(
           teyvatAudio.playSfx('epic', get().sfxEnabled);
         }
 
-        get().showToast(`${dish.name} (x${safeQty}) masuk ke Tas Petualang`);
+        get().showToast(`${dish.name} (×${safeQty}) masuk ke Keranjang`);
       },
 
       removeFromCart: (dishId) => {
@@ -241,24 +251,22 @@ export const useDelicaciesStore = create<DelicaciesState>()(
           },
         }));
         teyvatAudio.playSfx('epic', get().sfxEnabled);
-        get().showToast(`+${new Intl.NumberFormat('en-US').format(amount)} Mora diterima dari Ley Line`);
+        get().showToast(
+          `+${new Intl.NumberFormat('en-US').format(amount)} Mora diterima dari Ley Line`
+        );
       },
 
       placeOrder: ({ deliveryPoint, paymentMethod, kitchenNotes }) => {
         const state = get();
-        if (state.cart.length === 0) {
-          return { ok: false, error: 'Tas belanja masih kosong.' };
-        }
-
         const totals = state.getCartTotals();
-        if (
-          paymentMethod === 'NORTHLAND_BANK_CARD' &&
-          state.profile.moraBalance < totals.finalTotal
-        ) {
-          return {
-            ok: false,
-            error: 'Saldo Mora di Kartu Northland Bank tidak mencukupi.',
-          };
+        const validation = validateCheckoutPayment(
+          state.cart,
+          paymentMethod,
+          state.profile.moraBalance,
+          totals.finalTotal
+        );
+        if (!validation.ok) {
+          return { ok: false, error: validation.error };
         }
 
         const now = new Date();
@@ -327,12 +335,12 @@ export const useDelicaciesStore = create<DelicaciesState>()(
           }
           return {
             cart: nextCart,
-            activeTab: 'cart',
+            activeTab: 'keranjang',
             stack: [],
           };
         });
         teyvatAudio.playSfx('epic', get().sfxEnabled);
-        get().showToast(`Pesanan ${target.id} dimasukkan kembali ke Tas`);
+        get().showToast(`Pesanan ${target.id} dimasukkan kembali ke Keranjang`);
       },
 
       showToast: (message) => {
@@ -351,48 +359,11 @@ export const useDelicaciesStore = create<DelicaciesState>()(
 
       getCartTotals: () => {
         const { cart, appliedCouponCode } = get();
-        const itemCount = cart.reduce((acc, item) => acc + item.quantity, 0);
-        const subtotal = cart.reduce(
-          (acc, item) => acc + item.dish.priceMora * item.quantity,
-          0
-        );
-        if (itemCount === 0) {
-          return {
-            itemCount: 0,
-            subtotal: 0,
-            deliveryFee: 0,
-            discount: 0,
-            finalTotal: 0,
-          };
-        }
-
-        const coupon = COUPONS.find((c) => c.code === appliedCouponCode) ?? null;
-        let deliveryFee = DELIVERY_FEE_MORA;
-        let discount = 0;
-
-        if (coupon?.type === 'PERCENT') {
-          discount = Math.round((subtotal * coupon.value) / 100);
-        } else if (coupon?.type === 'FREE_DELIVERY') {
-          deliveryFee = 0;
-          discount = DELIVERY_FEE_MORA;
-        }
-
-        const finalTotal = Math.max(
-          0,
-          subtotal + deliveryFee - (coupon?.type === 'PERCENT' ? discount : 0)
-        );
-
-        return {
-          itemCount,
-          subtotal,
-          deliveryFee,
-          discount,
-          finalTotal,
-        };
+        return calculateCartTotals(cart, appliedCouponCode);
       },
     }),
     {
-      name: 'teyvat-delicacies-store-v1',
+      name: 'teyvat-delicacies-store-v2',
       partialize: (state) => ({
         cart: state.cart,
         appliedCouponCode: state.appliedCouponCode,

@@ -24,6 +24,8 @@ export const ASSET_ICONS = {
   paimonHungry: '/assets/ui/paimon_hungry_mascot.png',
   genshinLogo: '/assets/ui/genshin_logo.webp',
   celestiaDoor: '/assets/backgrounds/genshin_celestia_login_door_1080p.webp',
+  celestiaDoorVideoMp4: '/assets/video/celestia_door_open.mp4',
+  celestiaDoorVideoWebm: '/assets/video/celestia_door_open.webm',
   dishDetailBg: '/assets/backgrounds/dish_detail_bg.webp',
   constellationBg: '/assets/backgrounds/constellation_stars_bg.webp',
   resultCardBg: '/assets/ui/result_card_bg.webp',
@@ -81,40 +83,42 @@ export const RARITY_META: Record<
     headerColor: string;
     gradient: string;
     glow: string;
-    bgAsset?: string;
+    bgAsset: string;
   }
 > = {
   1: {
     name: 'Common',
     headerColor: '#818486',
     gradient: 'linear-gradient(135deg, #696C70 0%, #8C9094 100%)',
-    glow: 'rgba(129, 132, 134, 0.45)',
+    glow: 'rgba(129, 132, 134, 0.42)',
+    bgAsset: '/assets/icons/bg_1star.webp',
   },
   2: {
     name: 'Uncommon',
     headerColor: '#5A977A',
     gradient: 'linear-gradient(135deg, #43775E 0%, #68A889 100%)',
-    glow: 'rgba(90, 151, 122, 0.48)',
+    glow: 'rgba(90, 151, 122, 0.42)',
+    bgAsset: '/assets/icons/bg_2star.webp',
   },
   3: {
     name: 'Rare',
     headerColor: '#5987AD',
     gradient: 'linear-gradient(135deg, #416C91 0%, #6BA0C9 100%)',
-    glow: 'rgba(89, 135, 173, 0.5)',
+    glow: 'rgba(89, 135, 173, 0.42)',
     bgAsset: '/assets/icons/bg_3star.webp',
   },
   4: {
     name: 'Epic',
     headerColor: '#9470BB',
     gradient: 'linear-gradient(135deg, #6F5194 0%, #A682CF 100%)',
-    glow: 'rgba(148, 112, 187, 0.52)',
+    glow: 'rgba(148, 112, 187, 0.42)',
     bgAsset: '/assets/icons/bg_4star.webp',
   },
   5: {
     name: 'Legendary',
     headerColor: '#C87C24',
     gradient: 'linear-gradient(135deg, #9C5A14 0%, #D99238 100%)',
-    glow: 'rgba(200, 124, 36, 0.58)',
+    glow: 'rgba(200, 124, 36, 0.42)',
     bgAsset: '/assets/icons/bg_5star.webp',
   },
 };
@@ -191,6 +195,29 @@ export const DISHES: Dish[] = [
       { name: 'Jueyun Chili', count: 2, icon: `${ING_CDN}UI_ItemIcon_100027.png` },
       { name: 'Cabbage', count: 2, icon: `${ING_CDN}UI_ItemIcon_100018.png` },
       { name: 'Ham', count: 1, icon: `${ING_CDN}UI_ItemIcon_110005.png` },
+    ],
+  },
+  {
+    id: 4116,
+    name: 'Magmic Ode',
+    rarity: 4,
+    category: 'Main Dish',
+    region: 'Natlan',
+    buffType: 'ATK',
+    buffLabel: 'ATK +312',
+    priceMora: 8200,
+    image: '/assets/dishes/magmic_ode.png',
+    fallbackImage: 'https://gi.yatta.moe/assets/UI/UI_ItemIcon_108733.png',
+    description:
+      'Hidangan panggang berempah bara api khas Stadium of the Sacred Flame, Natlan. Panas rempah ember-nya menyulut tekad tempur para pejuang suku-suku Natlan.',
+    effect:
+      'Meningkatkan ATK seluruh anggota party sebesar 312 dan CRIT DMG 10% selama 300 detik.',
+    prepMinutes: 15,
+    ingredients: [
+      { name: 'Raw Meat', count: 4, icon: `${ING_CDN}UI_ItemIcon_100061.png` },
+      { name: 'Spice', count: 2, icon: `${ING_CDN}UI_ItemIcon_110014.png` },
+      { name: 'Tomato', count: 2, icon: `${ING_CDN}UI_ItemIcon_100079.png` },
+      { name: 'Cheese', count: 2, icon: `${ING_CDN}UI_ItemIcon_110009.png` },
     ],
   },
   {
@@ -424,8 +451,8 @@ export const DISHES: Dish[] = [
     buffType: 'HP',
     buffLabel: 'HP +26% + Regen',
     priceMora: 2800,
-    image: 'https://gi.yatta.moe/assets/UI/UI_ItemIcon_101514.png',
-    fallbackImage: '/assets/dishes/tri_color_dango.png',
+    image: '/assets/dishes/dango_milk.png',
+    fallbackImage: 'https://gi.yatta.moe/assets/UI/UI_ItemIcon_101514.png',
     description:
       'Minuman susu manis khas kedai Tomoki di Kota Inazuma yang memadukan butiran dango lembut dengan krim segar. Menjadi minuman kesayangan sang Raiden Shogun.',
     effect:
@@ -446,8 +473,8 @@ export const DISHES: Dish[] = [
     buffType: 'STAMINA',
     buffLabel: 'Stamina +60',
     priceMora: 2400,
-    image: 'https://gi.yatta.moe/assets/UI/UI_ItemIcon_108543.png',
-    fallbackImage: '/assets/dishes/almond_tofu.png',
+    image: '/assets/dishes/fonta.png',
+    fallbackImage: 'https://gi.yatta.moe/assets/UI/UI_ItemIcon_108543.png',
     description:
       'Minuman bersoda dingin menyegarkan produksi Court of Fontaine dengan rasa buah cerah dan sensasi karbonasi tajam yang membangkitkan semangat penjelajah.',
     effect:
@@ -467,8 +494,8 @@ export const DISHES: Dish[] = [
     buffType: 'HP',
     buffLabel: 'HP +26% + Regen',
     priceMora: 3100,
-    image: 'https://gi.yatta.moe/assets/UI/UI_ItemIcon_100001.png',
-    fallbackImage: '/assets/dishes/barbatos_ratatouille.png',
+    image: '/assets/dishes/apple_cider.png',
+    fallbackImage: 'https://gi.yatta.moe/assets/UI/UI_ItemIcon_100001.png',
     description:
       'Sari apel perasan dingin non-alkohol dari kebun Dawn Winery yang manis dan renyah. Sempurna diminum di teras Angel Share pada sore hari.',
     effect:
@@ -480,28 +507,6 @@ export const DISHES: Dish[] = [
     ],
   },
   {
-    id: 4116,
-    name: 'Blazed Meat Stew',
-    rarity: 4,
-    category: 'Main Dish',
-    region: 'Natlan',
-    buffType: 'ATK',
-    buffLabel: 'ATK +312',
-    priceMora: 7900,
-    image: 'https://gi.yatta.moe/assets/UI/UI_ItemIcon_108733.png',
-    fallbackImage: '/assets/dishes/tonkotsu_ramen.png',
-    description:
-      'Semur daging panggang berempah api dari Stadium of the Sacred Flame, Natlan. Panas rempah ember-nya menyulut tekad tempur para pejuang suku-suku Natlan.',
-    effect:
-      'Meningkatkan ATK seluruh anggota party sebesar 312 dan CRIT DMG 10% selama 300 detik.',
-    prepMinutes: 15,
-    ingredients: [
-      { name: 'Raw Meat', count: 4, icon: `${ING_CDN}UI_ItemIcon_100061.png` },
-      { name: 'Spice', count: 2, icon: `${ING_CDN}UI_ItemIcon_110014.png` },
-      { name: 'Tomato', count: 2, icon: `${ING_CDN}UI_ItemIcon_100079.png` },
-    ],
-  },
-  {
     id: 3117,
     name: 'Moonlit Frostberry Tart',
     rarity: 3,
@@ -510,8 +515,8 @@ export const DISHES: Dish[] = [
     buffType: 'DEF',
     buffLabel: 'DEF +235',
     priceMora: 5900,
-    image: 'https://gi.yatta.moe/assets/UI/UI_ItemIcon_108556.png',
-    fallbackImage: '/assets/dishes/fishermans_toast.png',
+    image: '/assets/dishes/fishermans_toast.png',
+    fallbackImage: 'https://gi.yatta.moe/assets/UI/UI_ItemIcon_108556.png',
     description:
       'Kue tart mentega hangat bertabur buah beri salju langka dari perbatasan utara Nod-Krai. Krim rempahnya menjaga daya tahan tubuh di tengah angin dingin perbatasan.',
     effect:
@@ -532,8 +537,8 @@ export const DISHES: Dish[] = [
     buffType: 'DEF',
     buffLabel: 'DEF +110',
     priceMora: 2100,
-    image: 'https://gi.yatta.moe/assets/UI/UI_ItemIcon_108351.png',
-    fallbackImage: '/assets/dishes/almond_tofu.png',
+    image: '/assets/dishes/apple_cider.png',
+    fallbackImage: 'https://gi.yatta.moe/assets/UI/UI_ItemIcon_108351.png',
     description:
       'Seduhan madu bunga salju hangat ala kedai utara Snezhnaya yang manis menenangkan. Menghangatkan telapak tangan dan memperkuat ketahanan dari hawa beku.',
     effect:
@@ -545,6 +550,8 @@ export const DISHES: Dish[] = [
     ],
   },
 ];
+
+export const TOP_RECOMMENDATION_IDS = [5101, 4102, 4116, 3107, 3104];
 
 export const COUPONS: Coupon[] = [
   {
@@ -628,7 +635,7 @@ export const INITIAL_ORDERS: Order[] = [
     id: 'ORD-TEYVAT-7708',
     items: [
       { dish: DISHES[0], quantity: 1 },
-      { dish: DISHES[7], quantity: 2 },
+      { dish: DISHES[8], quantity: 2 },
     ],
     subtotalMora: 22100,
     deliveryFeeMora: 500,
@@ -644,8 +651,8 @@ export const INITIAL_ORDERS: Order[] = [
   {
     id: 'ORD-TEYVAT-7694',
     items: [
-      { dish: DISHES[6], quantity: 2 },
-      { dish: DISHES[12], quantity: 2 },
+      { dish: DISHES[7], quantity: 2 },
+      { dish: DISHES[13], quantity: 2 },
     ],
     subtotalMora: 18400,
     deliveryFeeMora: 0,

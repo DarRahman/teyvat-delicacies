@@ -92,7 +92,13 @@ export interface TravelerProfile {
   fallbackAvatarUrl: string;
 }
 
-export type TabId = 'catalog' | 'explore' | 'cart' | 'profile';
+export type TabId = 'beranda' | 'katalog' | 'keranjang' | 'profil';
+
+export interface CatalogFilterPreset {
+  category?: 'All Dishes' | DishCategory;
+  buff?: BuffType | null;
+  region?: TeyvatRegion | null;
+}
 
 export type StackRoute =
   | { name: 'dish'; dishId: number }
