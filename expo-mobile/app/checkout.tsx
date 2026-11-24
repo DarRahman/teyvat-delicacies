@@ -10,9 +10,9 @@ import {
   Alert,
 } from 'react-native';
 import { router } from 'expo-router';
-import { DELIVERY_POINTS, formatMora } from '../../src/data/dishes';
-import { useDelicaciesStore } from '../../src/store/useDelicaciesStore';
-import { PaymentMethod } from '../../src/types';
+import { DELIVERY_POINTS, formatMora } from '../src/data/dishes';
+import { useDelicaciesStore } from '../src/store/useDelicaciesStore';
+import { PaymentMethod } from '../src/types';
 
 export default function CheckoutScreen() {
   const cart = useDelicaciesStore((s) => s.cart);
