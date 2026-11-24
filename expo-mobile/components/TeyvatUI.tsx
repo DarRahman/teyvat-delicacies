@@ -444,34 +444,63 @@ export const GoldCapsuleButton: React.FC<{
   style?: StyleProp<ViewStyle>;
   contentStyle?: StyleProp<ViewStyle>;
   textStyle?: StyleProp<TextStyle>;
-}> = ({ children, onPress, disabled = false, style, contentStyle, textStyle }) => (
-  <Pressable
-    onPress={onPress}
-    disabled={disabled}
-    accessibilityRole="button"
-    style={({ pressed }) => [
-      styles.goldBtnOuter,
-      disabled && { opacity: 0.45 },
-      pressed && !disabled && { transform: [{ scale: 0.985 }] },
-      style,
-    ]}
-  >
-    <LinearGradient
-      colors={GOLD_BUTTON_GRADIENT}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 1 }}
-      style={[styles.goldBtnGradient, contentStyle]}
-    >
-      {typeof children === 'string' ? (
+}> = ({ children, onPress, disabled = false, style, contentStyle, textStyle }) => {
+  const renderButtonChildren = () => {
+    if (React.isValidElement(children)) {
+      return children;
+    }
+
+    const items = React.Children.toArray(children);
+    const isPlainTextGroup = items.every(
+      (item) => typeof item === 'string' || typeof item === 'number'
+    );
+
+    if (isPlainTextGroup) {
+      return (
         <Text style={[styles.goldBtnText, textStyle]} numberOfLines={1}>
           {children}
         </Text>
+      );
+    }
+
+    return items.map((item, idx) =>
+      typeof item === 'string' || typeof item === 'number' ? (
+        <Text
+          key={idx}
+          style={[styles.goldBtnText, textStyle]}
+          numberOfLines={1}
+        >
+          {item}
+        </Text>
       ) : (
-        children
-      )}
-    </LinearGradient>
-  </Pressable>
-);
+        item
+      )
+    );
+  };
+
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      accessibilityRole="button"
+      style={({ pressed }) => [
+        styles.goldBtnOuter,
+        disabled && { opacity: 0.45 },
+        pressed && !disabled && { transform: [{ scale: 0.985 }] },
+        style,
+      ]}
+    >
+      <LinearGradient
+        colors={GOLD_BUTTON_GRADIENT}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={[styles.goldBtnGradient, contentStyle]}
+      >
+        {renderButtonChildren()}
+      </LinearGradient>
+    </Pressable>
+  );
+};
 
 /** Mora Currency Display with Official Coin Asset & HYWenHei Typography */
 export const MoraAmount: React.FC<{

@@ -606,6 +606,7 @@ export const useDelicaciesStore = create<DelicaciesState>()(
           ...INITIAL_PROFILE,
           ...(incoming.profile ?? {}),
           uid: INITIAL_PROFILE.uid, // NIM locked
+          email: INITIAL_PROFILE.email,
           worldLevel: Math.max(9, incoming.profile?.worldLevel ?? 9),
           avatarId: hydratedAvatarId,
           avatarUrl: avatarSource,

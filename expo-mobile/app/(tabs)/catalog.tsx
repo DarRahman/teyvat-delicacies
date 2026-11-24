@@ -390,10 +390,10 @@ export default function CatalogScreen() {
         keyExtractor={(item) => String(item.id)}
         numColumns={2}
         renderItem={renderDishCard}
-        initialNumToRender={10}
-        maxToRenderPerBatch={10}
-        windowSize={7}
-        removeClippedSubviews
+        initialNumToRender={8}
+        maxToRenderPerBatch={8}
+        windowSize={5}
+        removeClippedSubviews={true}
         columnWrapperStyle={styles.gridRow}
         contentContainerStyle={[
           styles.listContent,

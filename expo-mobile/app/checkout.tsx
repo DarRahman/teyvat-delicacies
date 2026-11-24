@@ -452,27 +452,28 @@ export default function CheckoutScreen() {
               />
             </Svg>
 
-            {/* All 8 Clickable Teleport Waypoint Pins (Mobile-Ergonomic 44px Hit Targets) */}
+            {/* All 8 Clickable Teleport Waypoint Pins (Unclipped Full Region Labels) */}
             {DELIVERY_POINTS.map((point) => {
               const isSelected = point.id === selectedPoint.id;
-              const labelPos =
+              const isAbove =
+                point.region === 'Inazuma' ||
+                point.region === 'Mondstadt' ||
+                point.mapCoords.y > 72;
+              const shiftX =
                 point.region === 'Inazuma'
-                  ? { bottom: 32, right: -4 }
-                  : point.region === 'Mondstadt'
-                  ? { bottom: 32, left: -12 }
+                  ? -18
                   : point.region === 'Liyue'
-                  ? { top: 32, left: 4 }
+                  ? 14
                   : point.region === 'Sumeru'
-                  ? { top: 32, right: 2 }
-                  : point.mapCoords.y > 72
-                  ? { bottom: 32 }
-                  : { top: 32 };
+                  ? -14
+                  : point.region === 'Mondstadt'
+                  ? 6
+                  : 0;
 
               return (
-                <Pressable
+                <View
                   key={point.id}
-                  onPress={() => setSelectedDeliveryPointId(point.id)}
-                  hitSlop={10}
+                  pointerEvents="box-none"
                   style={[
                     styles.waypointHitBox,
                     {
@@ -481,26 +482,29 @@ export default function CheckoutScreen() {
                       zIndex: isSelected ? 30 : 15,
                     },
                   ]}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Teleport Waypoint ${point.region}`}
                 >
-                  <View
+                  <Pressable
+                    onPress={() => setSelectedDeliveryPointId(point.id)}
+                    hitSlop={10}
                     style={[
                       styles.waypointAura,
                       isSelected && styles.waypointAuraActive,
                     ]}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Teleport Waypoint ${point.region}`}
                   >
                     <TeleportWaypointIcon
                       size={isSelected ? 26 : 21}
                       active={isSelected}
                     />
-                  </View>
+                  </Pressable>
                   <View
                     pointerEvents="none"
                     style={[
                       styles.mapPinLabel,
                       isSelected && styles.mapPinLabelSelected,
-                      labelPos,
+                      isAbove ? { bottom: 38 } : { top: 38 },
+                      shiftX !== 0 ? { transform: [{ translateX: shiftX }] } : null,
                     ]}
                   >
                     <Text
@@ -513,7 +517,7 @@ export default function CheckoutScreen() {
                       {point.region}
                     </Text>
                   </View>
-                </Pressable>
+                </View>
               );
             })}
 
@@ -880,9 +884,9 @@ const styles = StyleSheet.create({
   },
   waypointHitBox: {
     position: 'absolute',
-    width: 36,
+    width: 112,
     height: 36,
-    marginLeft: -18,
+    marginLeft: -56,
     marginTop: -18,
     alignItems: 'center',
     justifyContent: 'center',
@@ -912,8 +916,13 @@ const styles = StyleSheet.create({
   },
   mapPinLabel: {
     position: 'absolute',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+    minWidth: 55,
+    width: 'auto',
+    alignSelf: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 7,
+    paddingVertical: 2.5,
     borderRadius: 5,
     backgroundColor: 'rgba(26, 33, 51, 0.92)',
     borderWidth: 1,
@@ -928,6 +937,7 @@ const styles = StyleSheet.create({
     fontFamily: FONTS.genshin,
     fontSize: 8.5,
     color: COLORS.inkIvory,
+    textAlign: 'center',
   },
   mapLegend: {
     position: 'absolute',

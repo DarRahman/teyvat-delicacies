@@ -15,10 +15,8 @@ import {
   ChevronRight,
   Image as ImageIcon,
   Mail,
-  RotateCcw,
   RotateCw,
   Settings,
-  ShieldCheck,
 } from 'lucide-react-native';
 import {
   DiamondBullet,
@@ -60,7 +58,6 @@ export default function ProfileScreen() {
   );
   const updateProfileSettings = useDelicaciesStore((s) => s.updateProfileSettings);
   const reorderFromHistory = useDelicaciesStore((s) => s.reorderFromHistory);
-  const resetSimulationData = useDelicaciesStore((s) => s.resetSimulationData);
 
   const [isNamecardModalOpen, setIsNamecardModalOpen] = useState(false);
   const [isBargainsModalOpen, setIsBargainsModalOpen] = useState(false);
@@ -694,7 +691,7 @@ export default function ProfileScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Account Info Card */}
+          {/* Student Account & Profile Card */}
           <ParchmentCard style={{ gap: 10 }}>
             <View style={styles.accountBadgeRow}>
               <Mail size={14} color={COLORS.goldDeep} />
@@ -757,7 +754,7 @@ export default function ProfileScreen() {
             </View>
 
             <View style={{ gap: 6 }}>
-              <Text style={styles.fieldLabel}>Bio Singkat</Text>
+              <Text style={styles.fieldLabel}>Bio Singkat Petualang</Text>
               <TextInput
                 value={draftBio}
                 onChangeText={setDraftBio}
@@ -771,38 +768,21 @@ export default function ProfileScreen() {
             </View>
           </ParchmentCard>
 
-          {/* Compact App Information & Reset */}
+          {/* Clean App Summary */}
           <ParchmentCard style={{ gap: 8 }}>
-            <Text style={styles.fieldLabel}>Informasi Aplikasi</Text>
+            <Text style={styles.fieldLabel}>Ringkasan Info Aplikasi</Text>
             <View style={styles.appInfoRow}>
               <Text style={styles.appInfoLabel}>Aplikasi</Text>
               <Text style={styles.appInfoValue}>Teyvat Delicacies v1.0.0</Text>
             </View>
             <View style={styles.appInfoRow}>
+              <Text style={styles.appInfoLabel}>Institusi</Text>
+              <Text style={styles.appInfoValue}>STIKOM Poltek Cirebon</Text>
+            </View>
+            <View style={styles.appInfoRow}>
               <Text style={styles.appInfoLabel}>Katalog Resmi</Text>
               <Text style={styles.appInfoValue}>{DISHES.length} Hidangan · 8 Wilayah</Text>
             </View>
-            <View style={styles.appInfoRow}>
-              <Text style={styles.appInfoLabel}>Penyimpanan</Text>
-              <View style={styles.storageBadge}>
-                <ShieldCheck size={13} color={COLORS.successGreen} />
-                <Text style={styles.storageText}>AsyncStorage Aktif</Text>
-              </View>
-            </View>
-
-            <DiamondDivider style={{ marginVertical: 4 }} />
-
-            <Pressable
-              onPress={() => {
-                resetSimulationData();
-                setIsSettingsModalOpen(false);
-              }}
-              style={styles.resetSimBtn}
-              accessibilityRole="button"
-            >
-              <RotateCcw size={14} color={COLORS.goldDeep} />
-              <Text style={styles.resetSimText}>Reset Data Simulasi Teyvat</Text>
-            </Pressable>
           </ParchmentCard>
         </ScrollView>
       </TeyvatModalSheet>

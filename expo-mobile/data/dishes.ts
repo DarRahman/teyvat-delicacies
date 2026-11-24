@@ -385,7 +385,7 @@ export const NAMECARDS: Namecard[] = [
 export const INITIAL_PROFILE: TravelerProfile = {
   uid: '14524303',
   username: 'Badar Rahman',
-  email: 'badarrr1905@gmail.com',
+  email: 'badarrahman1905@gmail.com',
   bio: "Petualang kuliner lintas 8 wilayah Teyvat · Anggota resmi Adventurers' Guild & pelanggan setia Dapur Wanmin.",
   adventureRank: 60,
   worldLevel: 9,
