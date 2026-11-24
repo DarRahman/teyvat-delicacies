@@ -1,242 +1,248 @@
-# Teyvat Delicacies — Aplikasi Pemesanan Makanan Bertema Genshin Impact
+# Teyvat Delicacies - Pemvis Tugas 7: Aplikasi Pemesanan Makanan Mobile
 
-* **Mata Kuliah**: Pemrograman Visual I (`TI361`) — Tugas Pertemuan 7
-* **Mahasiswa**: Badar Rahman
-* **NIM**: `14524303` (Kelas `TI-1`, Semester 5)
-* **Institusi**: STIKOM Poltek Cirebon
-* **Target Platform**: Mobile (React Native + Expo Router)
-* **Gaya Visual**: Fantasy RPG UI otentik bernuansa *Genshin Impact* (*Anti-Slop*, Bebas Emoji Unicode)
+Aplikasi mobile katalog dan pemesanan kuliner bertema fantasi RPG dunia Teyvat (*Genshin Impact*) berbasis **React Native** dan **Expo Router (File-Based Routing)**. Proyek ini dikembangkan secara komprehensif untuk memenuhi penugasan praktikum **Tugas 7 (Pertemuan 7)** mata kuliah **Pemrograman Visual I** pada Program Studi S1 Teknik Informatika STIKOM Poltek Cirebon.
 
 ---
 
-## 1. Ringkasan Proyek & Spesifikasi Tugas
+## Identitas Pengembang & Penugasan Akademik
 
-Proyek ini merupakan rancangan arsitektur dan sistem aset aplikasi pemesanan makanan berbasis mobile bertema kuliner dunia Teyvat (*Genshin Impact*). Aplikasi dirancang secara presisi untuk memenuhi standar **Tugas 7 Pemrograman Visual**, berfokus pada kebersihan frontend, integritas sistem desain, kelengkapan aset visual/audio lokal, serta kemudahan generasi UI via **Google AI Studio / Google Stitch**.
-
-### Fitur Utama Aplikasi:
-1. **Pintu Masuk Gerbang Celestia (Entrance Screen)**: Latar belakang 5K/1080p resmi gerbang login screen Genshin dengan animasi ketuk untuk masuk (*Tap to Enter*).
-2. **Katalog Masakan Two-Tone (Card Catalog)**: Kartu masakan bernuansa kertas kuno (*parchment*) dengan header warna dinamis sesuai tingkatan bintang (1* s/d 5*).
-3. **Multi-Filter Efek Khasiat (Buff System)**: Filter masakan berdasarkan peningkatan status karakter (*ATK Boost, DEF Boost, HP Recovery, Stamina*).
-4. **Mata Uang & Poin Teyvat**: Seluruh transaksi menggunakan koin emas Mora (`Mora`), kupon pesanan *Intertwined Fate*, serta saldo Primogem petualang.
-5. **Keranjang & Checkout Kilat Glider**: Penghitungan porsi, input voucher diskon, pemilihan titik antar markas Teyvat, dan modal dialog legendaris *"QUEST COMPLETE: Feast Delivered!"*.
+- **Nama Mahasiswa** : Badar Rahman
+- **NIM**            : `14524303`
+- **Program Studi**  : S1 Teknik Informatika
+- **Kelas**          : TI-1
+- **Semester**       : 5 (Ganjil)
+- **Perguruan Tinggi**: STIKOM Poltek Cirebon
+- **Mata Kuliah**    : Pemrograman Visual I (`TI361`)
+- **Penugasan**      : Tugas 7 (Pertemuan 7 - Navigasi & File-Based Routing)
+- **Dosen Pengampu** : Rifky Hilmanudin, S.Kom., M.Kom.
+- **Repositori Git** : [https://github.com/DarRahman/teyvat-delicacies](https://github.com/DarRahman/teyvat-delicacies)
 
 ---
 
-## 2. Struktur Navigasi (4 Menu Navbar Bawah + 3 Stack Screens)
+## Ringkasan Proyek
+
+Aplikasi **Teyvat Delicacies** menyajikan pengalaman pemesanan makanan imersif dengan mengadaptasi sistem antarmuka bertema *parchment cream*, bingkai emas antik (*antique gold*), dan tipografi khas RPG. Dibangun menggunakan arsitektur **File-Based Routing** murni pada direktori `app/`, aplikasi mendukung navigasi multihalaman bertingkat (*nested routing*), pengelolaan status global (*state management*) tersinkronisasi, serta pemenuhan 100% rubrik penilaian dosen pengampu.
+
+### Fitur Unggulan Aplikasi:
+1. **Beranda Interaktif**: Memuat sambutan petualang, banner promosi kuliner, 5 hidangan rekomendasi utama Chef Xiangling, dan pintasan 4 kategori masakan.
+2. **Katalog Terintegrasi 80 Hidangan (8 Region Teyvat)**: Menampilkan 80 masakan resmi dari seluruh region (Mondstadt, Liyue, Inazuma, Sumeru, Fontaine, Natlan, Nod-Krai, Snezhnaya) dengan virtualisasi memori performa tinggi menggunakan komponen `FlatList`.
+3. **Pencarian & Multi-Filter Khasiat (*Buff*)**: Filter instan berdasarkan nama hidangan, kategori (*Main Dish, Snacks, Beverages*), serta status tempur in-game (*ATK Boost, DEF Boost, HP Recovery, Stamina*).
+4. **Detail Hidangan & Resep Dinamis**: Halaman detail berbasis parameter rute dinamis (`app/dish/[id].tsx`) memuat deskripsi naratif (*lore*), grid bahan baku memasak (*ingredients*), serta indikator efek buff.
+5. **Keranjang Belanja & Validasi Kupon Ketat**: Perhitungan porsi dinamis, subtotal, ongkir kurir glider, dan sistem penebusan voucher diskon resmi (*PAIMONKENYANG, GLIDERFREE, ADEPTEUSFEAST*).
+6. **Alur Checkout & Titik Antar Waypoint**: Pilihan 8 titik antar markas besar Teyvat dengan modal visual peta benua, opsi metode pembayaran (Koin Mora Tunai vs Saldo Bank Northland), serta instruksi khusus dapur.
+7. **Pelacakan Kurir Glider & Modal Quest Complete**: Layar pelacakan kurir *Wind Glider* waktu nyata dengan animasi pendaratan dan dialog penyelesaian pesanan legendaris *"QUEST COMPLETE: Feast Delivered!"* yang memberikan hadiah saldo Primogem.
+8. **Profil Petualang & Pengaturan Terpadu**: Menampilkan identitas resmi pengembang Badar Rahman (NIM `14524303`), AR 60, email `badarrahman1905@gmail.com`, saldo mata uang, koleksi kartu nama (*Namecard*), penukaran berkah Mora Ley Line, dan modal informasi aplikasi.
+
+---
+
+## Struktur Direktori & Arsitektur Berkas Proyek
+
+Proyek ini menggunakan struktur standar Expo Router dengan pemisahan direktori kode sumber mobile (`expo-mobile/`) dan simulator web (`src/`):
+
+```text
+teyvat-delicacies/
+├── README.md                          # Dokumentasi resmi akademik proyek Tugas 7
+├── PRD_TEYVAT_DELICACIES.md           # Product Requirements Document & spesifikasi teknis
+├── SPESIFIKASI_TUGAS_7_PEMVIS.md      # Salinan transkrip rubrik soal resmi dosen
+├── package.json                       # Konfigurasi dependensi simulator root
+├── tsconfig.json                      # Konfigurasi TypeScript root
+├── vite.config.ts                     # Konfigurasi Vite dev server
+├── index.html                         # Dokumen HTML simulator web
+├── assets/                            # Koleksi aset visual dan media game
+│   ├── backgrounds/                   # Citra latar belakang gerbang Celestia & konstelasi
+│   ├── dishes/                        # Berkas PNG transparan masakan utama
+│   ├── icons/                         # Ikon mata uang Mora, Primogem, buff, dan fate
+│   ├── map/                           # Peta benua Teyvat resolusi tinggi 8 region
+│   ├── namecards/                     # Panji kartu nama karakter & wilayah
+│   └── ui/                            # Ornamen belah ketupat, divider, dan logo
+├── expo-mobile/                       # Subproyek utama aplikasi React Native Expo
+│   ├── app.json                       # Metadata aplikasi Expo SDK 52 (Nama, Slug, Ikon)
+│   ├── package.json                   # Dependensi pustaka mobile (React 18, Expo 52, Zustand)
+│   ├── tsconfig.json                  # Konfigurasi TypeScript mobile
+│   ├── app/                           # File-Based Routing (Expo Router)
+│   │   ├── _layout.tsx                # Root layout, Stack navigator, safe area & toast
+│   │   ├── index.tsx                  # Layar pembuka (Celestia Gate Entrance Screen)
+│   │   ├── checkout.tsx               # Layar transaksi & pemilihan titik antar Waypoint
+│   │   ├── (tabs)/                    # 4 Layar Bottom Tab Utama
+│   │   │   ├── _layout.tsx            # Konfigurasi Tabs navigator (Tab Bar styling)
+│   │   │   ├── index.tsx              # Tab 1: Halaman Beranda (Home & Recommendations)
+│   │   │   ├── catalog.tsx            # Tab 2: Halaman Katalog Hidangan (FlatList 80 hidangan)
+│   │   │   ├── cart.tsx               # Tab 3: Halaman Keranjang Belanja & Kupon
+│   │   │   └── profile.tsx            # Tab 4: Halaman Profil Mahasiswa & Pengaturan
+│   │   ├── dish/
+│   │   │   └── [id].tsx               # Layar dinamis Detail Masakan, Resep & Buff
+│   │   └── order/
+│   │       └── [id].tsx               # Layar Pelacakan Glider & Quest Complete Modal
+│   ├── components/
+│   │   └── TeyvatUI.tsx               # Komponen antarmuka modular (ParchmentCard, Buttons, Modal)
+│   ├── data/
+│   │   ├── assets.ts                  # Resolusi impor aset lokal terpusat
+│   │   ├── dishes.ts                  # Metadata 16 hidangan kurasi & titik antar wilayah
+│   │   └── yattaCatalog.ts            # Basis data 80 hidangan resmi 8 region Teyvat
+│   ├── lib/
+│   │   └── delicaciesRules.ts         # Aturan bisnis (ongkir, kupon diskon, kalkulasi Mora)
+│   ├── store/
+│   │   └── useDelicaciesStore.ts      # State management terpusat (Zustand + AsyncStorage)
+│   └── theme/
+│       └── tokens.ts                  # Token desain resmi (Palet Hex, Font, Elevation)
+└── src/                               # Simulator Web React + Tailwind CSS
+    ├── App.tsx                        # Root container web simulator
+    ├── components/                    # Komponen antarmuka web
+    ├── data/                          # Data hidangan simulator web
+    ├── screens/                       # Layar simulasi desktop/web
+    └── store/                         # State manager simulator web
+```
+
+---
+
+## Pemenuhan 4 Butir Soal Tugas 7
+
+### 1. Soal 1: Teori Navigasi pada Aplikasi Mobile
+- **Definisi Navigasi**: Navigasi adalah mekanisme perpindahan antarlayar (*screens*) dan pengelolaan riwayat tampilan (*navigation stack*) dalam aplikasi mobile yang memungkinkan pengguna berinteraksi secara terstruktur, intuitif, dan efisien.
+- **Kebutuhan Sistem Navigasi di React Native**: Berbeda dengan aplikasi web berbasis browser yang memiliki URL bar dan tombol *back/forward* native, aplikasi mobile React Native membutuhkan perutean berbasis status memori (*in-memory state*) untuk mengontrol peralihan tampilan, transisi animasi, serta manajemen tumpukan layar (*stack history*).
+- **Jenis Navigator & Peruntukannya**:
+  - **Stack Navigator**: Menumpuk layar baru di atas layar sebelumnya (LIFO — *Last In First Out*). Digunakan pada alur transaksi linear: `Katalog` $\to$ `Detail Masakan` $\to$ `Checkout` $\to$ `Pelacakan`.
+  - **Tab Navigator**: Menyediakan bilah menu tetap di bagian bawah atau atas untuk beralih antarfungsi utama secara instan tanpa kehilangan status layar lain. Digunakan pada 4 tab utama: `Beranda`, `Katalog`, `Keranjang`, dan `Profil`.
+  - **Drawer Navigator**: Menu panel tersembunyi yang muncul dari sisi samping layar (*slide-out sidebar*), ideal untuk aplikasi dengan struktur menu yang sangat banyak seperti aplikasi enterprise atau portal berita.
+
+### 2. Soal 2: Perbandingan React Navigation vs Expo Router
+
+| Aspek Perbandingan | React Navigation (Imperatif / Konvensional) | Expo Router (Deklaratif / File-Based) |
+| :--- | :--- | :--- |
+| **Pendekatan Navigasi** | Komponen berbasis kode deklaratif terpisah (`<NavigationContainer>`, `<Stack.Navigator>`). | Navigasi berbasis struktur direktori berkas (*File-Based Routing* terinspirasi Next.js). |
+| **Pendefinisian Rute** | Rute harus didaftarkan satu per satu secara manual di berkas konfigurasi (`App.tsx` atau `navigation.ts`). | Rute otomatis tercipta berdasarkan keberadaan berkas di dalam folder `app/`. |
+| **Struktur Berkas** | Bebas, namun memerlukan perakitan rute manual di banyak berkas. | Standar konvensional: `app/` untuk rute, `_layout.tsx` untuk template wrapper, dan `[param].tsx` untuk rute dinamis. |
+| **Cara Berpindah Halaman** | `navigation.navigate('DishDetail', { id: '5101' })`. | `router.push('/dish/5101')` atau `<Link href="/dish/5101">`. |
+| **Dukungan Deep Linking** | Memerlukan konfigurasi *prefixes* dan *path mapping* yang rumit. | *Out-of-the-box*: setiap file secara otomatis merupakan tautan universal (*universal deep link*). |
+
+### 3. Soal 3: Struktur File dan Penentuan Rute pada Expo Router
+- **Folder `app/`**: Direktori akar (*root directory*) tempat seluruh rute halaman didefinisikan. Setiap berkas `.tsx` yang berada di dalam folder ini merepresentasikan sebuah alamat rute aplikasi.
+- **File `_layout.tsx`**: Berkas pembungkus (*layout wrapper*) yang mendefinisikan struktur navigator bersama (seperti Stack atau Tabs), safe area, penyedia konteks, serta elemen global (seperti Toast notifikasi) yang tetap bertahan saat halaman di dalamnya berpindah.
+- **File `index.tsx`**: Merepresentasikan rute default atau beranda dari direktori tempat berkas tersebut berada (misalnya `app/index.tsx` untuk rute `/`, dan `app/(tabs)/index.tsx` untuk rute tab pertama).
+- **Grup Rute `(folder)/`**: Tanda kurung menandakan rute grup tanpa memengaruhi segmen URL, sangat berguna untuk mengelompokkan Tab Navigation (`app/(tabs)/`).
+- **Rute Dinamis `[param].tsx`**: Nama berkas di dalam tanda kurung siku (seperti `app/dish/[id].tsx`) menangani parameter dinamis URL yang dibaca melalui hook `useLocalSearchParams()`.
+
+### 4. Soal 4: Implementasi Praktik Aplikasi "Teyvat Delicacies"
 
 ```mermaid
 flowchart TD
-    subgraph BottomNavbar ["4 Menu Navbar Bawah (Tab Bar Utama)"]
-        Tab1["1. Katalog / Menu<br/>(app/(tabs)/index.tsx)"]
-        Tab2["2. Eksplorasi & Filter<br/>(app/(tabs)/explore.tsx)"]
-        Tab3["3. Tas Belanja / Cart<br/>(app/(tabs)/cart.tsx)"]
-        Tab4["4. Profil Petualang<br/>(app/(tabs)/profile.tsx)"]
+    subgraph BottomTabs ["4 Tab Navigasi Utama (app/(tabs)/)"]
+        Tab1["1. Beranda<br/>(index.tsx)"]
+        Tab2["2. Katalog 80 Hidangan<br/>(catalog.tsx)"]
+        Tab3["3. Keranjang & Kupon<br/>(cart.tsx)"]
+        Tab4["4. Profil Petualang<br/>(profile.tsx)"]
     end
 
-    subgraph StackScreens ["Layar Alur Transaksi (Stack Screens)"]
-        Tab1 -->|"Pilih Masakan"| Stack1["5. Detail Masakan & Resep<br/>(app/dish/[id].tsx)"]
-        Tab3 -->|"Lanjut Bayar"| Stack2["6. Checkout Pengantaran<br/>(app/checkout.tsx)"]
-        Stack2 -->|"Konfirmasi"| Stack3["7. Pelacakan & Quest Complete<br/>(app/order-status.tsx)"]
+    subgraph StackFlow ["Alur Transaksi Bertingkat (Stack Screens)"]
+        Tab1 -->|"Pilih Rekomendasi"| ScreenDetail["Detail Masakan & Resep<br/>(app/dish/[id].tsx)"]
+        Tab2 -->|"Pilih dari FlatList"| ScreenDetail
+        ScreenDetail -->|"Tambah ke Tas"| Tab3
+        ScreenDetail -->|"Pesan Sekarang"| ScreenCheckout["Formulir Checkout & Titik Antar<br/>(app/checkout.tsx)"]
+        Tab3 -->|"Lanjut Checkout"| ScreenCheckout
+        ScreenCheckout -->|"Konfirmasi Pesanan"| ScreenTrack["Pelacakan Kurir Wind Glider<br/>(app/order/[id].tsx)"]
+        ScreenTrack -->|"Selesai Antar"| ModalQuest["Dialog Modal Quest Complete<br/>(+60 Primogem Hadiah)"]
     end
 ```
 
 ---
 
-## 3. Relasi Data & Skema Entitas (ERD)
-
-Untuk dokumentasi lengkap skema TypeScript dan interface data, lihat [DATA_MODEL_DAN_RELASI.md](./DATA_MODEL_DAN_RELASI.md).
+## Diagram Hubungan Data (Entity Relationship Diagram - ERD)
 
 ```mermaid
 erDiagram
-    USER ||--o{ ORDER : "membuat"
-    USER ||--o{ CART_ITEM : "memiliki"
-    DISH ||--o{ CART_ITEM : "dimasukkan ke"
-    ORDER ||--|{ ORDER_ITEM : "terdiri dari"
-    DISH ||--o{ ORDER_ITEM : "dipesan dalam"
-    DISH }|--|| BUFF_TYPE : "memberikan efek"
-    DISH }|--|| REGION : "berasal dari"
+    PETUALANG ||--o{ PESANAN : "melakukan"
+    PETUALANG ||--o{ ITEM_KERANJANG : "memiliki"
+    HIDANGAN ||--o{ ITEM_KERANJANG : "dimasukkan"
+    PESANAN ||--|{ ITEM_PESANAN : "memuat"
+    HIDANGAN ||--o{ ITEM_PESANAN : "tercatat"
+    TITIK_ANTAR ||--o{ PESANAN : "tujuan"
+    KUPON_DISKON ||--o{ PESANAN : "dipotongkan"
 
-    USER {
-        string uid "14524303"
-        string username "Badar Rahman"
+    PETUALANG {
+        string nim PK "14524303"
+        string nama "Badar Rahman"
         int adventure_rank "60"
-        int mora_balance "1452430"
-        int primogem_balance "1600"
+        int saldo_mora "1465400"
+        int saldo_primogem "1600"
+        string email "badarrahman1905@gmail.com"
     }
 
-    DISH {
-        int id PK "5101"
-        string name "Adeptus' Temptation"
-        int rarity "1 s/d 5"
-        int price_mora "12500"
-        string category "Main Dish"
-        string buff_type "ATK Boost"
+    HIDANGAN {
+        string id PK "dish_108123"
+        string nama "Adeptus' Temptation"
+        string region "Liyue"
+        string kategori "Main Dish"
+        int rarity "5"
+        int harga_mora "12550"
+        string efek_buff "ATK Boost"
+        string deskripsi "Resep legendaris perjamuan Adeptus..."
     }
 
-    CART_ITEM {
+    ITEM_KERANJANG {
         string id PK
-        int dish_id FK
-        int quantity "1 s/d 99"
+        string dish_id FK
+        int jumlah "1 s/d 99"
     }
 
-    ORDER {
-        string id PK "ORD-20261123-001"
+    PESANAN {
+        string id PK "ORD-TEYVAT-1023"
         int total_mora
-        string delivery_location "Knights of Favonius HQ"
-        string status "Completed"
+        string metode_bayar "Koin Mora / Bank Northland"
+        string status "SELESAI"
+        string titik_antar FK
+    }
+
+    TITIK_ANTAR {
+        string id PK "wanmin-restaurant"
+        string nama "Teras Restoran Wanmin"
+        string region "Liyue"
+        int ongkir_mora "0"
+    }
+
+    KUPON_DISKON {
+        string kode PK "PAIMONKENYANG"
+        string tipe "PERSENTASE"
+        int nilai_potongan "20"
+        int min_belanja "10000"
     }
 ```
 
 ---
 
-## 4. Indeks Berkas Dokumentasi & Blueprint Proyek
+## Panduan Menjalankan Aplikasi
 
-| Berkas | Deskripsi & Isi |
-| :--- | :--- |
-| **[PRD_TEYVAT_DELICACIES.md](./PRD_TEYVAT_DELICACIES.md)** | **Product Requirements Document (PRD)** resmi memuat latar belakang, target platform, tech stack, dan spesifikasi 7 layar. |
-| **[AI_STUDIO_INSTRUCTIONS_AND_PROMPTS.md](./AI_STUDIO_INSTRUCTIONS_AND_PROMPTS.md)** | **Instruksi & Prompt Terpisah (English)** untuk Google AI Studio / Google Stitch: System Instructions vs Task Prompt. |
-| **[KONTEKS_LENGKAP_DAN_ASET_UNTUK_GOOGLE_STITCH.md](./KONTEKS_LENGKAP_DAN_ASET_UNTUK_GOOGLE_STITCH.md)** | **Single Source of Truth** untuk Google AI Studio & Stitch. Memuat Master Prompt, daftar URL transparan CDN HTTP 200, aturan anti-slop, dan token warna hex. |
-| **[BLUEPRINT_KONSEP_UIUX_FLOWCHART_DAN_ASET_GENSHIN.md](./BLUEPRINT_KONSEP_UIUX_FLOWCHART_DAN_ASET_GENSHIN.md)** | Blueprint arsitektur visual per layar, user journey flowchart, dan tabel audit aset 100% lengkap. |
-| **[DATA_MODEL_DAN_RELASI.md](./DATA_MODEL_DAN_RELASI.md)** | Skema ERD data, kontrak interface TypeScript type-safe, dan format global state store (Zustand/Context). |
-| **[KONSEP_APLIKASI_DAN_DESAIN_SYSTEM_GENSHIN_LENGKAP.md](./KONSEP_APLIKASI_DAN_DESAIN_SYSTEM_GENSHIN_LENGKAP.md)** | Panduan mendalam design system, tipografi, grid system, dan filosofi UI/UX Teyvat. |
-| **[RESEARCH_ASSETS_DAN_DESIGN_SYSTEM_GENSHIN.md](./RESEARCH_ASSETS_DAN_DESIGN_SYSTEM_GENSHIN.md)** | Riset orisinal warna, font cufonfonts HYWenHei 85W, dan sumber aset in-game. |
-| **[SPESIFIKASI_TUGAS_7_PEMVIS.md](./SPESIFIKASI_TUGAS_7_PEMVIS.md)** | Spesifikasi akademik dari RPS & tugas dosen pertemuan 7. |
+### Kebutuhan Lingkungan (Prerequisites)
+- **Node.js**: v18.0.0 atau lebih baru
+- **NPM** atau **Bun** package manager
+- **Expo Go App**: Terinstal di perangkat smartphone Android / iOS fisik, atau simulator Android Studio / Xcode.
 
----
+### 1. Menjalankan Aplikasi Mobile (Expo Go)
+Buka terminal dan arahkan ke subdirektori mobile:
+```bash
+cd expo-mobile
+npm install
+npx expo start -c
+```
+- Pindai (*scan*) kode QR yang muncul di terminal menggunakan aplikasi **Expo Go** pada ponsel Anda (pastikan ponsel dan laptop berada dalam satu jaringan Wi-Fi yang sama).
+- Tekan `r` di konsol untuk memuat ulang (*reload*) aplikasi secara instan.
 
-## 5. Direktori Aset Lengkap (`assets/`)
-
-Semua aset lokal telah diunduh, diverifikasi, dan siap digunakan secara offline:
-
-```text
-assets/
-├── fonts/
-│   ├── GenshinFont.ttf                   <-- Font resmi HYWenHei 85W (7.2 MB)
-│   ├── zhcn.ttf                          <-- Master font bawaan cufonfonts
-│   └── genshin_icons.svg                 <-- 87 vektor ikon resmi SVG (elemen, bintang, weapon, tab)
-│
-├── backgrounds/
-│   ├── genshin_celestia_login_door_5k.png    <-- Wallpaper Asli 5K Gerbang Celestia (5120x2880, 21 MB)
-│   ├── genshin_celestia_login_door_1080p.webp <-- Versi 1080p Mobile-Optimized (243 KB)
-│   ├── celestia_entrance_bg.webp             <-- Latar pilar langit malam Teyvat
-│   ├── dish_detail_bg.webp                   <-- Latar halaman detail resep
-│   ├── constellation_stars_bg.webp           <-- Latar partikel bintang konstelasi
-│   └── wish-background.webp                  <-- Latar gacha langit malam
-│
-├── audio/
-│   ├── teyvat_ambient_bgm.ogg            <-- Musik latar suasana Teyvat (1.3 MB)
-│   ├── quest_complete_jingle.ogg         <-- SFX denting pesanan berhasil (11.9 KB)
-│   ├── legendary_dish_sfx.ogg            <-- SFX jingle masakan bintang 5 (32.3 KB)
-│   └── epic_dish_sfx.ogg                 <-- SFX jingle masakan bintang 4 (27.1 KB)
-│
-├── ui/
-│   ├── genshin_logo.webp                 <-- Logo resmi Genshin Impact transparan
-│   ├── gold_button_texture.webp          <-- Tekstur tombol kapsul emas asli
-│   ├── modal_ornament_icon.png           <-- Ornamen bingkai modal dialog
-│   ├── paimon_hungry_mascot.png          <-- Maskot Paimon lapar (207 KB)
-│   └── result_card_bg.webp               <-- Latar kartu hasil pesanan
-│
-├── icons/
-│   ├── mora.png                          <-- Koin emas Mora
-│   ├── primogem.png                      <-- Ikon Primogem
-│   ├── genesis_crystal.png               <-- Ikon Genesis Crystal
-│   ├── intertwined_fate.png              <-- Ikon kupon diskon
-│   ├── fragile_resin.png                 <-- Ikon voucher kirim kilat
-│   ├── crown_of_insight.png              <-- Ikon badge kehormatan
-│   ├── bg_3star.webp, bg_4star.webp, bg_5star.webp <-- Latar grading bintang
-│   ├── resultcard_bg.svg                 <-- Ornamen kartu vektor
-│   ├── buff_atk_add.png                  <-- Ikon Buff ATK
-│   ├── buff_def_add.png                  <-- Ikon Buff DEF
-│   ├── buff_recovery_hp.png              <-- Ikon Buff Pemulihan HP
-│   ├── buff_recovery_revive.png          <-- Ikon Buff Revive
-│   └── buff_stamina_reduce.png           <-- Ikon Buff Pengurangan Stamina
-│
-└── dishes/ (12 Masakan Transparan Ikonik Mode Offline)
-    ├── adeptus_temptation.png, sweet_madame.png, barbatos_ratatouille.png
-    ├── almond_tofu.png, jade_parcels.png, golden_shrimp_balls.png
-    ├── matsutake_meat_rolls.png, fishermans_toast.png, mushroom_pizza.png
-    └── tri_color_dango.png, shawarma_wrap.png, tonkotsu_ramen.png
+### 2. Menjalankan Pengujian Tipe TypeScript
+Untuk memvalidasi integritas kode TypeScript pada subproyek mobile:
+```bash
+cd expo-mobile
+npm run typecheck
 ```
 
----
-
-## 6. Token Desain & Kode Warna Hex Resmi
-
-* **Parchment Card Body**: `#E9E5DC`
-* **Sub-Container & Input**: `#F5F2EB`
-* **Obsidian Deep Surface**: `#171421` / `#1D1A2A`
-* **Genshin Indigo Border**: `#5D5187`
-* **Genshin Gold Accent**: `#FFE7A5`
-* **Primary Gold Pill Button**: Gradasi `#ECE5D8` menuju `#D3BC8E` (border `#FFE7A5`, teks `#3B4255`)
-* **Tingkat Kelangkaan (Rarity Headers)**:
-  * 1* Common: `#818486`
-  * 2* Uncommon: `#5A977A`
-  * 3* Rare: `#5987AD`
-  * 4* Epic: `#9470BB`
-  * 5* Legendary: `#C87C24`
-
----
-
-## 7. Master Prompt Google Stitch / AI Studio (Siap Salin)
-
-Salin teks berikut langsung ke kolom instruksi Google AI Studio atau Google Stitch:
-
-```markdown
-Build a production-grade React Native & Expo mobile food ordering application UI named "Teyvat Delicacies" featuring an authentic, meticulous Genshin Impact fantasy RPG aesthetic.
-
-CRITICAL DESIGN RULES (ANTI-SLOP & STRICT THEME FIDELITY):
-1. ABSOLUTE BAN ON UNICODE EMOJIS:
-   - Do NOT use unicode emojis (no coin, sword, shield, cart, gem, checkmark, heart emojis).
-   - Use official Genshin asset transparent PNGs or SVGs provided in the asset list, or clean text labels.
-2. Color Palette:
-   - Card Content Body: Authentic parchment cream (#E9E5DC).
-   - Inner Containers & Inputs: Light cream (#F5F2EB).
-   - Card Top Rarity Headers: 1-Star Grey (#818486), 2-Star Green (#5A977A), 3-Star Blue (#5987AD), 4-Star Epic Purple (#9470BB), 5-Star Legendary Gold (#C87C24).
-   - Deep Background: Dark obsidian navy (#171421 / #1D1A2A).
-   - Accent Borders: Gold stroke (#FFE7A5) and subtle indigo outline (#5D5187).
-   - Primary Buttons: Elongated gold pill capsule (gradient #ECE5D8 to #D3BC8E, border: 1.5px solid #FFE7A5, text: bold #3B4255).
-3. Typography:
-   - Primary headings & titles must use the official Genshin display font HYWenHei 85W ("GenshinFont").
-   - Numbers and prices must be clear and crisp.
-4. Currency & Motifs:
-   - Currency is Mora. Use the official Mora coin icon (https://enka.network/ui/UI_ItemIcon_202.png).
-   - All star ratings use 4-point diamond star motifs (*), never generic 5-point cartoon stars.
-   - Bullet points use diamond shapes (◆).
-
-PAGES TO RENDER (CLEAN, 4-SCREEN FOCUSED FLOW):
-1. Catalog Screen (Home):
-   - Header with Traveler profile avatar, Mora coin balance (Mora 1,452,430), and search input.
-   - Horizontal category filter pills: "All Dishes", "Main Dish", "Snacks", "Beverages". (Region tags like Nod-Krai, Liyue, Mondstadt are optional metadata badges on dishes).
-   - Two-Tone Food Card Grid: Top banner colored by star rarity with transparent dish image overlapping on the right and 4-point diamond stars on bottom-left. Bottom body in parchment cream (#E9E5DC) with bold dish title, buff badge, price in Mora, and a mini gold "+" button.
-   - Floating Quick Cart Bar at bottom when items are in cart.
-2. Dish Detail Screen:
-   - Large transparent dish hero image with subtle elemental glow.
-   - 4-point diamond rarity stars.
-   - Parchment paper detail card: in-game stat buff info with official buff icon (ATK, DEF, Recovery, or Stamina), recipe ingredient items grid, and food lore.
-   - Portion quantity stepper (- / +) and sticky primary gold pill button: "Add to Order — [Price] Mora".
-3. Cart Screen:
-   - Itemized order list with inline quantity steppers and delete action.
-   - Intertwined Fate promo code input (e.g., "PAIMONKENYANG").
-   - Summary card with subtotal, glider courier fee, discount, and final Mora total.
-   - Primary gold button: "Proceed to Glider Delivery".
-4. Checkout & Order Complete Screen:
-   - Delivery point selector (e.g., Knights of Favonius HQ, Wanmin Terrace).
-   - Payment method toggle (Mora Cash on Delivery vs Northland Bank Card).
-   - Special kitchen instructions field.
-   - "Confirm Order" button that triggers an authentic Genshin golden dialog modal: "QUEST COMPLETE: Feast Delivered!" with estimated delivery time and a "Return to Home" button.
-
-ASSET CDN REFERENCES:
-- Mora Coin: https://enka.network/ui/UI_ItemIcon_202.png
-- Primogem: https://enka.network/ui/UI_ItemIcon_201.png
-- Intertwined Fate: https://enka.network/ui/UI_ItemIcon_223.png
-- Adeptus' Temptation (5*): https://gi.yatta.moe/assets/UI/UI_ItemIcon_108123.png
-- Jade Parcels (4*): https://gi.yatta.moe/assets/UI/UI_ItemIcon_108122.png
-- Golden Shrimp Balls (3*): https://gi.yatta.moe/assets/UI/UI_ItemIcon_108126.png
-- Sweet Madame (2*): https://gi.yatta.moe/assets/UI/UI_ItemIcon_108115.png
-- Dango Milk (2*): https://gi.yatta.moe/assets/UI/UI_ItemIcon_101514.png
-- Mora Meat (1*): https://gi.yatta.moe/assets/UI/UI_ItemIcon_108101.png
-- Buff ATK: https://gi.yatta.moe/assets/UI/UI_Buff_Item_Atk_Add.png
-- Buff DEF: https://gi.yatta.moe/assets/UI/UI_Buff_Item_Def_Add.png
-- Buff HP: https://gi.yatta.moe/assets/UI/UI_Buff_Item_Recovery_HpAdd.png
-- Navigation Icons: https://raw.githubusercontent.com/kgirtxd/Genshin-Assets/master/Misc/items.png
+### 3. Menjalankan Simulator Web Desktop
+Untuk menjalankan versi simulasi antarmuka pada peramban web desktop:
+```bash
+npm install
+npm run dev
 ```
+Buka `http://localhost:3000` pada peramban web Google Chrome atau Edge.
+
+---
+
+## Lisensi & Hak Cipta
+
+Proyek ini disusun oleh **Badar Rahman** untuk keperluan akademik penugasan mata kuliah **Pemrograman Visual I** di **STIKOM Poltek Cirebon**. Seluruh nama hidangan, konsep visual dunia Teyvat, karakter, dan aset ikonik merupakan hak kekayaan intelektual milik **HoYoverse (COGNOSPHERE PTE. LTD.)**.

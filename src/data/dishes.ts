@@ -35,8 +35,8 @@ export const ASSET_ICONS = {
   dishDetailBg: '/assets/backgrounds/dish_detail_bg.webp',
   constellationBg: '/assets/backgrounds/constellation_stars_bg.webp',
   resultCardBg: '/assets/ui/result_card_bg.webp',
-  teyvatMap: '/assets/aistudio/z1d2ondu0f0i1_adaa1127.png',
-  teyvatMapHd: '/assets/aistudio/z1d2ondu0f0i1_adaa1127.png',
+  teyvatMap: '/assets/map/teyvat_world_map.webp',
+  teyvatMapHd: '/assets/map/teyvat_world_map_hd.webp',
 };
 
 export const BUFF_META: Record<

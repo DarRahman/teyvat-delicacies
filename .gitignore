@@ -35,5 +35,6 @@ AGENTS.md
 .claude/
 
 .aistudio/
+public/assets/aistudio/
 assets/audio/
 assets/video/
