@@ -12,7 +12,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, Check, Clock, Flame, Footprints, MapPin } from 'lucide-react-native';
 import {
-  DiamondBullet,
   DiamondDivider,
   DiamondStar,
   GoldCapsuleButton,
@@ -48,7 +47,7 @@ export default function OrderStatusScreen() {
 
   const [progress, setProgress] = useState<number>(startedCompleted ? 100 : 4);
   const [showQuestModal, setShowQuestModal] = useState(false);
-  const [railWidth, setRailWidth] = useState(220);
+  const [trackWidth, setTrackWidth] = useState(0);
 
   const dispatchedRef = useRef(order?.status !== 'COOKING');
   const completedRef = useRef(startedCompleted);
@@ -143,17 +142,14 @@ export default function OrderStatusScreen() {
         : `Kurir Wind Glider meluncur membawa pesanan ke ${order.deliveryPoint.name}.`
       : 'Pesanan kuliner telah tiba hangat di lokasi pilihanmu.';
 
-  const phases = [
-    { label: 'Dapur Wanmin', active: stage >= 0, current: stage === 0 },
-    {
-      label: isLocalLiyue ? 'Kurir Lokal' : 'Kurir Meluncur',
-      active: stage >= 1,
-      current: stage === 1,
-    },
-    { label: 'Pesanan Tiba', active: stage >= 2, current: stage === 2 },
-  ];
-
-  const medallionLeft = (railWidth * progress) / 100 - 20;
+  const safeTrackWidth = trackWidth > 0 ? trackWidth : 280;
+  const startCenter = 52;
+  const endCenter = Math.max(startCenter, safeTrackWidth - 16);
+  const medallionCenter =
+    stage >= 2
+      ? endCenter
+      : startCenter + ((endCenter - startCenter) * progress) / 100;
+  const medallionLeft = medallionCenter - 20;
 
   return (
     <ParchmentScreen
@@ -207,15 +203,15 @@ export default function OrderStatusScreen() {
 
           {/* Warm Parchment & Antique Gold Delivery Corridor */}
           <View style={styles.corridorBox}>
-            <View style={styles.trackRow}>
+            <View
+              style={styles.trackRow}
+              onLayout={(e) => setTrackWidth(e.nativeEvent.layout.width)}
+            >
               <View style={styles.originNode}>
                 <Flame size={16} color={COLORS.goldDeep} />
               </View>
 
-              <View
-                style={styles.railWrap}
-                onLayout={(e) => setRailWidth(e.nativeEvent.layout.width)}
-              >
+              <View style={styles.railWrap}>
                 <View style={styles.railBg}>
                   <LinearGradient
                     colors={GOLD_RAIL_GRADIENT}
@@ -223,29 +219,6 @@ export default function OrderStatusScreen() {
                     end={{ x: 1, y: 0.5 }}
                     style={[styles.railFill, { width: `${progress}%` }]}
                   />
-                </View>
-
-                {/* Smoothly Gliding Courier Medallion */}
-                <View
-                  style={[
-                    styles.medallionWrap,
-                    { left: Math.max(-12, Math.min(railWidth - 28, medallionLeft)) },
-                  ]}
-                >
-                  <View
-                    style={[
-                      styles.medallionCircle,
-                      stage >= 2 && styles.medallionDone,
-                    ]}
-                  >
-                    {stage >= 2 ? (
-                      <Check size={16} color={COLORS.chromeTop} strokeWidth={3} />
-                    ) : isLocalLiyue ? (
-                      <Footprints size={16} color={COLORS.goldBright} />
-                    ) : (
-                      <WindGliderIcon size={22} color={COLORS.goldBright} />
-                    )}
-                  </View>
                 </View>
               </View>
 
@@ -259,6 +232,33 @@ export default function OrderStatusScreen() {
                   size={16}
                   color={stage >= 2 ? COLORS.goldBright : '#7D6C4F'}
                 />
+              </View>
+
+              {/* Smoothly Gliding Courier Medallion — lands concentrically over destNode at 100% */}
+              <View
+                pointerEvents="none"
+                style={[
+                  styles.medallionWrap,
+                  {
+                    left: medallionLeft,
+                    opacity: trackWidth > 0 ? 1 : 0,
+                  },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.medallionCircle,
+                    stage >= 2 && styles.medallionDone,
+                  ]}
+                >
+                  {stage >= 2 ? (
+                    <Check size={16} color={COLORS.chromeTop} strokeWidth={3} />
+                  ) : isLocalLiyue ? (
+                    <Footprints size={16} color={COLORS.goldBright} />
+                  ) : (
+                    <WindGliderIcon size={22} color={COLORS.goldBright} />
+                  )}
+                </View>
               </View>
             </View>
 
@@ -285,38 +285,6 @@ export default function OrderStatusScreen() {
                 </Text>
               </View>
             </View>
-          </View>
-
-          {/* Inline Diamond Milestone Strip */}
-          <View style={styles.milestoneStrip}>
-            {phases.map((phase, idx) => (
-              <React.Fragment key={phase.label}>
-                <View style={styles.milestoneItem}>
-                  {phase.active ? (
-                    <DiamondStar
-                      size={10}
-                      color={phase.current ? COLORS.goldWarm : COLORS.goldBorder}
-                    />
-                  ) : (
-                    <DiamondBullet size={6} color="#CFC4AE" />
-                  )}
-                  <Text
-                    style={[
-                      styles.milestoneText,
-                      phase.current
-                        ? { color: COLORS.goldDeep }
-                        : phase.active
-                        ? { color: COLORS.inkBody }
-                        : { color: '#8F887A' },
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {phase.label}
-                  </Text>
-                </View>
-                {idx < phases.length - 1 && <View style={styles.milestoneLine} />}
-              </React.Fragment>
-            ))}
           </View>
 
           {stage < 2 && (
@@ -649,6 +617,8 @@ const styles = StyleSheet.create({
     height: 44,
     flexDirection: 'row',
     alignItems: 'center',
+    position: 'relative',
+    overflow: 'visible',
   },
   originNode: {
     width: 32,
@@ -666,7 +636,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
     height: 44,
     justifyContent: 'center',
-    position: 'relative',
   },
   railBg: {
     height: 5,
@@ -681,7 +650,7 @@ const styles = StyleSheet.create({
   medallionWrap: {
     position: 'absolute',
     top: 2,
-    zIndex: 20,
+    zIndex: 30,
   },
   medallionCircle: {
     width: 40,
@@ -696,7 +665,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.45,
     shadowRadius: 8,
-    elevation: 5,
+    elevation: 6,
   },
   medallionDone: {
     backgroundColor: COLORS.goldBright,
@@ -736,27 +705,6 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: COLORS.inkSubtle,
     marginTop: 1,
-  },
-  milestoneStrip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 2,
-  },
-  milestoneItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-  },
-  milestoneText: {
-    fontFamily: FONTS.genshin,
-    fontSize: 10,
-  },
-  milestoneLine: {
-    height: 1,
-    flex: 1,
-    marginHorizontal: 6,
-    backgroundColor: '#DED4C0',
   },
   receiptDestRow: {
     flexDirection: 'row',

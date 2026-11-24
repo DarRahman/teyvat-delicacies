@@ -74,7 +74,7 @@ export default function RootLayout() {
           />
         </Stack>
 
-        <TeyvatToast message={toastMessage} bottomOffset={86} />
+        <TeyvatToast message={toastMessage} topOffset={55} />
       </View>
     </SafeAreaProvider>
   );

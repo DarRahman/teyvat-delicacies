@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
+  Animated,
   Modal,
   Pressable,
   StyleProp,
@@ -634,23 +635,74 @@ export const FloatingQuickCartBar: React.FC<{
   );
 };
 
-/** Luminous Ivory Parchment Toast Notification */
-export const TeyvatToast: React.FC<{ message: string | null; bottomOffset?: number }> = ({
+/** Luminous Ivory Parchment Toast Notification (Top-anchored with smooth fade) */
+export const TeyvatToast: React.FC<{ message: string | null; topOffset?: number }> = ({
   message,
-  bottomOffset = 84,
+  topOffset = 55,
 }) => {
-  if (!message) return null;
+  const insets = useSafeAreaInsets();
+  const [renderedMessage, setRenderedMessage] = useState<string | null>(message);
+  const opacity = useRef(new Animated.Value(message ? 1 : 0)).current;
+  const translateY = useRef(new Animated.Value(message ? 0 : -8)).current;
+
+  useEffect(() => {
+    if (message) {
+      setRenderedMessage(message);
+      opacity.stopAnimation();
+      translateY.stopAnimation();
+      Animated.parallel([
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(translateY, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      Animated.parallel([
+        Animated.timing(opacity, {
+          toValue: 0,
+          duration: 180,
+          useNativeDriver: true,
+        }),
+        Animated.timing(translateY, {
+          toValue: -8,
+          duration: 180,
+          useNativeDriver: true,
+        }),
+      ]).start(({ finished }) => {
+        if (finished) {
+          setRenderedMessage(null);
+        }
+      });
+    }
+  }, [message, opacity, translateY]);
+
+  if (!renderedMessage) return null;
+
+  const resolvedTop = Math.max(insets.top + 10, topOffset);
 
   return (
-    <View
+    <Animated.View
       pointerEvents="none"
-      style={[styles.toastWrap, { bottom: bottomOffset }]}
+      style={[
+        styles.toastWrap,
+        {
+          top: resolvedTop,
+          opacity,
+          transform: [{ translateY }],
+        },
+      ]}
     >
       <View style={styles.toastCard}>
         <DiamondBullet size={7} color={COLORS.goldWarm} />
-        <Text style={styles.toastText}>{message}</Text>
+        <Text style={styles.toastText}>{renderedMessage}</Text>
       </View>
-    </View>
+    </Animated.View>
   );
 };
 
@@ -937,7 +989,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 16,
     right: 16,
-    zIndex: 99,
+    zIndex: 999,
     alignItems: 'center',
   },
   toastCard: {
@@ -952,9 +1004,9 @@ const styles = StyleSheet.create({
     borderColor: COLORS.goldTrim,
     shadowColor: '#242735',
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.18,
+    shadowOpacity: 0.2,
     shadowRadius: 12,
-    elevation: 6,
+    elevation: 10,
     maxWidth: 360,
   },
   toastText: {
