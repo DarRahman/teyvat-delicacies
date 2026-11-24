@@ -1,350 +1,689 @@
 import React from 'react';
 import {
-  View,
-  Text,
+  Pressable,
   ScrollView,
-  TouchableOpacity,
-  Image,
   StyleSheet,
-  SafeAreaView,
-  Alert,
+  Text,
+  View,
 } from 'react-native';
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { DISHES, TOP_RECOMMENDATION_IDS, formatMora } from '../../src/data/dishes';
-import { useDelicaciesStore } from '../../src/store/useDelicaciesStore';
-import { Dish } from '../../src/types';
+import { ArrowRight, Plus } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  BuffBadge,
+  DiamondDivider,
+  DiamondStar,
+  FloatingQuickCartBar,
+  GoldCapsuleButton,
+  MoraAmount,
+  RadialGlowBackdrop,
+  RarityDishBanner,
+  TeyvatImage,
+} from '../../components/TeyvatUI';
+import { LOCAL_ASSETS } from '../../data/assets';
+import {
+  ASSET_ICONS,
+  BUFF_META,
+  DISHES,
+  TOP_RECOMMENDATION_IDS,
+} from '../../data/dishes';
+import { useDelicaciesStore } from '../../store/useDelicaciesStore';
+import {
+  CHROME_BAR_GRADIENT,
+  COLORS,
+  FONTS,
+  GOLD_BUTTON_GRADIENT,
+  HERO_FESTIVAL_GRADIENT,
+  PARCHMENT_BG_GRADIENT,
+} from '../../theme/tokens';
+import { AssetSource, BuffType, DishCategory } from '../../types';
 
 export default function HomeScreen() {
+  const insets = useSafeAreaInsets();
   const profile = useDelicaciesStore((s) => s.profile);
   const addToCart = useDelicaciesStore((s) => s.addToCart);
+  const setCatalogPreset = useDelicaciesStore((s) => s.setCatalogPreset);
+  const getCartTotals = useDelicaciesStore((s) => s.getCartTotals);
+  // Reactive subscriptions for FloatingQuickCartBar
+  useDelicaciesStore((s) => s.cart);
+  useDelicaciesStore((s) => s.selectedDeliveryPointId);
+  useDelicaciesStore((s) => s.appliedCouponCode);
+  useDelicaciesStore((s) => s.voucherUsageCount);
 
-  const recommendations = TOP_RECOMMENDATION_IDS.map((id) =>
+  const totals = getCartTotals();
+  const featuredDish = DISHES.find((d) => d.id === 5101) ?? DISHES[0];
+  const topFive = TOP_RECOMMENDATION_IDS.map((id) =>
     DISHES.find((d) => d.id === id)
   ).filter((d): d is NonNullable<typeof d> => Boolean(d));
 
-  const categories = [
-    { label: 'Makanan Utama', sub: 'Porsi mengenyangkan', icon: '🍗' },
-    { label: 'Camilan', sub: 'Kudapan penjelajah', icon: '🍡' },
-    { label: 'Minuman', sub: 'Segar khas Teyvat', icon: '🧋' },
-    { label: 'ATK Boost', sub: 'Khasiat tempur', icon: '⚔️' },
-  ];
-
-  const handleQuickAdd = (dish: Dish) => {
-    addToCart(dish, 1);
-    Alert.alert('Berhasil', `${dish.name} ditambahkan ke keranjang.`);
+  const openCatalogFiltered = (preset: {
+    category?: 'All Dishes' | DishCategory;
+    buff?: BuffType | null;
+    region?: null;
+  }) => {
+    setCatalogPreset(preset);
+    router.navigate('/(tabs)/catalog');
   };
 
+  const openDishDetail = (dishId: number) => {
+    router.push({
+      pathname: '/dish/[id]',
+      params: { id: String(dishId) },
+    });
+  };
+
+  const quickShortcuts: Array<{
+    label: string;
+    subtitle: string;
+    icon: AssetSource;
+    fallbackIcon?: string;
+    onPress: () => void;
+  }> = [
+    {
+      label: 'Menu Utama',
+      subtitle: 'Santapan utama',
+      icon: LOCAL_ASSETS.dishes.sweetMadame,
+      onPress: () => openCatalogFiltered({ category: 'Main Dish', buff: null }),
+    },
+    {
+      label: 'Camilan',
+      subtitle: 'Kudapan penjelajah',
+      icon: LOCAL_ASSETS.dishes.triColorDango,
+      onPress: () => openCatalogFiltered({ category: 'Snacks', buff: null }),
+    },
+    {
+      label: 'Minuman',
+      subtitle: 'Segar khas Teyvat',
+      icon: LOCAL_ASSETS.dishes.dangoMilk,
+      onPress: () => openCatalogFiltered({ category: 'Beverages', buff: null }),
+    },
+    {
+      label: 'ATK Boost',
+      subtitle: 'Khasiat tempur',
+      icon: BUFF_META.ATK.icon,
+      fallbackIcon: BUFF_META.ATK.fallbackIcon,
+      onPress: () => openCatalogFiltered({ category: 'All Dishes', buff: 'ATK' }),
+    },
+  ];
+
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.userRow}>
-          <Image
-            source={{ uri: profile.fallbackAvatarUrl || profile.avatarUrl }}
-            style={styles.avatar}
-          />
-          <View>
-            <Text style={styles.userRank}>Traveler · AR {profile.adventureRank}</Text>
-            <Text style={styles.userName}>{profile.username}</Text>
-          </View>
-        </View>
-        <View style={styles.moraPill}>
-          <Text style={styles.moraText}>🪙 {formatMora(profile.mora)}</Text>
-        </View>
-      </View>
-
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.banner}>
-          <View style={styles.bannerBadge}>
-            <Text style={styles.bannerBadgeText}>✦ FESTIVAL KULINER LIYUE ✦</Text>
-          </View>
-          <Text style={styles.bannerTitle}>Jamuan Hangat Para Adeptus</Text>
-          <Text style={styles.bannerSubtitle}>
-            Gunakan kupon PAIMONKENYANG untuk potongan 20% seluruh hidangan khas Liyue.
-          </Text>
-          <TouchableOpacity
-            style={styles.bannerBtn}
-            onPress={() => router.push('/(tabs)/catalog')}
-            activeOpacity={0.8}
+    <LinearGradient colors={PARCHMENT_BG_GRADIENT} style={styles.screen}>
+      {/* Clean Genshin Charcoal-Indigo Traveler Header */}
+      <LinearGradient
+        colors={CHROME_BAR_GRADIENT}
+        style={[styles.header, { paddingTop: Math.max(insets.top + 10, 18) }]}
+      >
+        <View style={styles.headerRow}>
+          <Pressable
+            onPress={() => router.navigate('/(tabs)/profile')}
+            style={styles.travelerBtn}
+            accessibilityRole="button"
+            accessibilityLabel="Buka Profil Petualang"
           >
-            <Text style={styles.bannerBtnText}>Jelajahi Menu ➔</Text>
-          </TouchableOpacity>
+            <View style={styles.avatarRing}>
+              <TeyvatImage
+                source={profile.avatarUrl}
+                fallbackSource={profile.fallbackAvatarUrl}
+                style={styles.avatarImg}
+                contentFit="cover"
+                accessibilityLabel={profile.username}
+              />
+            </View>
+            <View style={styles.travelerInfo}>
+              <Text style={styles.travelerRank} numberOfLines={1}>
+                Traveler · AR {profile.adventureRank}
+              </Text>
+              <Text style={styles.travelerName} numberOfLines={1}>
+                {profile.username}
+              </Text>
+            </View>
+          </Pressable>
+
+          <Pressable
+            onPress={() => router.navigate('/(tabs)/profile')}
+            style={styles.moraHeaderBtn}
+            accessibilityRole="button"
+            accessibilityLabel="Saldo Mora Aktif"
+          >
+            <MoraAmount
+              amount={profile.moraBalance}
+              size="sm"
+              color={COLORS.goldBright}
+            />
+          </Pressable>
+        </View>
+      </LinearGradient>
+
+      {/* Edge-to-Edge Warm Antique Parchment Scrollable Canvas */}
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: totals.itemCount > 0 ? 96 : 28 },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Culinary Festival Hero Card */}
+        <View style={styles.heroCard}>
+          <LinearGradient
+            colors={HERO_FESTIVAL_GRADIENT}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.heroTop}
+          >
+            <Image
+              source={LOCAL_ASSETS.icons.bg5Star}
+              style={styles.heroWatermark}
+              contentFit="cover"
+              pointerEvents="none"
+            />
+            <View style={styles.heroRow}>
+              <View style={styles.heroCopy}>
+                <View style={styles.heroTagRow}>
+                  <DiamondStar size={9} />
+                  <Text style={styles.heroTag}>FESTIVAL KULINER LIYUE</Text>
+                </View>
+                <Text style={styles.heroTitle}>Jamuan Hangat Para Adeptus</Text>
+                <Text style={styles.heroDesc}>
+                  Teyvat Delicacies · Gunakan kupon{' '}
+                  <Text style={styles.heroCode}>PAIMONKENYANG</Text> untuk potongan 20% seluruh hidangan.
+                </Text>
+              </View>
+
+              <View style={styles.heroDishWrap}>
+                <RadialGlowBackdrop size={88} opacity={0.5} />
+                <TeyvatImage
+                  source={featuredDish.image}
+                  fallbackSource={featuredDish.fallbackImage}
+                  style={styles.heroDishImg}
+                  contentFit="contain"
+                  accessibilityLabel={featuredDish.name}
+                />
+              </View>
+            </View>
+          </LinearGradient>
+
+          <View style={styles.heroFooter}>
+            <View style={styles.heroFooterLeft}>
+              <TeyvatImage
+                source={ASSET_ICONS.intertwinedFate}
+                fallbackSource={ASSET_ICONS.intertwinedFateCdn}
+                style={styles.heroFooterIcon}
+                contentFit="contain"
+              />
+              <Text style={styles.heroFooterText} numberOfLines={1}>
+                Lokal Liyue 0 Mora · Glider 6–24 mnt
+              </Text>
+            </View>
+            <Pressable
+              onPress={() => openDishDetail(featuredDish.id)}
+              style={styles.heroLinkBtn}
+              accessibilityRole="button"
+            >
+              <Text style={styles.heroLinkText}>Lihat Menu</Text>
+              <ArrowRight size={14} color={COLORS.goldDeep} />
+            </Pressable>
+          </View>
         </View>
 
+        {/* Quick Category Shortcuts */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Kategori Makanan</Text>
-          <View style={styles.categoryGrid}>
-            {categories.map((cat, idx) => (
-              <TouchableOpacity
-                key={idx}
-                style={styles.categoryCard}
-                onPress={() => router.push('/(tabs)/catalog')}
-                activeOpacity={0.7}
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Kategori Cepat</Text>
+            <Pressable
+              onPress={() =>
+                openCatalogFiltered({ category: 'All Dishes', buff: null, region: null })
+              }
+              accessibilityRole="button"
+            >
+              <Text style={styles.sectionLink}>Semua Katalog</Text>
+            </Pressable>
+          </View>
+
+          <View style={styles.shortcutGrid}>
+            {quickShortcuts.map((item) => (
+              <Pressable
+                key={item.label}
+                onPress={item.onPress}
+                style={({ pressed }) => [
+                  styles.shortcutCard,
+                  pressed && { transform: [{ scale: 0.985 }] },
+                ]}
+                accessibilityRole="button"
               >
-                <Text style={styles.categoryIcon}>{cat.icon}</Text>
-                <View style={styles.categoryInfo}>
-                  <Text style={styles.categoryLabel}>{cat.label}</Text>
-                  <Text style={styles.categorySub}>{cat.sub}</Text>
+                <View style={styles.shortcutIconBox}>
+                  <RadialGlowBackdrop size={40} opacity={0.45} />
+                  <TeyvatImage
+                    source={item.icon}
+                    fallbackSource={item.fallbackIcon}
+                    style={styles.shortcutIcon}
+                    contentFit="contain"
+                    accessibilityLabel={item.label}
+                  />
                 </View>
-              </TouchableOpacity>
+                <View style={styles.shortcutCopy}>
+                  <Text style={styles.shortcutLabel} numberOfLines={1}>
+                    {item.label}
+                  </Text>
+                  <Text style={styles.shortcutSub} numberOfLines={1}>
+                    {item.subtitle}
+                  </Text>
+                </View>
+              </Pressable>
             ))}
           </View>
         </View>
 
+        <DiamondDivider />
+
+        {/* Top 5 Recommendations */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>5 Rekomendasi Pilihan</Text>
-            <Text style={styles.sectionSubtitle}>Pilihan Chef Xiangling</Text>
+            <Text style={styles.sectionTitle}>5 Rekomendasi Terbaik</Text>
+            <Text style={styles.sectionSubNote}>Pilihan Chef Xiangling</Text>
           </View>
 
-          {recommendations.map((dish) => (
-            <TouchableOpacity
-              key={dish.id}
-              style={styles.dishCard}
-              onPress={() => router.push(`/dish/${dish.id}`)}
-              activeOpacity={0.85}
-            >
-              <Image
-                source={{ uri: dish.fallbackImage || dish.image }}
-                style={styles.dishImage}
-              />
-              <View style={styles.dishInfo}>
-                <View style={styles.dishHeaderRow}>
-                  <Text style={styles.dishRegionBadge}>{dish.region}</Text>
-                  <Text style={styles.dishStars}>{'★'.repeat(dish.rarity)}</Text>
+          <View style={styles.recoList}>
+            {topFive.map((dish, index) => (
+              <View key={dish.id} style={styles.recoCard}>
+                <View style={styles.recoLeftBanner}>
+                  <RarityDishBanner
+                    dish={dish}
+                    height={112}
+                    imageSize={66}
+                    showRegion={false}
+                    alignImage="center"
+                    onPress={() => openDishDetail(dish.id)}
+                  />
                 </View>
-                <Text style={styles.dishName}>{dish.name}</Text>
-                <Text style={styles.dishCategory}>{dish.category}</Text>
-                <View style={styles.dishBottomRow}>
-                  <Text style={styles.dishPrice}>{formatMora(dish.priceMora)} Mora</Text>
-                  <TouchableOpacity
-                    style={styles.addButton}
-                    onPress={() => handleQuickAdd(dish)}
-                    activeOpacity={0.7}
+
+                <View style={styles.recoRightBody}>
+                  <Pressable
+                    onPress={() => openDishDetail(dish.id)}
+                    accessibilityRole="button"
                   >
-                    <Text style={styles.addButtonText}>+ Pesan</Text>
-                  </TouchableOpacity>
+                    <Text style={styles.recoMeta} numberOfLines={1}>
+                      0{index + 1} · {dish.region} · {dish.category}
+                    </Text>
+                    <Text style={styles.recoName} numberOfLines={1}>
+                      {dish.name}
+                    </Text>
+                    <View style={{ marginTop: 4 }}>
+                      <BuffBadge
+                        buffType={dish.buffType}
+                        label={dish.buffLabel}
+                        iconSource={dish.buffIcon}
+                        compact
+                      />
+                    </View>
+                  </Pressable>
+
+                  <View style={styles.recoBottomRow}>
+                    <MoraAmount
+                      amount={dish.priceMora}
+                      size="sm"
+                      color={COLORS.inkPrimary}
+                    />
+                    <Pressable
+                      onPress={() => addToCart(dish, 1)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Tambah ${dish.name} ke keranjang`}
+                      style={({ pressed }) => [
+                        styles.addPillOuter,
+                        pressed && { transform: [{ scale: 0.96 }] },
+                      ]}
+                    >
+                      <LinearGradient
+                        colors={GOLD_BUTTON_GRADIENT}
+                        style={styles.addPillInner}
+                      >
+                        <Plus size={14} color="#2E3446" strokeWidth={2.5} />
+                        <Text style={styles.addPillText}>Tambah</Text>
+                      </LinearGradient>
+                    </Pressable>
+                  </View>
                 </View>
               </View>
-            </TouchableOpacity>
-          ))}
+            ))}
+          </View>
+
+          <View style={{ marginTop: 6 }}>
+            <GoldCapsuleButton
+              onPress={() =>
+                openCatalogFiltered({ category: 'All Dishes', buff: null, region: null })
+              }
+            >
+              <Text style={styles.browseAllText}>Jelajahi Seluruh 18 Menu Katalog</Text>
+              <ArrowRight size={16} color="#2E3446" />
+            </GoldCapsuleButton>
+          </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+
+      {/* Floating Quick Cart Bar */}
+      <FloatingQuickCartBar
+        itemCount={totals.itemCount}
+        totalMora={totals.finalTotal}
+        onOpenCart={() => router.navigate('/(tabs)/cart')}
+      />
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
-    backgroundColor: '#ECE5D8',
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#1C2232',
-    borderBottomWidth: 1,
-    borderBottomColor: '#C8A86B40',
+    paddingBottom: 12,
   },
-  userRow: {
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  travelerBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+    flex: 1,
   },
-  avatar: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+  avatarRing: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    overflow: 'hidden',
     borderWidth: 1.5,
-    borderColor: '#FFE7A5',
-    backgroundColor: '#2A334B',
+    borderColor: 'rgba(255,231,165,0.85)',
+    backgroundColor: '#252D44',
   },
-  userRank: {
-    color: '#A7ADC0',
+  avatarImg: {
+    width: '100%',
+    height: '100%',
+  },
+  travelerInfo: {
+    flex: 1,
+  },
+  travelerRank: {
+    fontFamily: FONTS.genshin,
     fontSize: 10,
-    fontWeight: '500',
+    color: COLORS.navSubtext,
   },
-  userName: {
-    color: '#FFF8E7',
-    fontSize: 14,
-    fontWeight: 'bold',
+  travelerName: {
+    fontFamily: FONTS.genshin,
+    fontSize: 14.5,
+    color: COLORS.inkIvory,
+    marginTop: 1,
   },
-  moraPill: {
-    backgroundColor: '#262E44',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#D4AF3780',
+  moraHeaderBtn: {
+    minHeight: 36,
+    paddingHorizontal: 4,
+    justifyContent: 'center',
   },
-  moraText: {
-    color: '#FFE7A5',
-    fontSize: 12,
-    fontWeight: '700',
+  scroll: {
+    flex: 1,
   },
   scrollContent: {
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 16,
     gap: 20,
-    paddingBottom: 32,
   },
-  banner: {
-    backgroundColor: '#242B3D',
-    borderRadius: 14,
-    padding: 18,
+  heroCard: {
+    borderRadius: 16,
+    overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#C8A86B60',
+    borderColor: COLORS.goldBorder,
+    backgroundColor: COLORS.ivoryTop,
+    shadowColor: '#4A3A1E',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.14,
+    shadowRadius: 12,
+    elevation: 4,
   },
-  bannerBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#D4AF3725',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-    marginBottom: 8,
+  heroTop: {
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    position: 'relative',
   },
-  bannerBadgeText: {
-    color: '#FFE7A5',
+  heroWatermark: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    opacity: 0.3,
+  },
+  heroRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  heroCopy: {
+    flex: 1,
+  },
+  heroTagRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  heroTag: {
     fontSize: 10,
-    fontWeight: 'bold',
-    letterSpacing: 0.5,
+    fontWeight: '700',
+    letterSpacing: 0.9,
+    color: '#FFF1C7',
   },
-  bannerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#FFF8E7',
-    marginBottom: 6,
+  heroTitle: {
+    fontFamily: FONTS.genshin,
+    fontSize: 17,
+    color: '#FFFDF7',
+    marginTop: 4,
+    lineHeight: 22,
+    textShadowColor: 'rgba(44,24,6,0.45)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
-  bannerSubtitle: {
-    fontSize: 12,
-    color: '#D0D4DF',
-    lineHeight: 18,
-    marginBottom: 14,
+  heroDesc: {
+    fontSize: 11.5,
+    color: '#FFF4DC',
+    marginTop: 4,
+    lineHeight: 17,
   },
-  bannerBtn: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#D4AF37',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 8,
+  heroCode: {
+    fontWeight: '800',
+    color: '#FFFFFF',
   },
-  bannerBtnText: {
-    color: '#1C2232',
-    fontWeight: 'bold',
-    fontSize: 12,
+  heroDishWrap: {
+    width: 86,
+    height: 86,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  heroDishImg: {
+    width: 76,
+    height: 76,
+  },
+  heroFooter: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: COLORS.ivoryTop,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.goldTrim,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  heroFooterLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flex: 1,
+  },
+  heroFooterIcon: {
+    width: 16,
+    height: 16,
+  },
+  heroFooterText: {
+    fontSize: 11,
+    color: COLORS.inkSecondary,
+    flexShrink: 1,
+  },
+  heroLinkBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  heroLinkText: {
+    fontFamily: FONTS.genshin,
+    fontSize: 11,
+    color: COLORS.goldDeep,
   },
   section: {
     gap: 10,
   },
   sectionHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'baseline',
+    justifyContent: 'space-between',
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#2F3542',
+    fontFamily: FONTS.genshin,
+    fontSize: 14.5,
+    color: COLORS.inkPrimary,
   },
-  sectionSubtitle: {
-    fontSize: 12,
-    color: '#7A6B53',
+  sectionLink: {
+    fontSize: 11.5,
+    fontWeight: '600',
+    color: COLORS.goldDeep,
   },
-  categoryGrid: {
+  sectionSubNote: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: COLORS.goldMuted,
+  },
+  shortcutGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
   },
-  categoryCard: {
-    width: '48%',
-    backgroundColor: '#FDFBF7',
+  shortcutCard: {
+    width: '48.4%',
+    minHeight: 60,
     borderRadius: 12,
-    padding: 12,
+    backgroundColor: COLORS.ivoryTop,
+    borderWidth: 1,
+    borderColor: COLORS.goldDivider,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+    shadowColor: '#443824',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  shortcutIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#E2D7C3',
+    borderColor: 'rgba(211,188,142,0.8)',
+    backgroundColor: '#ECE4D3',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
   },
-  categoryIcon: {
-    fontSize: 22,
+  shortcutIcon: {
+    width: 28,
+    height: 28,
   },
-  categoryInfo: {
+  shortcutCopy: {
     flex: 1,
   },
-  categoryLabel: {
-    fontSize: 13,
-    fontWeight: 'bold',
-    color: '#2F3542',
+  shortcutLabel: {
+    fontFamily: FONTS.genshin,
+    fontSize: 12,
+    color: COLORS.inkPrimary,
   },
-  categorySub: {
+  shortcutSub: {
     fontSize: 10,
-    color: '#8A7B68',
+    color: COLORS.inkMuted,
+    marginTop: 1,
   },
-  dishCard: {
-    backgroundColor: '#FDFBF7',
-    borderRadius: 14,
+  recoList: {
+    gap: 10,
+  },
+  recoCard: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: COLORS.ivoryTop,
+    borderWidth: 1,
+    borderColor: COLORS.goldDivider,
+    flexDirection: 'row',
+    shadowColor: '#443824',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  recoLeftBanner: {
+    width: 104,
+  },
+  recoRightBody: {
+    flex: 1,
     padding: 12,
-    flexDirection: 'row',
-    gap: 14,
-    borderWidth: 1,
-    borderColor: '#E2D7C3',
-    alignItems: 'center',
-  },
-  dishImage: {
-    width: 76,
-    height: 76,
-    borderRadius: 10,
-    backgroundColor: '#EBE2D2',
-  },
-  dishInfo: {
-    flex: 1,
-  },
-  dishHeaderRow: {
-    flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    gap: 6,
   },
-  dishRegionBadge: {
+  recoMeta: {
     fontSize: 10,
-    color: '#8A6D3B',
     fontWeight: '600',
+    color: '#666B7D',
   },
-  dishStars: {
-    color: '#E6A23C',
-    fontSize: 11,
-  },
-  dishName: {
-    fontSize: 15,
-    fontWeight: 'bold',
-    color: '#2F3542',
+  recoName: {
+    fontFamily: FONTS.genshin,
+    fontSize: 13.5,
+    color: COLORS.inkPrimary,
     marginTop: 2,
   },
-  dishCategory: {
-    fontSize: 11,
-    color: '#7A6B53',
-    marginBottom: 6,
-  },
-  dishBottomRow: {
+  recoBottomRow: {
+    paddingTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.goldHairline,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
   },
-  dishPrice: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#B57A1E',
+  addPillOuter: {
+    borderRadius: 999,
+    overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: COLORS.goldTrim,
   },
-  addButton: {
-    backgroundColor: '#242B3D',
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 6,
+  addPillInner: {
+    minHeight: 32,
+    paddingHorizontal: 11,
+    paddingVertical: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
-  addButtonText: {
-    color: '#FFE7A5',
+  addPillText: {
+    fontFamily: FONTS.genshin,
     fontSize: 11,
-    fontWeight: '700',
+    color: '#2E3446',
+  },
+  browseAllText: {
+    fontFamily: FONTS.genshin,
+    fontSize: 13,
+    color: '#2E3446',
   },
 });

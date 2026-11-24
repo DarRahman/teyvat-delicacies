@@ -1,336 +1,747 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
-  View,
+  FlatList,
+  Pressable,
+  ScrollView,
+  StyleSheet,
   Text,
   TextInput,
-  FlatList,
-  TouchableOpacity,
-  Image,
-  StyleSheet,
-  SafeAreaView,
-  Alert,
+  View,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { DISHES, formatMora } from '../../src/data/dishes';
-import { useDelicaciesStore } from '../../src/store/useDelicaciesStore';
-import { Dish, DishCategory } from '../../src/types';
+import {
+  Plus,
+  RotateCcw,
+  Search,
+  SlidersHorizontal,
+  X,
+} from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  BuffBadge,
+  DiamondStar,
+  FloatingQuickCartBar,
+  MoraAmount,
+  RarityDishBanner,
+  TeyvatImage,
+} from '../../components/TeyvatUI';
+import {
+  BUFF_META,
+  CATEGORY_LABELS_ID,
+  DISHES,
+  DISH_CATEGORIES,
+  TEYVAT_REGIONS,
+} from '../../data/dishes';
+import { filterDishes } from '../../lib/delicaciesRules';
+import { useDelicaciesStore } from '../../store/useDelicaciesStore';
+import {
+  CHROME_BAR_GRADIENT,
+  COLORS,
+  FONTS,
+  GOLD_BUTTON_GRADIENT,
+  PARCHMENT_BG_GRADIENT,
+} from '../../theme/tokens';
+import { BuffType, Dish, DishCategory, DishRarity, TeyvatRegion } from '../../types';
+
+const ALL_BUFFS: BuffType[] = ['ATK', 'DEF', 'HP', 'STAMINA'];
+const ALL_RARITIES: DishRarity[] = [5, 4, 3, 2, 1];
 
 export default function CatalogScreen() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('Semua');
-  const [selectedRegion, setSelectedRegion] = useState<string>('Semua');
-
+  const insets = useSafeAreaInsets();
+  const profile = useDelicaciesStore((s) => s.profile);
   const addToCart = useDelicaciesStore((s) => s.addToCart);
+  const catalogPreset = useDelicaciesStore((s) => s.catalogPreset);
+  const clearCatalogPreset = useDelicaciesStore((s) => s.clearCatalogPreset);
+  const getCartTotals = useDelicaciesStore((s) => s.getCartTotals);
+  // Reactive subscriptions for FloatingQuickCartBar
+  useDelicaciesStore((s) => s.cart);
+  useDelicaciesStore((s) => s.selectedDeliveryPointId);
+  useDelicaciesStore((s) => s.appliedCouponCode);
+  useDelicaciesStore((s) => s.voucherUsageCount);
 
-  const categories = ['Semua', 'Main Dish', 'Snacks', 'Beverages'];
-  const regions = ['Semua', 'Mondstadt', 'Liyue', 'Inazuma', 'Sumeru', 'Fontaine', 'Natlan', 'Snezhnaya'];
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<'All Dishes' | DishCategory>(
+    'All Dishes'
+  );
+  const [selectedBuffs, setSelectedBuffs] = useState<BuffType[]>([]);
+  const [selectedRegions, setSelectedRegions] = useState<TeyvatRegion[]>([]);
+  const [selectedRarity, setSelectedRarity] = useState<DishRarity | null>(null);
+  const [showRegionFilters, setShowRegionFilters] = useState(false);
 
-  const filteredDishes = useMemo(() => {
-    return DISHES.filter((dish) => {
-      const matchName = dish.name.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchCat =
-        selectedCategory === 'Semua' || dish.category === selectedCategory;
-      const matchRegion =
-        selectedRegion === 'Semua' || dish.region === selectedRegion;
-      return matchName && matchCat && matchRegion;
-    });
-  }, [searchQuery, selectedCategory, selectedRegion]);
+  // Consume filter preset triggered from Beranda Quick Categories
+  useEffect(() => {
+    if (!catalogPreset) return;
+    if (catalogPreset.category !== undefined) {
+      setSelectedCategory(catalogPreset.category);
+    }
+    if (catalogPreset.buff !== undefined) {
+      setSelectedBuffs(catalogPreset.buff ? [catalogPreset.buff] : []);
+    }
+    if (catalogPreset.region !== undefined) {
+      setSelectedRegions(catalogPreset.region ? [catalogPreset.region] : []);
+      if (catalogPreset.region) setShowRegionFilters(true);
+    }
+    clearCatalogPreset();
+  }, [catalogPreset, clearCatalogPreset]);
 
-  const handleQuickAdd = (dish: Dish) => {
-    addToCart(dish, 1);
-    Alert.alert('Berhasil', `${dish.name} ditambahkan ke keranjang.`);
+  const toggleBuff = (buff: BuffType) => {
+    setSelectedBuffs((prev) =>
+      prev.includes(buff) ? prev.filter((b) => b !== buff) : [...prev, buff]
+    );
   };
 
-  const renderDishItem = ({ item }: { item: Dish }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => router.push(`/dish/${item.id}`)}
-      activeOpacity={0.8}
-    >
-      <Image
-        source={{ uri: item.fallbackImage || item.image }}
-        style={styles.dishImage}
+  const toggleRegion = (region: TeyvatRegion) => {
+    setSelectedRegions((prev) =>
+      prev.includes(region) ? prev.filter((r) => r !== region) : [...prev, region]
+    );
+  };
+
+  const activeFilterCount =
+    selectedBuffs.length +
+    selectedRegions.length +
+    (selectedRarity !== null ? 1 : 0) +
+    (selectedCategory !== 'All Dishes' ? 1 : 0);
+
+  const resetAllFilters = () => {
+    setSearchQuery('');
+    setSelectedCategory('All Dishes');
+    setSelectedBuffs([]);
+    setSelectedRegions([]);
+    setSelectedRarity(null);
+  };
+
+  const filteredDishes = useMemo(
+    () =>
+      filterDishes(DISHES, {
+        query: searchQuery,
+        category: selectedCategory,
+        buffs: selectedBuffs,
+        regions: selectedRegions,
+        rarity: selectedRarity,
+      }),
+    [searchQuery, selectedCategory, selectedBuffs, selectedRegions, selectedRarity]
+  );
+
+  const totals = getCartTotals();
+
+  const handleOpenDish = (dish: Dish) => {
+    router.push({
+      pathname: '/dish/[id]',
+      params: { id: String(dish.id) },
+    });
+  };
+
+  const renderDishCard = ({ item: dish }: { item: Dish }) => (
+    <View style={styles.dishCard}>
+      <RarityDishBanner
+        dish={dish}
+        height={108}
+        imageSize={78}
+        onPress={() => handleOpenDish(dish)}
       />
-      <View style={styles.cardDetails}>
-        <View style={styles.cardHeaderRow}>
-          <Text style={styles.regionTag}>{item.region}</Text>
-          <Text style={styles.stars}>{'★'.repeat(item.rarity)}</Text>
-        </View>
 
-        <Text style={styles.dishName} numberOfLines={1}>
-          {item.name}
-        </Text>
-        <Text style={styles.categoryText}>{item.category}</Text>
-        <Text style={styles.descriptionText} numberOfLines={2}>
-          {item.description}
-        </Text>
-
-        <View style={styles.cardFooter}>
-          <Text style={styles.priceText}>{formatMora(item.priceMora)} Mora</Text>
-          <View style={styles.actionButtons}>
-            <TouchableOpacity
-              style={styles.detailButton}
-              onPress={() => router.push(`/dish/${item.id}`)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.detailButtonText}>Detail</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={() => handleQuickAdd(item)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.addButtonText}>+</Text>
-            </TouchableOpacity>
+      <View style={styles.dishBody}>
+        <Pressable onPress={() => handleOpenDish(dish)} accessibilityRole="button">
+          <Text style={styles.dishName} numberOfLines={2}>
+            {dish.name}
+          </Text>
+          <View style={{ marginTop: 6 }}>
+            <BuffBadge
+              buffType={dish.buffType}
+              label={dish.buffLabel}
+              iconSource={dish.buffIcon}
+              compact
+            />
           </View>
+        </Pressable>
+
+        <View style={styles.dishFooter}>
+          <MoraAmount
+            amount={dish.priceMora}
+            size="xs"
+            color={COLORS.inkPrimary}
+          />
+          <Pressable
+            onPress={() => addToCart(dish, 1)}
+            accessibilityRole="button"
+            accessibilityLabel={`Tambah ${dish.name} ke keranjang`}
+            style={({ pressed }) => [
+              styles.plusBtnOuter,
+              pressed && { transform: [{ scale: 0.94 }] },
+            ]}
+          >
+            <LinearGradient colors={GOLD_BUTTON_GRADIENT} style={styles.plusBtnInner}>
+              <Plus size={16} color="#2E3446" strokeWidth={2.5} />
+            </LinearGradient>
+          </Pressable>
         </View>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Katalog Hidangan Teyvat</Text>
-        <Text style={styles.headerSubtitle}>
-          Daftar menu terlengkap dari seluruh penjuru bangsa
-        </Text>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Cari hidangan favoritmu..."
-          placeholderTextColor="#8B7E66"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          clearButtonMode="while-editing"
-        />
-      </View>
+    <LinearGradient colors={PARCHMENT_BG_GRADIENT} style={styles.screen}>
+      {/* Clean Genshin Title Ribbon */}
+      <LinearGradient
+        colors={CHROME_BAR_GRADIENT}
+        style={[styles.header, { paddingTop: Math.max(insets.top + 10, 18) }]}
+      >
+        <View style={styles.headerRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.headerTitle}>Katalog Kuliner Teyvat</Text>
+            <Text style={styles.headerSubtitle}>
+              Cari hidangan, saring efek buff tempur &amp; 8 wilayah
+            </Text>
+          </View>
+          <Pressable
+            onPress={() => router.navigate('/(tabs)/profile')}
+            style={styles.moraHeaderBtn}
+            accessibilityRole="button"
+          >
+            <MoraAmount
+              amount={profile.moraBalance}
+              size="sm"
+              color={COLORS.goldBright}
+            />
+          </Pressable>
+        </View>
+      </LinearGradient>
 
-      <View style={styles.filterBar}>
-        <FlatList
+      {/* Warm Parchment Filter Control Deck */}
+      <View style={styles.filterDeck}>
+        {/* Search Input + Wilayah Toggle */}
+        <View style={styles.searchRow}>
+          <View style={styles.searchBox}>
+            <Search size={16} color="#736957" style={styles.searchIcon} />
+            <TextInput
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder="Cari kuliner Teyvat atau efek buff..."
+              placeholderTextColor="#7F7666"
+              style={styles.searchInput}
+              returnKeyType="search"
+            />
+            {searchQuery.length > 0 && (
+              <Pressable
+                onPress={() => setSearchQuery('')}
+                style={styles.clearBtn}
+                accessibilityLabel="Hapus pencarian"
+              >
+                <X size={16} color="#6B6150" />
+              </Pressable>
+            )}
+          </View>
+
+          <Pressable
+            onPress={() => setShowRegionFilters((v) => !v)}
+            style={[
+              styles.regionToggleBtn,
+              (showRegionFilters || selectedRegions.length > 0 || selectedRarity !== null) &&
+                styles.chipActive,
+            ]}
+            accessibilityRole="button"
+          >
+            <SlidersHorizontal
+              size={14}
+              color={
+                showRegionFilters || selectedRegions.length > 0 || selectedRarity !== null
+                  ? COLORS.goldBright
+                  : COLORS.inkPrimary
+              }
+            />
+            <Text
+              style={[
+                styles.regionToggleText,
+                (showRegionFilters || selectedRegions.length > 0 || selectedRarity !== null) &&
+                  styles.chipTextActive,
+              ]}
+            >
+              Wilayah
+            </Text>
+          </Pressable>
+        </View>
+
+        {/* Category Chips */}
+        <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          data={categories}
-          keyExtractor={(item) => `cat-${item}`}
-          contentContainerStyle={styles.filterList}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={[
-                styles.filterChip,
-                selectedCategory === item && styles.activeFilterChip,
-              ]}
-              onPress={() => setSelectedCategory(item)}
-            >
-              <Text
-                style={[
-                  styles.filterChipText,
-                  selectedCategory === item && styles.activeFilterChipText,
-                ]}
+          contentContainerStyle={styles.chipStrip}
+        >
+          {DISH_CATEGORIES.map((category) => {
+            const active = selectedCategory === category;
+            return (
+              <Pressable
+                key={category}
+                onPress={() => setSelectedCategory(category)}
+                style={[styles.categoryChip, active && styles.chipActive]}
               >
-                {item === 'Semua' ? 'Semua Kategori' : item}
-              </Text>
-            </TouchableOpacity>
-          )}
-        />
+                <Text
+                  style={[styles.categoryChipText, active && styles.chipTextActive]}
+                >
+                  {CATEGORY_LABELS_ID[category]}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+
+        {/* Combat Buff Chips */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.chipStrip}
+        >
+          {ALL_BUFFS.map((buff) => {
+            const meta = BUFF_META[buff];
+            const active = selectedBuffs.includes(buff);
+            return (
+              <Pressable
+                key={buff}
+                onPress={() => toggleBuff(buff)}
+                style={[styles.buffChip, active && styles.chipActive]}
+              >
+                <TeyvatImage
+                  source={meta.icon}
+                  fallbackSource={meta.fallbackIcon}
+                  style={styles.buffChipIcon}
+                  contentFit="contain"
+                />
+                <Text style={[styles.buffChipText, active && styles.chipTextActive]}>
+                  {meta.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+
+        {/* Expandable 8-Region + Rarity Filter Drawer */}
+        {showRegionFilters && (
+          <View style={styles.drawerCard}>
+            <View>
+              <Text style={styles.drawerTitle}>Wilayah Teyvat (8 Negara)</Text>
+              <View style={styles.wrapRow}>
+                {TEYVAT_REGIONS.map((region) => {
+                  const active = selectedRegions.includes(region);
+                  return (
+                    <Pressable
+                      key={region}
+                      onPress={() => toggleRegion(region)}
+                      style={[styles.regionChip, active && styles.chipActive]}
+                    >
+                      <Text
+                        style={[
+                          styles.regionChipText,
+                          active && styles.chipTextActive,
+                        ]}
+                      >
+                        {region}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+
+            <View>
+              <Text style={styles.drawerTitle}>Tingkat Kelangkaan</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.chipStrip}
+              >
+                <Pressable
+                  onPress={() => setSelectedRarity(null)}
+                  style={[
+                    styles.rarityChip,
+                    selectedRarity === null && styles.chipActive,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.rarityChipText,
+                      selectedRarity === null && styles.chipTextActive,
+                    ]}
+                  >
+                    Semua
+                  </Text>
+                </Pressable>
+                {ALL_RARITIES.map((rarity) => {
+                  const active = selectedRarity === rarity;
+                  return (
+                    <Pressable
+                      key={rarity}
+                      onPress={() => setSelectedRarity(active ? null : rarity)}
+                      style={[styles.rarityChip, active && styles.chipActive]}
+                    >
+                      <Text
+                        style={[
+                          styles.rarityChipText,
+                          active && styles.chipTextActive,
+                        ]}
+                      >
+                        {rarity}
+                      </Text>
+                      <DiamondStar size={10} />
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          </View>
+        )}
       </View>
 
+      {/* Native FlatList 2-Column Catalog Grid */}
       <FlatList
         data={filteredDishes}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={renderDishItem}
-        contentContainerStyle={styles.listContainer}
+        keyExtractor={(item) => String(item.id)}
+        numColumns={2}
+        renderItem={renderDishCard}
+        columnWrapperStyle={styles.gridRow}
+        contentContainerStyle={[
+          styles.listContent,
+          { paddingBottom: totals.itemCount > 0 ? 96 : 28 },
+        ]}
         showsVerticalScrollIndicator={false}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyTitle}>Hidangan Tidak Ditemukan</Text>
-            <Text style={styles.emptySubtitle}>
-              Coba cari dengan kata kunci lain atau ubah filter kategori.
+        ListHeaderComponent={
+          <View style={styles.countBar}>
+            <Text style={styles.countText}>
+              Menampilkan {filteredDishes.length} hidangan
             </Text>
+            {(activeFilterCount > 0 || searchQuery.length > 0) && (
+              <Pressable onPress={resetAllFilters} style={styles.resetBtn}>
+                <RotateCcw size={12} color={COLORS.goldDeep} />
+                <Text style={styles.resetText}>Reset Filter</Text>
+              </Pressable>
+            )}
+          </View>
+        }
+        ListEmptyComponent={
+          <View style={styles.emptyCard}>
+            <Text style={styles.emptyTitle}>Hidangan Tidak Ditemukan</Text>
+            <Text style={styles.emptyDesc}>
+              Tidak ada masakan yang cocok dengan kombinasi pencarian atau filter saat ini.
+            </Text>
+            <Pressable onPress={resetAllFilters} style={styles.emptyBtnOuter}>
+              <LinearGradient
+                colors={GOLD_BUTTON_GRADIENT}
+                style={styles.emptyBtnInner}
+              >
+                <Text style={styles.emptyBtnText}>Tampilkan Semua Menu</Text>
+              </LinearGradient>
+            </Pressable>
           </View>
         }
       />
-    </SafeAreaView>
+
+      {/* Floating Quick Cart Bar */}
+      <FloatingQuickCartBar
+        itemCount={totals.itemCount}
+        totalMora={totals.finalTotal}
+        onOpenCart={() => router.navigate('/(tabs)/cart')}
+      />
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
-    backgroundColor: '#ECE5D8',
   },
   header: {
-    backgroundColor: '#1C2232',
     paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#C8A86B40',
+    paddingBottom: 12,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#FFF8E7',
+    fontFamily: FONTS.genshin,
+    fontSize: 17,
+    color: COLORS.goldBright,
+    letterSpacing: 0.3,
   },
   headerSubtitle: {
     fontSize: 11,
-    color: '#A7ADC0',
+    color: COLORS.navSubtext,
     marginTop: 2,
-    marginBottom: 12,
   },
-  searchInput: {
-    backgroundColor: '#FDFBF7',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    fontSize: 13,
-    color: '#2F3542',
-    borderWidth: 1,
-    borderColor: '#D4AF3780',
+  moraHeaderBtn: {
+    minHeight: 34,
+    justifyContent: 'center',
   },
-  filterBar: {
-    backgroundColor: '#E4DAC8',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#D8CEBA',
-  },
-  filterList: {
+  filterDeck: {
     paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: COLORS.ivoryBottom,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2D8C5',
+    gap: 10,
+  },
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
   },
-  filterChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 16,
-    backgroundColor: '#F6EFE3',
-    borderWidth: 1,
-    borderColor: '#D6C8AF',
-  },
-  activeFilterChip: {
-    backgroundColor: '#242B3D',
-    borderColor: '#242B3D',
-  },
-  filterChipText: {
-    fontSize: 11,
-    color: '#655743',
-    fontWeight: '600',
-  },
-  activeFilterChipText: {
-    color: '#FFE7A5',
-  },
-  listContainer: {
-    padding: 16,
-    gap: 12,
-    paddingBottom: 28,
-  },
-  card: {
-    backgroundColor: '#FDFBF7',
-    borderRadius: 14,
-    padding: 12,
-    flexDirection: 'row',
-    gap: 12,
-    borderWidth: 1,
-    borderColor: '#E2D7C3',
-  },
-  dishImage: {
-    width: 84,
-    height: 84,
-    borderRadius: 10,
-    backgroundColor: '#EBE2D2',
-    alignSelf: 'center',
-  },
-  cardDetails: {
+  searchBox: {
     flex: 1,
-    justifyContent: 'space-between',
-  },
-  cardHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  regionTag: {
-    fontSize: 10,
-    color: '#8A6D3B',
-    fontWeight: '700',
-    backgroundColor: '#F3E8D2',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  stars: {
-    color: '#E6A23C',
-    fontSize: 10,
-  },
-  dishName: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#2F3542',
-    marginTop: 2,
-  },
-  categoryText: {
-    fontSize: 10,
-    color: '#8A7B68',
-  },
-  descriptionText: {
-    fontSize: 11,
-    color: '#554C3E',
-    lineHeight: 15,
-    marginVertical: 4,
-  },
-  cardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 2,
-  },
-  priceText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#B57A1E',
-  },
-  actionButtons: {
-    flexDirection: 'row',
-    gap: 6,
-    alignItems: 'center',
-  },
-  detailButton: {
-    backgroundColor: '#ECE5D8',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
+    height: 40,
+    backgroundColor: COLORS.ivoryTop,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#D4C6AB',
+    borderColor: '#C8B592',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
   },
-  detailButtonText: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: '#4B3F2F',
+  searchIcon: {
+    marginRight: 6,
   },
-  addButton: {
-    backgroundColor: '#242B3D',
-    width: 26,
-    height: 26,
-    borderRadius: 13,
+  searchInput: {
+    flex: 1,
+    fontSize: 12.5,
+    color: COLORS.inkBody,
+    paddingVertical: 0,
+  },
+  clearBtn: {
+    width: 28,
+    height: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  addButtonText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#FFE7A5',
-    lineHeight: 16,
-  },
-  emptyContainer: {
-    paddingVertical: 48,
+  regionToggleBtn: {
+    height: 40,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#C8B592',
+    backgroundColor: COLORS.ivoryTop,
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 6,
+  },
+  regionToggleText: {
+    fontFamily: FONTS.genshin,
+    fontSize: 11,
+    color: COLORS.inkPrimary,
+  },
+  chipStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  categoryChip: {
+    minHeight: 34,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    backgroundColor: COLORS.ivoryTop,
+    borderWidth: 1,
+    borderColor: COLORS.goldTrim,
+    justifyContent: 'center',
+  },
+  categoryChipText: {
+    fontFamily: FONTS.genshin,
+    fontSize: 11,
+    color: '#454A5C',
+  },
+  buffChip: {
+    minHeight: 34,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: COLORS.ivoryTop,
+    borderWidth: 1,
+    borderColor: COLORS.goldTrim,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  buffChipIcon: {
+    width: 16,
+    height: 16,
+  },
+  buffChipText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#3B4052',
+  },
+  chipActive: {
+    backgroundColor: '#242B3E',
+    borderColor: COLORS.goldBorder,
+  },
+  chipTextActive: {
+    color: COLORS.goldBright,
+  },
+  drawerCard: {
+    borderRadius: 12,
+    backgroundColor: COLORS.ivoryTop,
+    borderWidth: 1,
+    borderColor: COLORS.goldBorder,
+    padding: 12,
+    gap: 10,
+  },
+  drawerTitle: {
+    fontFamily: FONTS.genshin,
+    fontSize: 11,
+    color: '#3B4255',
+    marginBottom: 6,
+  },
+  wrapRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  regionChip: {
+    minHeight: 30,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    backgroundColor: COLORS.parchmentMid,
+    borderWidth: 1,
+    borderColor: COLORS.goldTrim,
+    justifyContent: 'center',
+  },
+  regionChipText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#4A4F63',
+  },
+  rarityChip: {
+    minHeight: 30,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    backgroundColor: COLORS.parchmentMid,
+    borderWidth: 1,
+    borderColor: COLORS.goldTrim,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  rarityChipText: {
+    fontFamily: FONTS.genshin,
+    fontSize: 11,
+    color: '#6B4A1B',
+  },
+  listContent: {
+    paddingHorizontal: 16,
+    paddingTop: 14,
+  },
+  countBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  countText: {
+    fontFamily: FONTS.genshin,
+    fontSize: 12,
+    color: '#4C4537',
+  },
+  resetBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  resetText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: COLORS.goldDeep,
+  },
+  gridRow: {
+    justifyContent: 'space-between',
+    marginBottom: 12,
+    gap: 12,
+  },
+  dishCard: {
+    flex: 1,
+    maxWidth: '48.4%',
+    borderRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: COLORS.ivoryTop,
+    borderWidth: 1,
+    borderColor: COLORS.goldDivider,
+    shadowColor: '#443824',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  dishBody: {
+    padding: 10,
+    flex: 1,
+    justifyContent: 'space-between',
+    gap: 8,
+    backgroundColor: COLORS.ivoryTop,
+  },
+  dishName: {
+    fontFamily: FONTS.genshin,
+    fontSize: 13,
+    lineHeight: 17,
+    color: COLORS.inkPrimary,
+    minHeight: 34,
+  },
+  dishFooter: {
+    paddingTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: '#DED4C0',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 4,
+  },
+  plusBtnOuter: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: COLORS.goldTrim,
+  },
+  plusBtnInner: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyCard: {
+    borderRadius: 16,
+    backgroundColor: COLORS.ivoryTop,
+    borderWidth: 1,
+    borderColor: COLORS.goldDivider,
+    padding: 24,
+    alignItems: 'center',
+    marginTop: 8,
   },
   emptyTitle: {
+    fontFamily: FONTS.genshin,
     fontSize: 15,
-    fontWeight: 'bold',
-    color: '#4B3F2F',
-    marginBottom: 4,
+    color: COLORS.inkPrimary,
   },
-  emptySubtitle: {
+  emptyDesc: {
     fontSize: 12,
-    color: '#8A7B68',
+    color: '#575A6B',
     textAlign: 'center',
+    marginTop: 6,
+    lineHeight: 18,
+  },
+  emptyBtnOuter: {
+    marginTop: 16,
+    borderRadius: 999,
+    overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: COLORS.goldTrim,
+  },
+  emptyBtnInner: {
+    paddingHorizontal: 18,
+    paddingVertical: 9,
+  },
+  emptyBtnText: {
+    fontFamily: FONTS.genshin,
+    fontSize: 12,
+    color: '#2E3446',
   },
 });

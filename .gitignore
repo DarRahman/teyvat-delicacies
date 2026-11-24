@@ -33,3 +33,7 @@ KONTEKS_*.md
 RESEARCH_*.md
 AGENTS.md
 .claude/
+
+.aistudio/
+assets/audio/
+assets/video/

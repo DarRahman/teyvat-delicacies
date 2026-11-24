@@ -1,442 +1,1133 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
-  View,
-  Text,
+  Modal,
+  Pressable,
   ScrollView,
-  TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
+  Text,
   TextInput,
-  Alert,
+  View,
 } from 'react-native';
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { DELIVERY_POINTS, formatMora } from '../src/data/dishes';
-import { useDelicaciesStore } from '../src/store/useDelicaciesStore';
-import { PaymentMethod } from '../src/types';
+import {
+  ArrowLeft,
+  Check,
+  Compass,
+  MapPin,
+  Navigation,
+  X,
+} from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Svg, { Circle, Path } from 'react-native-svg';
+import {
+  DiamondDivider,
+  GoldCapsuleButton,
+  MoraAmount,
+  TeyvatImage,
+} from '../components/TeyvatUI';
+import {
+  ASSET_ICONS,
+  DELIVERY_POINTS,
+  WANMIN_ORIGIN_COORDS,
+  formatMora,
+} from '../data/dishes';
+import {
+  buildGliderFlightArcPath,
+  getDeliveryFeeForPoint,
+  isLocalLiyueDelivery,
+} from '../lib/delicaciesRules';
+import { useDelicaciesStore } from '../store/useDelicaciesStore';
+import {
+  CHROME_BAR_GRADIENT,
+  COLORS,
+  FONTS,
+  PARCHMENT_BG_GRADIENT,
+} from '../theme/tokens';
+import { PaymentMethod } from '../types';
 
 export default function CheckoutScreen() {
+  const insets = useSafeAreaInsets();
   const cart = useDelicaciesStore((s) => s.cart);
+  const profile = useDelicaciesStore((s) => s.profile);
   const selectedDeliveryPointId = useDelicaciesStore((s) => s.selectedDeliveryPointId);
-  const setSelectedDeliveryPointId = useDelicaciesStore((s) => s.setSelectedDeliveryPointId);
+  const setSelectedDeliveryPointId = useDelicaciesStore(
+    (s) => s.setSelectedDeliveryPointId
+  );
+  const appliedCouponCode = useDelicaciesStore((s) => s.appliedCouponCode);
   const getCartTotals = useDelicaciesStore((s) => s.getCartTotals);
   const placeOrder = useDelicaciesStore((s) => s.placeOrder);
+  // Reactive subscription for voucher usage
+  useDelicaciesStore((s) => s.voucherUsageCount);
 
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('Mora Saldo');
+  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('NORTHLAND_BANK_CARD');
   const [kitchenNotes, setKitchenNotes] = useState('');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const selectedPoint =
     DELIVERY_POINTS.find((p) => p.id === selectedDeliveryPointId) ?? DELIVERY_POINTS[0];
-
+  const isLocalLiyue = isLocalLiyueDelivery(selectedPoint);
   const totals = getCartTotals(selectedPoint);
 
-  const handleSelectPoint = (pointId: string) => {
-    setSelectedDeliveryPointId(pointId);
-  };
+  const flightArcPath = useMemo(
+    () => buildGliderFlightArcPath(WANMIN_ORIGIN_COORDS, selectedPoint.mapCoords),
+    [selectedPoint.mapCoords]
+  );
+
+  const insufficientMora =
+    paymentMethod === 'NORTHLAND_BANK_CARD' && profile.moraBalance < totals.finalTotal;
 
   const handleConfirmOrder = () => {
-    if (cart.length === 0) {
-      Alert.alert('Keranjang Kosong', 'Silakan pilih hidangan terlebih dahulu sebelum checkout.');
-      return;
-    }
-
+    setErrorMessage(null);
     const result = placeOrder({
       deliveryPoint: selectedPoint,
       paymentMethod,
       kitchenNotes,
     });
-
-    if (result.ok && result.order) {
-      const orderId = result.order.id;
-      Alert.alert(
-        'Pesanan Berhasil Dibuat!',
-        `Jamuan Teyvat sedang diproses di Dapur Wanmin dan akan dikirim oleh Kurir Glider ke ${selectedPoint.name}.`,
-        [
-          {
-            text: 'Lihat Status Pelacakan ➔',
-            onPress: () => router.push(`/order/${orderId}`),
-          },
-        ]
-      );
-    } else {
-      Alert.alert('Gagal Membuat Pesanan', result.error ?? 'Terjadi kesalahan pada transaksi.');
+    if (!result.ok) {
+      setErrorMessage(result.error ?? 'Gagal memproses pesanan.');
+      return;
+    }
+    if (result.order) {
+      router.replace({
+        pathname: '/order/[id]',
+        params: { id: result.order.id },
+      });
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
+    <LinearGradient colors={PARCHMENT_BG_GRADIENT} style={styles.screen}>
+      {/* Clean Genshin Top Bar */}
+      <LinearGradient
+        colors={CHROME_BAR_GRADIENT}
+        style={[styles.header, { paddingTop: Math.max(insets.top + 8, 16) }]}
+      >
+        <Pressable
           onPress={() => router.back()}
-          activeOpacity={0.7}
+          style={styles.backBtn}
+          accessibilityRole="button"
+          accessibilityLabel="Kembali ke Keranjang"
         >
-          <Text style={styles.backButtonText}>‹ Kembali</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Simulasi Checkout</Text>
-        <View style={styles.headerSpacer} />
-      </View>
-
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Pilih Titik Pengantaran Teyvat</Text>
-          <Text style={styles.sectionSubtitle}>
-            Tentukan tujuan pendaratan kurir glider melintasi 8 wilayah
+          <ArrowLeft size={20} color={COLORS.goldBright} />
+        </Pressable>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.headerTitle} numberOfLines={1}>
+            Checkout Pengantaran
           </Text>
+          <Text style={styles.headerSub} numberOfLines={1}>
+            Ongkir dinamis 8 wilayah Teyvat · Lokal Liyue gratis 0 Mora
+          </Text>
+        </View>
+      </LinearGradient>
 
-          <View style={styles.pointsList}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* 1. Interactive Teyvat Delivery Point Section */}
+        <View style={styles.ivoryCard}>
+          <View style={styles.sectionTitleRow}>
+            <View style={styles.sectionTitleLeft}>
+              <MapPin size={16} color={COLORS.goldDeep} />
+              <Text style={styles.sectionCardTitle}>Titik Pengantaran Teyvat</Text>
+            </View>
+            <Text style={styles.etaBadge}>Est. {selectedPoint.etaMinutes} mnt</Text>
+          </View>
+
+          {/* Active Waypoint Preview Card */}
+          <View style={styles.activePointCard}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.activePointTitle}>
+                {selectedPoint.name}{' '}
+                <Text style={styles.activePointRegion}>· {selectedPoint.region}</Text>
+              </Text>
+              <Text style={styles.activePointLandmark}>{selectedPoint.landmark}</Text>
+              <View style={styles.courierHintRow}>
+                <Navigation size={12} color={COLORS.successGreen} />
+                <Text style={styles.courierHintText}>
+                  {isLocalLiyue
+                    ? 'Kurir Lokal Pelabuhan Liyue · Gratis Ongkir (0 Mora)'
+                    : `Kurir Wind Glider: Dapur Wanmin → ${selectedPoint.region} (${formatMora(selectedPoint.deliveryFeeMora)} Mora)`}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.selectedCheckCircle}>
+              <Check size={14} color={COLORS.goldBright} strokeWidth={3} />
+            </View>
+          </View>
+
+          {/* Interactive World Map Trigger Button */}
+          <Pressable
+            onPress={() => setIsMapModalOpen(true)}
+            style={({ pressed }) => [
+              styles.mapTriggerBtn,
+              pressed && { opacity: 0.9 },
+            ]}
+            accessibilityRole="button"
+          >
+            <Compass size={16} color={COLORS.goldBright} />
+            <Text style={styles.mapTriggerText}>Buka Peta Teyvat (8 Wilayah)</Text>
+          </Pressable>
+
+          {/* Compact 8-Region Quick-Switch Grid */}
+          <View style={styles.regionGrid}>
             {DELIVERY_POINTS.map((point) => {
-              const isSelected = point.id === selectedPoint.id;
+              const active = point.id === selectedPoint.id;
+              const fee = getDeliveryFeeForPoint(point);
               return (
-                <TouchableOpacity
+                <Pressable
                   key={point.id}
-                  style={[styles.pointItem, isSelected && styles.selectedPointItem]}
-                  onPress={() => handleSelectPoint(point.id)}
-                  activeOpacity={0.7}
+                  onPress={() => setSelectedDeliveryPointId(point.id)}
+                  style={[
+                    styles.regionTile,
+                    active && styles.regionTileActive,
+                  ]}
                 >
-                  <View style={styles.pointHeader}>
-                    <Text style={[styles.pointRegion, isSelected && styles.selectedText]}>
-                      {point.region} · {point.name}
+                  <Text style={styles.regionTileTitle} numberOfLines={1}>
+                    {point.region}
+                  </Text>
+                  <Text style={styles.regionTileName} numberOfLines={1}>
+                    {point.name}
+                  </Text>
+                  <View style={styles.regionTileFooter}>
+                    <Text
+                      style={[
+                        styles.regionTileFee,
+                        { color: fee === 0 ? COLORS.successGreen : COLORS.goldDeep },
+                      ]}
+                    >
+                      {fee === 0 ? 'Gratis 0 Mora' : `${formatMora(fee)} Mora`}
                     </Text>
-                    <Text style={styles.pointDuration}>{point.estimatedMinutes} menit</Text>
+                    <Text style={styles.regionTileEta}>{point.etaMinutes} mnt</Text>
                   </View>
-                  <Text style={styles.pointDescription} numberOfLines={1}>
-                    {point.description}
-                  </Text>
-                  <Text style={styles.pointFee}>
-                    Biaya Kurir: {point.deliveryFeeMora === 0 ? 'Gratis (Lokal Liyue)' : `${formatMora(point.deliveryFeeMora)} Mora`}
-                  </Text>
-                </TouchableOpacity>
+                </Pressable>
               );
             })}
           </View>
         </View>
 
-        <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Ringkasan Pesanan Jamuan</Text>
-          <View style={styles.itemsList}>
-            {cart.map((item) => (
-              <View key={item.dish.id} style={styles.orderItemRow}>
-                <View style={styles.itemMeta}>
-                  <Text style={styles.itemTitle}>{item.dish.name}</Text>
-                  <Text style={styles.itemSub}>
-                    {item.quantity} porsi × {formatMora(item.dish.priceMora)} Mora
+        {/* 2. Payment Method Radio Toggle with Official Genshin Icons */}
+        <View style={styles.ivoryCard}>
+          <Text style={[styles.sectionCardTitle, { marginBottom: 10 }]}>
+            Metode Pembayaran Mora
+          </Text>
+
+          <View style={{ gap: 8 }}>
+            <Pressable
+              onPress={() => {
+                setPaymentMethod('NORTHLAND_BANK_CARD');
+                setErrorMessage(null);
+              }}
+              style={[
+                styles.paymentCard,
+                paymentMethod === 'NORTHLAND_BANK_CARD' && styles.paymentCardActive,
+              ]}
+            >
+              <View style={styles.paymentLeft}>
+                <View style={styles.paymentIconDark}>
+                  <TeyvatImage
+                    source={ASSET_ICONS.genesisCrystal}
+                    fallbackSource={ASSET_ICONS.primogem}
+                    style={styles.paymentIconImg}
+                    contentFit="contain"
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.paymentTitle}>Kartu Northland Bank</Text>
+                  <Text style={styles.paymentSub}>
+                    Saldo: {formatMora(profile.moraBalance)} Mora
                   </Text>
                 </View>
-                <Text style={styles.itemTotal}>
-                  {formatMora(item.dish.priceMora * item.quantity)} Mora
-                </Text>
               </View>
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Metode Pembayaran</Text>
-          <View style={styles.paymentRow}>
-            <TouchableOpacity
-              style={[
-                styles.paymentChip,
-                paymentMethod === 'Mora Saldo' && styles.selectedPaymentChip,
-              ]}
-              onPress={() => setPaymentMethod('Mora Saldo')}
-            >
-              <Text
+              <View
                 style={[
-                  styles.paymentChipText,
-                  paymentMethod === 'Mora Saldo' && styles.selectedPaymentText,
+                  styles.radioOuter,
+                  paymentMethod === 'NORTHLAND_BANK_CARD' && styles.radioOuterActive,
                 ]}
               >
-                🪙 Mora Dompet Traveler
-              </Text>
-            </TouchableOpacity>
+                {paymentMethod === 'NORTHLAND_BANK_CARD' && (
+                  <View style={styles.radioInner} />
+                )}
+              </View>
+            </Pressable>
 
-            <TouchableOpacity
+            <Pressable
+              onPress={() => {
+                setPaymentMethod('MORA_COD');
+                setErrorMessage(null);
+              }}
               style={[
-                styles.paymentChip,
-                paymentMethod === 'Northland Bank Note' && styles.selectedPaymentChip,
+                styles.paymentCard,
+                paymentMethod === 'MORA_COD' && styles.paymentCardActive,
               ]}
-              onPress={() => setPaymentMethod('Northland Bank Note')}
             >
-              <Text
+              <View style={styles.paymentLeft}>
+                <View style={styles.paymentIconWarm}>
+                  <TeyvatImage
+                    source={ASSET_ICONS.mora}
+                    fallbackSource={ASSET_ICONS.moraCdn}
+                    style={styles.paymentIconImg}
+                    contentFit="contain"
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.paymentTitle}>Mora Tunai saat Terima</Text>
+                  <Text style={styles.paymentDesc}>
+                    {isLocalLiyue
+                      ? 'Bayar langsung ke Kurir Lokal Dapur Wanmin'
+                      : 'Bayar langsung ke Kurir Glider saat mendarat'}
+                  </Text>
+                </View>
+              </View>
+              <View
                 style={[
-                  styles.paymentChipText,
-                  paymentMethod === 'Northland Bank Note' && styles.selectedPaymentText,
+                  styles.radioOuter,
+                  paymentMethod === 'MORA_COD' && styles.radioOuterActive,
                 ]}
               >
-                🏛️ Wesel Bank Northland
-              </Text>
-            </TouchableOpacity>
+                {paymentMethod === 'MORA_COD' && <View style={styles.radioInner} />}
+              </View>
+            </Pressable>
           </View>
+
+          {insufficientMora && (
+            <Text style={styles.errorNote}>
+              Saldo Mora Northland Bank kurang. Pilih Mora Tunai saat Terima atau klaim Mora di Profil.
+            </Text>
+          )}
         </View>
 
-        <View style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Catatan Dapur untuk Chef</Text>
+        {/* 3. Kitchen Notes for Chef Xiangling */}
+        <View style={styles.ivoryCard}>
+          <Text style={[styles.sectionCardTitle, { fontSize: 13, marginBottom: 8 }]}>
+            Catatan Dapur untuk Chef Xiangling
+          </Text>
           <TextInput
-            style={styles.notesInput}
-            placeholder="Contoh: Kurangi cabai Jueyun, kuah dipisah..."
-            placeholderTextColor="#8B7E66"
             value={kitchenNotes}
             onChangeText={setKitchenNotes}
+            multiline
+            numberOfLines={3}
+            placeholder="Contoh: Kurangi Jueyun Chili ya, atau pisahkan kuah kaldu agar tetap hangat..."
+            placeholderTextColor="#7B7487"
+            textAlignVertical="top"
+            style={styles.notesInput}
           />
         </View>
 
-        <View style={styles.totalCard}>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Subtotal Hidangan</Text>
-            <Text style={styles.summaryVal}>{formatMora(totals.subtotalMora)} Mora</Text>
-          </View>
-
-          {totals.discountMora > 0 && (
+        {/* Order Summary */}
+        <View style={styles.ivoryCard}>
+          <View style={styles.summaryRows}>
             <View style={styles.summaryRow}>
-              <Text style={styles.discountLabel}>Diskon Kupon Promo</Text>
-              <Text style={styles.discountVal}>−{formatMora(totals.discountMora)} Mora</Text>
+              <Text style={styles.summaryLabel}>
+                {cart.length} jenis hidangan ({totals.itemCount} porsi)
+              </Text>
+              <Text style={styles.summaryVal}>{formatMora(totals.subtotal)} Mora</Text>
             </View>
-          )}
-
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Ongkos Kurir Glider</Text>
-            <Text style={styles.summaryVal}>
-              {totals.deliveryFeeMora === 0 ? 'Gratis (Lokal Liyue)' : `${formatMora(totals.deliveryFeeMora)} Mora`}
-            </Text>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>
+                {isLocalLiyue
+                  ? 'Kurir Lokal (Pelabuhan Liyue)'
+                  : `Kurir Glider (${selectedPoint.region})`}
+              </Text>
+              <Text
+                style={[
+                  styles.summaryVal,
+                  totals.deliveryFee === 0 && { color: COLORS.successGreen },
+                ]}
+              >
+                {totals.deliveryFee === 0
+                  ? isLocalLiyue
+                    ? 'Gratis · 0 Mora'
+                    : 'Gratis (Voucher)'
+                  : `${formatMora(totals.deliveryFee)} Mora`}
+              </Text>
+            </View>
+            {totals.discount > 0 && (
+              <View style={styles.summaryRow}>
+                <Text style={[styles.summaryLabel, { color: COLORS.successGreen }]}>
+                  Potongan Voucher ({appliedCouponCode})
+                </Text>
+                <Text style={[styles.summaryVal, { color: COLORS.successGreen }]}>
+                  -{formatMora(totals.discount)} Mora
+                </Text>
+              </View>
+            )}
           </View>
 
-          <View style={styles.divider} />
+          <DiamondDivider style={{ marginVertical: 10 }} />
 
-          <View style={styles.finalTotalRow}>
-            <Text style={styles.finalTotalLabel}>Total Tagihan</Text>
-            <Text style={styles.finalTotalVal}>{formatMora(totals.grandTotalMora)} Mora</Text>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryTotalLabel}>Total Bayar</Text>
+            <MoraAmount
+              amount={totals.finalTotal}
+              size="md"
+              showSuffix
+              color={COLORS.inkPrimary}
+            />
           </View>
         </View>
 
-        <TouchableOpacity
-          style={styles.confirmButton}
-          onPress={handleConfirmOrder}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.confirmButtonText}>Konfirmasi & Buat Pesanan Sekarang ➔</Text>
-        </TouchableOpacity>
+        {errorMessage && <Text style={styles.errorCenter}>{errorMessage}</Text>}
       </ScrollView>
-    </SafeAreaView>
+
+      {/* Clean Genshin Bottom Sticky Confirm CTA */}
+      <LinearGradient
+        colors={CHROME_BAR_GRADIENT}
+        style={[
+          styles.stickyFooter,
+          { paddingBottom: Math.max(insets.bottom + 10, 14) },
+        ]}
+      >
+        <GoldCapsuleButton
+          onPress={handleConfirmOrder}
+          disabled={insufficientMora || cart.length === 0}
+        >
+          Konfirmasi Pesanan — {formatMora(totals.finalTotal)} Mora
+        </GoldCapsuleButton>
+      </LinearGradient>
+
+      {/* INTERACTIVE 8-REALM TEYVAT WORLD MAP MODAL */}
+      <Modal
+        visible={isMapModalOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setIsMapModalOpen(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalSheet}>
+            <LinearGradient colors={CHROME_BAR_GRADIENT} style={styles.modalHeader}>
+              <View style={styles.modalHeaderLeft}>
+                <TeyvatImage
+                  source={ASSET_ICONS.modalOrnament}
+                  fallbackSource={ASSET_ICONS.crownOfInsight}
+                  style={styles.modalOrnament}
+                  contentFit="contain"
+                />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.modalTitle} numberOfLines={1}>
+                    Peta Pengantaran Teyvat
+                  </Text>
+                  <Text style={styles.modalSub} numberOfLines={1}>
+                    8 wilayah · Ongkir dinamis dari Dapur Wanmin
+                  </Text>
+                </View>
+              </View>
+
+              <Pressable
+                onPress={() => setIsMapModalOpen(false)}
+                style={styles.modalCloseBtn}
+                accessibilityLabel="Tutup Peta Teyvat"
+              >
+                <X size={16} color={COLORS.goldBright} />
+              </Pressable>
+            </LinearGradient>
+
+            <ScrollView
+              contentContainerStyle={styles.modalBody}
+              showsVerticalScrollIndicator={false}
+            >
+              {/* Full 8-Region Teyvat World Map with SVG Trajectory & Pins */}
+              <View style={styles.mapFrame}>
+                <Image
+                  source={ASSET_ICONS.teyvatMap}
+                  style={StyleSheet.absoluteFill}
+                  contentFit="cover"
+                />
+
+                {/* SVG Golden Trajectory Path from Wanmin Kitchen */}
+                <Svg
+                  viewBox="0 0 100 100"
+                  preserveAspectRatio="none"
+                  style={StyleSheet.absoluteFill}
+                  pointerEvents="none"
+                >
+                  {isLocalLiyue ? (
+                    <Circle
+                      cx={WANMIN_ORIGIN_COORDS.x}
+                      cy={WANMIN_ORIGIN_COORDS.y}
+                      r={5.2}
+                      fill="rgba(255, 231, 165, 0.28)"
+                      stroke="#FFE7A5"
+                      strokeWidth={0.9}
+                      strokeDasharray="1.8 1.2"
+                    />
+                  ) : flightArcPath ? (
+                    <>
+                      <Path
+                        d={flightArcPath}
+                        fill="none"
+                        stroke="rgba(32, 38, 56, 0.45)"
+                        strokeWidth={2.4}
+                        strokeLinecap="round"
+                      />
+                      <Path
+                        d={flightArcPath}
+                        fill="none"
+                        stroke="#FFE7A5"
+                        strokeWidth={1.1}
+                        strokeDasharray="2.5 1.5"
+                        strokeLinecap="round"
+                      />
+                    </>
+                  ) : null}
+                  <Circle
+                    cx={WANMIN_ORIGIN_COORDS.x}
+                    cy={WANMIN_ORIGIN_COORDS.y}
+                    r={1.7}
+                    fill="#FFE7A5"
+                    stroke="#22283A"
+                    strokeWidth={0.5}
+                  />
+                </Svg>
+
+                {/* All 8 Clickable Regional Waypoint Pins */}
+                {DELIVERY_POINTS.map((point) => {
+                  const isSelected = point.id === selectedPoint.id;
+                  const alignRight = point.mapCoords.x > 76;
+                  const placeAbove = point.mapCoords.y > 76;
+                  return (
+                    <Pressable
+                      key={point.id}
+                      onPress={() => setSelectedDeliveryPointId(point.id)}
+                      style={[
+                        styles.mapPinWrap,
+                        {
+                          left: `${point.mapCoords.x}%`,
+                          top: `${point.mapCoords.y}%`,
+                        },
+                      ]}
+                      accessibilityLabel={`Pilih ${point.region}`}
+                    >
+                      <View
+                        style={[
+                          styles.mapPinCircle,
+                          isSelected && styles.mapPinCircleSelected,
+                        ]}
+                      >
+                        <MapPin
+                          size={isSelected ? 13 : 10}
+                          color={isSelected ? '#22283A' : COLORS.goldBright}
+                        />
+                      </View>
+                      <View
+                        style={[
+                          styles.mapPinLabel,
+                          isSelected && styles.mapPinLabelSelected,
+                          placeAbove ? { bottom: 26 } : { top: 24 },
+                          alignRight ? { right: -4 } : null,
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.mapPinLabelText,
+                            isSelected && { color: '#22283A' },
+                          ]}
+                          numberOfLines={1}
+                        >
+                          {point.region}
+                        </Text>
+                      </View>
+                    </Pressable>
+                  );
+                })}
+
+                {/* Compact Legend Badge Top-Left */}
+                <View style={styles.mapLegend} pointerEvents="none">
+                  <View style={styles.legendItem}>
+                    <View style={[styles.legendDot, { backgroundColor: COLORS.goldBright }]} />
+                    <Text style={styles.legendText}>Asal: Wanmin</Text>
+                  </View>
+                  <View style={styles.legendItem}>
+                    <View
+                      style={[
+                        styles.legendDot,
+                        {
+                          backgroundColor: COLORS.goldWarm,
+                          borderWidth: 1,
+                          borderColor: COLORS.goldBright,
+                        },
+                      ]}
+                    />
+                    <Text style={styles.legendText}>Tujuan</Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* Horizontal Quick-Tap Chips for All 8 Realms */}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.mapChipsRow}
+              >
+                {DELIVERY_POINTS.map((point) => {
+                  const active = point.id === selectedPoint.id;
+                  return (
+                    <Pressable
+                      key={point.id}
+                      onPress={() => setSelectedDeliveryPointId(point.id)}
+                      style={[styles.mapChip, active && styles.mapChipActive]}
+                    >
+                      <Text
+                        style={[
+                          styles.mapChipText,
+                          active && { color: COLORS.goldBright },
+                        ]}
+                      >
+                        {point.region}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
+
+              {/* Waypoint Confirmation Card */}
+              <View style={styles.mapConfirmCard}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.mapConfirmEyebrow}>
+                    {isLocalLiyue
+                      ? 'PENGANTARAN LOKAL · LIYUE'
+                      : `TITIK PENDARATAN · ${selectedPoint.region.toUpperCase()}`}
+                  </Text>
+                  <Text style={styles.mapConfirmName}>{selectedPoint.name}</Text>
+                  <Text style={styles.mapConfirmLandmark}>{selectedPoint.landmark}</Text>
+                </View>
+                <View style={{ alignItems: 'flex-end' }}>
+                  <Text
+                    style={[
+                      styles.mapConfirmFee,
+                      { color: isLocalLiyue ? COLORS.successGreen : COLORS.goldDeep },
+                    ]}
+                  >
+                    {isLocalLiyue
+                      ? 'Gratis 0 Mora'
+                      : `${formatMora(selectedPoint.deliveryFeeMora)} Mora`}
+                  </Text>
+                  <Text style={styles.mapConfirmEta}>
+                    Est. {selectedPoint.etaMinutes} mnt
+                  </Text>
+                </View>
+              </View>
+
+              <GoldCapsuleButton onPress={() => setIsMapModalOpen(false)}>
+                Konfirmasi Titik Pengantaran
+              </GoldCapsuleButton>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
-    backgroundColor: '#ECE5D8',
   },
   header: {
-    backgroundColor: '#1C2232',
+    paddingHorizontal: 16,
+    paddingBottom: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#C8A86B40',
+    gap: 12,
   },
-  backButton: {
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-  },
-  backButtonText: {
-    color: '#FFE7A5',
-    fontSize: 14,
-    fontWeight: 'bold',
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerTitle: {
-    fontSize: 15,
-    fontWeight: 'bold',
-    color: '#FFF8E7',
+    fontFamily: FONTS.genshin,
+    fontSize: 16,
+    color: COLORS.goldBright,
   },
-  headerSpacer: {
-    width: 60,
+  headerSub: {
+    fontSize: 11,
+    color: COLORS.navSubtext,
+    marginTop: 2,
+  },
+  scroll: {
+    flex: 1,
   },
   scrollContent: {
     padding: 16,
-    gap: 16,
-    paddingBottom: 36,
+    paddingBottom: 28,
+    gap: 14,
   },
-  sectionCard: {
-    backgroundColor: '#FDFBF7',
+  ivoryCard: {
+    borderRadius: 16,
+    backgroundColor: COLORS.ivoryTop,
+    borderWidth: 1,
+    borderColor: COLORS.goldDivider,
+    padding: 15,
+    shadowColor: '#443824',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  sectionTitleLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  sectionCardTitle: {
+    fontFamily: FONTS.genshin,
+    fontSize: 14,
+    color: COLORS.inkPrimary,
+  },
+  etaBadge: {
+    fontFamily: FONTS.genshin,
+    fontSize: 11,
+    color: '#6B4A1B',
+  },
+  activePointCard: {
+    borderRadius: 12,
+    backgroundColor: COLORS.parchmentMid,
+    borderWidth: 1,
+    borderColor: COLORS.goldBorder,
+    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    marginBottom: 10,
+  },
+  activePointTitle: {
+    fontFamily: FONTS.genshin,
+    fontSize: 13.5,
+    color: COLORS.inkPrimary,
+  },
+  activePointRegion: {
+    fontFamily: FONTS.genshin,
+    fontSize: 11,
+    color: COLORS.goldDeep,
+  },
+  activePointLandmark: {
+    fontSize: 11.5,
+    color: '#575C70',
+    marginTop: 3,
+    lineHeight: 16,
+  },
+  courierHintRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: 6,
+  },
+  courierHintText: {
+    fontSize: 10.5,
+    fontWeight: '600',
+    color: COLORS.successGreen,
+    flexShrink: 1,
+  },
+  selectedCheckCircle: {
+    width: 28,
+    height: 28,
     borderRadius: 14,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: '#E2D7C3',
-    gap: 8,
-  },
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: 'bold',
-    color: '#2F3542',
-  },
-  sectionSubtitle: {
-    fontSize: 10,
-    color: '#8A7B68',
-    marginBottom: 4,
-  },
-  pointsList: {
-    gap: 8,
-  },
-  pointItem: {
-    backgroundColor: '#F5EFE3',
-    borderRadius: 8,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#D8CCA8',
-  },
-  selectedPointItem: {
-    backgroundColor: '#242B3D',
-    borderColor: '#D4AF37',
-  },
-  pointHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    backgroundColor: '#242B3E',
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  pointRegion: {
+  mapTriggerBtn: {
+    minHeight: 44,
+    borderRadius: 12,
+    backgroundColor: '#242B3E',
+    borderWidth: 1,
+    borderColor: COLORS.goldBorder,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingHorizontal: 14,
+    marginBottom: 10,
+  },
+  mapTriggerText: {
+    fontFamily: FONTS.genshin,
     fontSize: 12,
-    fontWeight: 'bold',
-    color: '#3A3226',
+    color: COLORS.goldBright,
   },
-  selectedText: {
-    color: '#FFE7A5',
-  },
-  pointDuration: {
-    fontSize: 10,
-    color: '#8A6D3B',
-    fontWeight: '600',
-  },
-  pointDescription: {
-    fontSize: 10,
-    color: '#756855',
-    marginVertical: 2,
-  },
-  pointFee: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: '#B57A1E',
-  },
-  itemsList: {
-    gap: 8,
-  },
-  orderItemRow: {
+  regionGrid: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 4,
-    borderBottomWidth: 1,
-    borderBottomColor: '#EDE5D4',
+    gap: 7,
   },
-  itemMeta: {
+  regionTile: {
+    width: '48.6%',
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: COLORS.goldTrim,
+    backgroundColor: COLORS.insetWarm,
+  },
+  regionTileActive: {
+    backgroundColor: '#FFFDF8',
+    borderColor: COLORS.goldWarm,
+    borderWidth: 1.5,
+  },
+  regionTileTitle: {
+    fontFamily: FONTS.genshin,
+    fontSize: 11,
+    color: COLORS.inkPrimary,
+  },
+  regionTileName: {
+    fontSize: 10,
+    color: COLORS.inkMuted,
+    marginTop: 1,
+  },
+  regionTileFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 5,
+  },
+  regionTileFee: {
+    fontFamily: FONTS.genshin,
+    fontSize: 10,
+  },
+  regionTileEta: {
+    fontFamily: FONTS.genshin,
+    fontSize: 10,
+    color: COLORS.goldMuted,
+  },
+  paymentCard: {
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#D5CBB7',
+    backgroundColor: 'rgba(236, 229, 216, 0.72)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  paymentCardActive: {
+    backgroundColor: '#FFFDF8',
+    borderColor: COLORS.goldWarm,
+    borderWidth: 1.5,
+  },
+  paymentLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
     flex: 1,
   },
-  itemTitle: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#2F3542',
-  },
-  itemSub: {
-    fontSize: 10,
-    color: '#8A7B68',
-  },
-  itemTotal: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#B57A1E',
-  },
-  paymentRow: {
-    gap: 8,
-  },
-  paymentChip: {
-    padding: 10,
-    borderRadius: 8,
-    backgroundColor: '#F5EFE3',
+  paymentIconDark: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#242B3E',
     borderWidth: 1,
-    borderColor: '#D8CCA8',
+    borderColor: 'rgba(200,168,107,0.7)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  selectedPaymentChip: {
-    backgroundColor: '#242B3D',
-    borderColor: '#D4AF37',
+  paymentIconWarm: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: COLORS.insetTrack,
+    borderWidth: 1,
+    borderColor: COLORS.goldBorder,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  paymentChipText: {
-    fontSize: 12,
-    color: '#3A3226',
+  paymentIconImg: {
+    width: 26,
+    height: 26,
+  },
+  paymentTitle: {
+    fontFamily: FONTS.genshin,
+    fontSize: 12.5,
+    color: COLORS.inkPrimary,
+  },
+  paymentSub: {
+    fontFamily: FONTS.genshin,
+    fontSize: 10.5,
+    color: '#575C70',
+    marginTop: 2,
+  },
+  paymentDesc: {
+    fontSize: 11,
+    color: '#575C70',
+    marginTop: 2,
+  },
+  radioOuter: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#A79E8D',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioOuterActive: {
+    borderColor: COLORS.goldWarm,
+  },
+  radioInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: COLORS.goldWarm,
+  },
+  errorNote: {
+    fontSize: 11,
     fontWeight: '600',
-  },
-  selectedPaymentText: {
-    color: '#FFE7A5',
+    color: COLORS.dangerRed,
+    marginTop: 8,
   },
   notesInput: {
-    backgroundColor: '#F5EFE3',
-    borderRadius: 8,
-    padding: 10,
+    minHeight: 74,
+    borderRadius: 12,
+    backgroundColor: COLORS.ivoryTop,
+    borderWidth: 1,
+    borderColor: '#CBB997',
+    padding: 12,
     fontSize: 12,
-    color: '#2F3542',
-    borderWidth: 1,
-    borderColor: '#D8CCA8',
+    color: COLORS.inkBody,
   },
-  totalCard: {
-    backgroundColor: '#FDFBF7',
-    borderRadius: 14,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: '#E2D7C3',
-    gap: 8,
+  summaryRows: {
+    gap: 7,
   },
   summaryRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
+    gap: 8,
   },
   summaryLabel: {
     fontSize: 12,
-    color: '#655743',
+    color: COLORS.inkSecondary,
+    flexShrink: 1,
   },
   summaryVal: {
+    fontFamily: FONTS.genshin,
+    fontSize: 12,
+    color: COLORS.inkPrimary,
+  },
+  summaryTotalLabel: {
+    fontFamily: FONTS.genshin,
+    fontSize: 14,
+    color: COLORS.inkPrimary,
+  },
+  errorCenter: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#2F3542',
+    color: COLORS.dangerRed,
+    textAlign: 'center',
   },
-  discountLabel: {
-    fontSize: 12,
-    color: '#2B5838',
+  stickyFooter: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
   },
-  discountVal: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#2B5838',
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(27, 34, 52, 0.74)',
+    justifyContent: 'center',
+    padding: 14,
   },
-  divider: {
-    height: 1,
-    backgroundColor: '#E4DAC8',
-    marginVertical: 4,
-  },
-  finalTotalRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  finalTotalLabel: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#2F3542',
-  },
-  finalTotalVal: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#B57A1E',
-  },
-  confirmButton: {
-    backgroundColor: '#242B3D',
-    borderRadius: 12,
-    paddingVertical: 14,
-    alignItems: 'center',
+  modalSheet: {
+    maxHeight: '90%',
+    borderRadius: 24,
+    overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#D4AF37',
+    borderColor: COLORS.goldTrim,
+    backgroundColor: COLORS.parchmentMid,
   },
-  confirmButtonText: {
-    color: '#FFE7A5',
-    fontSize: 13,
-    fontWeight: 'bold',
+  modalHeader: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  modalHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+  },
+  modalOrnament: {
+    width: 28,
+    height: 28,
+  },
+  modalTitle: {
+    fontFamily: FONTS.genshin,
+    fontSize: 14.5,
+    color: COLORS.goldBright,
+  },
+  modalSub: {
+    fontSize: 10.5,
+    color: COLORS.navSubtext,
+    marginTop: 1,
+  },
+  modalCloseBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalBody: {
+    padding: 14,
+    gap: 10,
+  },
+  mapFrame: {
+    width: '100%',
+    aspectRatio: 1,
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: COLORS.goldTrim,
+    backgroundColor: COLORS.mapSea,
+    position: 'relative',
+  },
+  mapPinWrap: {
+    position: 'absolute',
+    marginLeft: -12,
+    marginTop: -12,
+    alignItems: 'center',
+    zIndex: 15,
+  },
+  mapPinCircle: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: 'rgba(34, 40, 58, 0.92)',
+    borderWidth: 2,
+    borderColor: COLORS.goldBright,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mapPinCircleSelected: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: COLORS.goldBright,
+    borderColor: '#22283A',
+  },
+  mapPinLabel: {
+    position: 'absolute',
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    borderRadius: 4,
+    backgroundColor: 'rgba(34, 40, 58, 0.92)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,231,165,0.45)',
+  },
+  mapPinLabelSelected: {
+    backgroundColor: COLORS.goldBright,
+    borderColor: COLORS.ivoryTop,
+    zIndex: 25,
+  },
+  mapPinLabelText: {
+    fontFamily: FONTS.genshin,
+    fontSize: 8,
+    color: COLORS.inkIvory,
+  },
+  mapLegend: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    backgroundColor: 'rgba(34, 40, 58, 0.86)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,231,165,0.35)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  legendDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+  },
+  legendText: {
+    fontSize: 9,
+    color: COLORS.inkIvory,
+    fontWeight: '600',
+  },
+  mapChipsRow: {
+    gap: 6,
+  },
+  mapChip: {
+    minHeight: 30,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 999,
+    backgroundColor: COLORS.ivoryTop,
+    borderWidth: 1,
+    borderColor: COLORS.goldTrim,
+    justifyContent: 'center',
+  },
+  mapChipActive: {
+    backgroundColor: '#242B3E',
+    borderColor: COLORS.goldBorder,
+  },
+  mapChipText: {
+    fontFamily: FONTS.genshin,
+    fontSize: 10,
+    color: '#3B4255',
+  },
+  mapConfirmCard: {
+    borderRadius: 14,
+    backgroundColor: COLORS.ivoryTop,
+    borderWidth: 1,
+    borderColor: COLORS.goldDivider,
+    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  mapConfirmEyebrow: {
+    fontFamily: FONTS.genshin,
+    fontSize: 9.5,
+    color: COLORS.goldDeep,
+    letterSpacing: 0.4,
+  },
+  mapConfirmName: {
+    fontFamily: FONTS.genshin,
+    fontSize: 13.5,
+    color: COLORS.inkPrimary,
+    marginTop: 2,
+  },
+  mapConfirmLandmark: {
+    fontSize: 11,
+    color: '#575C70',
+    marginTop: 2,
+  },
+  mapConfirmFee: {
+    fontFamily: FONTS.genshin,
+    fontSize: 11,
+  },
+  mapConfirmEta: {
+    fontFamily: FONTS.genshin,
+    fontSize: 10,
+    color: COLORS.goldMuted,
+    marginTop: 2,
   },
 });

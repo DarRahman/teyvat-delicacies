@@ -1,328 +1,631 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  View,
-  Text,
+  Animated,
+  Pressable,
   ScrollView,
-  TouchableOpacity,
-  Image,
   StyleSheet,
-  SafeAreaView,
-  Alert,
+  Text,
+  View,
 } from 'react-native';
-import { useLocalSearchParams, router } from 'expo-router';
-import { DISHES, formatMora } from '../../src/data/dishes';
-import { useDelicaciesStore } from '../../src/store/useDelicaciesStore';
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
+import { router, useLocalSearchParams } from 'expo-router';
+import { ArrowLeft, Heart, Minus, Plus, ShoppingBag } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  DiamondDivider,
+  DiamondStarRow,
+  GoldCapsuleButton,
+  MoraAmount,
+  RadialGlowBackdrop,
+  TeyvatImage,
+} from '../../components/TeyvatUI';
+import {
+  ASSET_ICONS,
+  BUFF_META,
+  DISHES,
+  RARITY_META,
+  formatMora,
+} from '../../data/dishes';
+import { useDelicaciesStore } from '../../store/useDelicaciesStore';
+import {
+  CHROME_BAR_GRADIENT,
+  COLORS,
+  FONTS,
+} from '../../theme/tokens';
 
 export default function DishDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const [portionCount, setPortionCount] = useState(1);
-
+  const insets = useSafeAreaInsets();
+  const { id } = useLocalSearchParams<{ id?: string }>();
   const addToCart = useDelicaciesStore((s) => s.addToCart);
+  const favoriteIds = useDelicaciesStore((s) => s.favoriteIds);
+  const toggleFavorite = useDelicaciesStore((s) => s.toggleFavorite);
 
-  const dish = DISHES.find((d) => d.id === Number(id)) ?? DISHES[0];
+  const [quantity, setQuantity] = useState(1);
+  const floatAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(floatAnim, {
+          toValue: -5,
+          duration: 1800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(floatAnim, {
+          toValue: 0,
+          duration: 1800,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [floatAnim]);
+
+  const numericId = Number(id);
+  const dish = DISHES.find((d) => d.id === numericId) ?? DISHES[0];
+  const isFavorite = favoriteIds.includes(dish.id);
+  const rarityStyle = RARITY_META[dish.rarity];
+  const buffMeta = BUFF_META[dish.buffType];
+  const totalPrice = dish.priceMora * quantity;
 
   const handleAddToCart = () => {
-    addToCart(dish, portionCount);
-    Alert.alert(
-      'Berhasil Ditambahkan',
-      `${portionCount} porsi "${dish.name}" telah masuk ke Keranjang Jamuan.`,
-      [
-        { text: 'Lanjut Pilih Menu', style: 'cancel' },
-        { text: 'Lihat Keranjang', onPress: () => router.push('/(tabs)/cart') },
-      ]
-    );
+    addToCart(dish, quantity);
+    router.back();
+  };
+
+  const handleOrderNow = () => {
+    addToCart(dish, quantity);
+    router.push('/checkout');
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-          activeOpacity={0.7}
+    <View style={styles.screen}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Full-Bleed Hero Rarity Backdrop */}
+        <LinearGradient
+          colors={rarityStyle.gradientColors}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.hero, { paddingTop: Math.max(insets.top + 8, 16) }]}
         >
-          <Text style={styles.backButtonText}>‹ Kembali</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>
-          Detail Resep Teyvat
-        </Text>
-        <View style={styles.headerSpacer} />
-      </View>
-
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.imageWrapper}>
           <Image
-            source={{ uri: dish.fallbackImage || dish.image }}
-            style={styles.heroImage}
+            source={ASSET_ICONS.dishDetailBg}
+            style={styles.heroBgTexture}
+            contentFit="cover"
           />
-          <View style={styles.imageOverlayBadge}>
-            <Text style={styles.imageBadgeText}>{dish.region}</Text>
+          <Image
+            source={rarityStyle.bgAsset}
+            style={styles.heroWatermark}
+            contentFit="cover"
+          />
+          <LinearGradient
+            colors={[
+              'rgba(27, 34, 52, 0.52)',
+              'rgba(27, 34, 52, 0.05)',
+              'rgba(27, 34, 52, 0.44)',
+            ]}
+            style={StyleSheet.absoluteFill}
+          />
+
+          {/* Top Bar: Golden Back Arrow (router.back) & Favorite Toggle */}
+          <View style={styles.heroHeader}>
+            <Pressable
+              onPress={() => router.back()}
+              style={styles.circleBtn}
+              accessibilityRole="button"
+              accessibilityLabel="Kembali"
+            >
+              <ArrowLeft size={20} color={COLORS.goldBright} />
+            </Pressable>
+
+            <Text style={styles.heroHeaderTitle}>Dossier Resep</Text>
+
+            <Pressable
+              onPress={() => toggleFavorite(dish.id)}
+              style={[
+                styles.circleBtn,
+                isFavorite && styles.circleBtnFavActive,
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel={
+                isFavorite ? 'Hapus dari favorit' : 'Simpan ke favorit'
+              }
+            >
+              <Heart
+                size={20}
+                color={isFavorite ? COLORS.favoriteCrimson : COLORS.goldBright}
+                fill={isFavorite ? COLORS.favoriteCrimson : 'none'}
+              />
+            </Pressable>
           </View>
-        </View>
 
-        <View style={styles.detailCard}>
-          <View style={styles.dishHeaderRow}>
-            <Text style={styles.stars}>{'★'.repeat(dish.rarity)}</Text>
-            <Text style={styles.categoryLabel}>{dish.category}</Text>
+          {/* Large Transparent Dish Illustration with Radial Glow */}
+          <View style={styles.heroDishArea}>
+            <Animated.View
+              style={[
+                styles.heroDishGlowBox,
+                { transform: [{ translateY: floatAnim }] },
+              ]}
+            >
+              <RadialGlowBackdrop size={156} opacity={0.48} />
+              <TeyvatImage
+                source={dish.image}
+                fallbackSource={dish.fallbackImage}
+                style={styles.heroDishImg}
+                contentFit="contain"
+                accessibilityLabel={dish.name}
+              />
+            </Animated.View>
+          </View>
+        </LinearGradient>
+
+        {/* Full-Bleed Ivory Parchment Dossier Surface */}
+        <View style={styles.dossierSheet}>
+          {/* Stars, Meta, Title & Mora Price */}
+          <View>
+            <View style={styles.metaTopRow}>
+              <DiamondStarRow rarity={dish.rarity} size={14} />
+              <Text style={styles.metaRightText}>
+                {dish.region} · {dish.category} · {dish.prepMinutes} mnt
+              </Text>
+            </View>
+
+            <Text style={styles.dishTitle}>{dish.name}</Text>
+
+            <View style={styles.priceRarityRow}>
+              <MoraAmount
+                amount={dish.priceMora}
+                size="md"
+                showSuffix
+                color={COLORS.inkPrimary}
+              />
+              <Text style={[styles.rarityLabel, { color: rarityStyle.headerColor }]}>
+                {rarityStyle.name} · Bintang {dish.rarity}
+              </Text>
+            </View>
           </View>
 
-          <Text style={styles.dishName}>{dish.name}</Text>
-          <Text style={styles.dishPrice}>{formatMora(dish.priceMora)} Mora</Text>
+          <DiamondDivider />
 
-          <View style={styles.divider} />
-
-          <Text style={styles.sectionHeading}>Deskripsi Kuliner</Text>
-          <Text style={styles.description}>{dish.description}</Text>
-
-          <View style={styles.divider} />
-
-          <Text style={styles.sectionHeading}>Bahan Masakan</Text>
-          <View style={styles.ingredientsRow}>
-            {dish.ingredients.map((ing, idx) => (
-              <View key={idx} style={styles.ingredientBadge}>
-                <Text style={styles.ingredientText}>
-                  {ing.name} ×{ing.count}
-                </Text>
-              </View>
-            ))}
+          {/* Combat Stat Buff Banner */}
+          <View style={styles.buffCard}>
+            <View
+              style={[
+                styles.buffIconBox,
+                { backgroundColor: buffMeta.bgTint },
+              ]}
+            >
+              <TeyvatImage
+                source={dish.buffIcon ?? buffMeta.icon}
+                fallbackSource={buffMeta.fallbackIcon}
+                style={styles.buffIconImg}
+                contentFit="contain"
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.buffCardTitle}>
+                {buffMeta.label}{' '}
+                <Text style={{ color: COLORS.goldDeep }}>({dish.buffLabel})</Text>
+              </Text>
+              <Text style={styles.buffCardEffect}>{dish.effect}</Text>
+            </View>
           </View>
 
-          <View style={styles.divider} />
+          {/* Italicized Lore Quote Block */}
+          <View style={styles.sectionBlock}>
+            <Text style={styles.sectionTitle}>Kisah &amp; Asal Hidangan</Text>
+            <View style={styles.loreBox}>
+              <Text style={styles.quoteMarkOpen}>“</Text>
+              <Text style={styles.loreText}>{dish.description}</Text>
+              <Text style={styles.quoteMarkClose}>”</Text>
+            </View>
+          </View>
 
-          <Text style={styles.sectionHeading}>Khasiat Tempur</Text>
-          <View style={styles.buffBox}>
-            <Text style={styles.buffBadge}>✦ {dish.buffType} BOOST</Text>
-            <Text style={styles.buffEffect}>{dish.buffEffect}</Text>
+          <DiamondDivider />
+
+          {/* Authentic Genshin Cooking Interface Ingredients Grid */}
+          <View style={styles.sectionBlock}>
+            <View style={styles.ingredientsHeader}>
+              <Text style={styles.sectionTitle}>Bahan Baku Resep</Text>
+              <Text style={styles.ingredientsCount}>
+                {dish.ingredients.length} bahan pilihan
+              </Text>
+            </View>
+
+            <View style={styles.ingredientsGrid}>
+              {dish.ingredients.map((ing) => (
+                <View key={ing.name} style={styles.ingredientCard}>
+                  <View style={styles.ingredientImgBox}>
+                    <TeyvatImage
+                      source={ing.icon}
+                      style={styles.ingredientImg}
+                      contentFit="contain"
+                      accessibilityLabel={ing.name}
+                    />
+                    <View style={styles.ingredientQtyBadge}>
+                      <Text style={styles.ingredientQtyText}>
+                        ×{ing.count * quantity}
+                      </Text>
+                    </View>
+                  </View>
+                  <Text style={styles.ingredientName} numberOfLines={1}>
+                    {ing.name}
+                  </Text>
+                </View>
+              ))}
+            </View>
           </View>
         </View>
       </ScrollView>
 
-      <View style={styles.bottomBar}>
-        <View style={styles.quantityContainer}>
-          <TouchableOpacity
-            style={styles.quantityBtn}
-            onPress={() => setPortionCount((prev) => Math.max(1, prev - 1))}
+      {/* Clean Genshin Bottom Sticky Action Bar (Stepper + Add to Cart + Direct Checkout) */}
+      <LinearGradient
+        colors={CHROME_BAR_GRADIENT}
+        style={[
+          styles.stickyFooter,
+          { paddingBottom: Math.max(insets.bottom + 10, 14) },
+        ]}
+      >
+        <View style={styles.footerTopRow}>
+          {/* Portion Stepper */}
+          <View style={styles.stepperPill}>
+            <Pressable
+              onPress={() => setQuantity((q) => Math.max(1, q - 1))}
+              style={styles.stepperBtn}
+              accessibilityLabel="Kurangi jumlah porsi"
+            >
+              <Minus size={16} color={COLORS.goldBright} />
+            </Pressable>
+            <Text style={styles.stepperVal}>{quantity}</Text>
+            <Pressable
+              onPress={() => setQuantity((q) => Math.min(99, q + 1))}
+              style={styles.stepperBtn}
+              accessibilityLabel="Tambah jumlah porsi"
+            >
+              <Plus size={16} color={COLORS.goldBright} />
+            </Pressable>
+          </View>
+
+          {/* Secondary Direct Checkout Button (Stack: Detail -> Checkout) */}
+          <Pressable
+            onPress={handleOrderNow}
+            style={({ pressed }) => [
+              styles.orderNowBtn,
+              pressed && { opacity: 0.88 },
+            ]}
+            accessibilityRole="button"
           >
-            <Text style={styles.quantityBtnText}>−</Text>
-          </TouchableOpacity>
-          <Text style={styles.quantityText}>{portionCount}</Text>
-          <TouchableOpacity
-            style={styles.quantityBtn}
-            onPress={() => setPortionCount((prev) => prev + 1)}
-          >
-            <Text style={styles.quantityBtnText}>+</Text>
-          </TouchableOpacity>
+            <Text style={styles.orderNowText}>Pesan Sekarang</Text>
+          </Pressable>
         </View>
 
-        <TouchableOpacity
-          style={styles.addToCartBtn}
-          onPress={handleAddToCart}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.addToCartText}>
-            Tambah ke Keranjang · {formatMora(dish.priceMora * portionCount)} Mora
+        {/* Primary Gold Pill CTA: Add to Cart */}
+        <GoldCapsuleButton onPress={handleAddToCart}>
+          <ShoppingBag size={15} color="#2E3446" />
+          <Text style={styles.addBtnText}>
+            Tambah ke Keranjang — {formatMora(totalPrice)} Mora
           </Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+        </GoldCapsuleButton>
+      </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
-    backgroundColor: '#ECE5D8',
+    backgroundColor: COLORS.ivoryTop,
   },
-  header: {
-    backgroundColor: '#1C2232',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#C8A86B40',
-  },
-  backButton: {
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-  },
-  backButtonText: {
-    color: '#FFE7A5',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  headerTitle: {
-    fontSize: 15,
-    fontWeight: 'bold',
-    color: '#FFF8E7',
-  },
-  headerSpacer: {
-    width: 60,
+  scroll: {
+    flex: 1,
   },
   scrollContent: {
-    padding: 16,
-    gap: 16,
     paddingBottom: 24,
   },
-  imageWrapper: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#242B3D',
-    borderRadius: 16,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: '#C8A86B60',
+  hero: {
+    minHeight: 242,
+    justifyContent: 'space-between',
+    overflow: 'hidden',
     position: 'relative',
   },
-  heroImage: {
-    width: 150,
-    height: 150,
-    borderRadius: 16,
-  },
-  imageOverlayBadge: {
+  heroBgTexture: {
     position: 'absolute',
-    top: 12,
-    left: 12,
-    backgroundColor: '#D4AF3725',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#D4AF3760',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    opacity: 0.28,
   },
-  imageBadgeText: {
-    color: '#FFE7A5',
-    fontSize: 10,
-    fontWeight: 'bold',
+  heroWatermark: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    opacity: 0.34,
   },
-  detailCard: {
-    backgroundColor: '#FDFBF7',
-    borderRadius: 14,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#E2D7C3',
-    gap: 10,
-  },
-  dishHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  stars: {
-    color: '#E6A23C',
-    fontSize: 13,
-  },
-  categoryLabel: {
-    fontSize: 11,
-    color: '#8A7B68',
-    fontWeight: '600',
-  },
-  dishName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2F3542',
-  },
-  dishPrice: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#B57A1E',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#E4DAC8',
-    marginVertical: 4,
-  },
-  sectionHeading: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#4A3E2F',
-  },
-  description: {
-    fontSize: 12,
-    color: '#554C3E',
-    lineHeight: 18,
-  },
-  ingredientsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-  },
-  ingredientBadge: {
-    backgroundColor: '#ECE5D8',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#D4C6AB',
-  },
-  ingredientText: {
-    fontSize: 11,
-    color: '#4B3F2F',
-  },
-  buffBox: {
-    backgroundColor: '#F4EFE6',
-    borderRadius: 8,
-    padding: 10,
-    gap: 4,
-    borderWidth: 1,
-    borderColor: '#D8CCB5',
-  },
-  buffBadge: {
-    color: '#8A5810',
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
-  buffEffect: {
-    fontSize: 11,
-    color: '#4B3F2F',
-    lineHeight: 16,
-  },
-  bottomBar: {
-    backgroundColor: '#1C2232',
+  heroHeader: {
+    zIndex: 10,
     paddingHorizontal: 16,
-    paddingVertical: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#C8A86B40',
+    justifyContent: 'space-between',
   },
-  quantityContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#262E44',
-    borderRadius: 8,
+  circleBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: COLORS.chromePillBg,
     borderWidth: 1,
-    borderColor: '#C8A86B60',
-  },
-  quantityBtn: {
-    width: 32,
-    height: 36,
+    borderColor: COLORS.chromePillBorder,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  quantityBtnText: {
-    color: '#FFE7A5',
-    fontSize: 16,
-    fontWeight: 'bold',
+  circleBtnFavActive: {
+    backgroundColor: COLORS.goldBright,
+    borderColor: COLORS.goldBright,
   },
-  quantityText: {
-    color: '#FFF8E7',
+  heroHeaderTitle: {
+    fontFamily: FONTS.genshin,
+    fontSize: 13.5,
+    color: COLORS.inkIvory,
+    letterSpacing: 0.6,
+    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+  heroDishArea: {
+    zIndex: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingBottom: 24,
+    paddingTop: 6,
+  },
+  heroDishGlowBox: {
+    width: 156,
+    height: 156,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  heroDishImg: {
+    width: 130,
+    height: 130,
+  },
+  dossierSheet: {
+    marginTop: -18,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    backgroundColor: COLORS.ivoryTop,
+    paddingHorizontal: 16,
+    paddingTop: 20,
+    paddingBottom: 16,
+    gap: 16,
+  },
+  metaTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  metaRightText: {
+    fontFamily: FONTS.genshin,
+    fontSize: 10.5,
+    color: '#5E6275',
+  },
+  dishTitle: {
+    fontFamily: FONTS.genshin,
+    fontSize: 22,
+    color: COLORS.inkPrimary,
+    marginTop: 8,
+    lineHeight: 28,
+  },
+  priceRarityRow: {
+    marginTop: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  rarityLabel: {
+    fontFamily: FONTS.genshin,
+    fontSize: 11,
+    letterSpacing: 0.3,
+  },
+  buffCard: {
+    borderRadius: 16,
+    backgroundColor: COLORS.insetWarm,
+    borderWidth: 1,
+    borderColor: COLORS.goldTrim,
+    padding: 14,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  buffIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buffIconImg: {
+    width: 24,
+    height: 24,
+  },
+  buffCardTitle: {
+    fontFamily: FONTS.genshin,
+    fontSize: 12,
+    color: COLORS.inkPrimary,
+  },
+  buffCardEffect: {
+    fontSize: 12,
+    color: '#454A5C',
+    lineHeight: 18,
+    marginTop: 4,
+  },
+  sectionBlock: {
+    gap: 8,
+  },
+  sectionTitle: {
+    fontFamily: FONTS.genshin,
     fontSize: 13,
-    fontWeight: 'bold',
-    paddingHorizontal: 10,
+    color: COLORS.inkPrimary,
   },
-  addToCartBtn: {
-    flex: 1,
-    backgroundColor: '#D4AF37',
-    borderRadius: 8,
-    paddingVertical: 11,
+  loreBox: {
+    borderRadius: 16,
+    backgroundColor: COLORS.insetWarm,
+    borderWidth: 1,
+    borderColor: COLORS.goldTrim,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    position: 'relative',
+  },
+  quoteMarkOpen: {
+    position: 'absolute',
+    top: 4,
+    left: 10,
+    fontFamily: FONTS.genshin,
+    fontSize: 24,
+    color: 'rgba(200, 168, 107, 0.9)',
+  },
+  quoteMarkClose: {
+    position: 'absolute',
+    bottom: 0,
+    right: 12,
+    fontFamily: FONTS.genshin,
+    fontSize: 24,
+    color: 'rgba(200, 168, 107, 0.9)',
+  },
+  loreText: {
+    fontStyle: 'italic',
+    fontSize: 12.5,
+    color: '#43485B',
+    lineHeight: 19,
+    paddingHorizontal: 8,
+  },
+  ingredientsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  ingredientsCount: {
+    fontFamily: FONTS.genshin,
+    fontSize: 10.5,
+    color: '#64697B',
+  },
+  ingredientsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  ingredientCard: {
+    width: '23%',
+    borderRadius: 12,
+    backgroundColor: COLORS.insetWarm,
+    borderWidth: 1,
+    borderColor: COLORS.goldTrim,
+    padding: 6,
     alignItems: 'center',
   },
-  addToCartText: {
-    color: '#1C2232',
+  ingredientImgBox: {
+    width: '100%',
+    aspectRatio: 1,
+    borderRadius: 8,
+    backgroundColor: COLORS.ingredientTile,
+    borderWidth: 1,
+    borderColor: 'rgba(200,168,107,0.7)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  ingredientImg: {
+    width: 34,
+    height: 34,
+  },
+  ingredientQtyBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    borderTopLeftRadius: 6,
+    backgroundColor: '#242B3E',
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderColor: 'rgba(200,168,107,0.6)',
+  },
+  ingredientQtyText: {
+    fontFamily: FONTS.genshin,
+    fontSize: 9.5,
+    color: COLORS.goldBright,
+  },
+  ingredientName: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#2B2D3A',
+    marginTop: 5,
+    textAlign: 'center',
+  },
+  stickyFooter: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    gap: 10,
+  },
+  footerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  stepperPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.chromePillBg,
+    borderWidth: 1,
+    borderColor: COLORS.chromePillBorder,
+    borderRadius: 999,
+    padding: 4,
+    gap: 4,
+  },
+  stepperBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepperVal: {
+    fontFamily: FONTS.genshin,
+    minWidth: 26,
+    textAlign: 'center',
+    fontSize: 14,
+    color: COLORS.inkIvory,
+  },
+  orderNowBtn: {
+    flex: 1,
+    minHeight: 42,
+    borderRadius: 999,
+    borderWidth: 1.5,
+    borderColor: COLORS.goldBorder,
+    backgroundColor: 'rgba(255,231,165,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 14,
+  },
+  orderNowText: {
+    fontFamily: FONTS.genshin,
     fontSize: 12,
-    fontWeight: 'bold',
+    color: COLORS.goldBright,
+  },
+  addBtnText: {
+    fontFamily: FONTS.genshin,
+    fontSize: 12.5,
+    color: '#2E3446',
   },
 });
