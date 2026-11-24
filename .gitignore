@@ -16,7 +16,6 @@ desktop.ini
 __pycache__/
 *.pyc
 *.py
-build_*.py
 
 # IDE / Editor
 .vscode/
@@ -24,25 +23,9 @@ build_*.py
 *.swp
 *.swo
 
-# Catatan Perancangan & Internal (Hanya Tersimpan di Lokal)
-AI_STUDIO_*.md
-BLUEPRINT_*.md
-CATATAN_*.md
-DATA_MODEL_*.md
-DESIGN.md
-KONSEP_*.md
-KONTEKS_*.md
-RESEARCH_*.md
-AGENTS.md
-.claude/
-
-.aistudio/
-public/assets/aistudio/
+# Local Development & Drafts
+drafts/
+*.tmp
+*.bak
 assets/audio/
 assets/video/
-
-# Berkas Soal & Dokumen Internal Lokal
-Soal_*.pdf
-SPESIFIKASI_*.md
-PRD_*.md
-bun.lock
