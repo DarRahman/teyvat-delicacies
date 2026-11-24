@@ -58,6 +58,7 @@ export default function ProfileScreen() {
   );
   const updateProfileSettings = useDelicaciesStore((s) => s.updateProfileSettings);
   const reorderFromHistory = useDelicaciesStore((s) => s.reorderFromHistory);
+  const resetSimulationData = useDelicaciesStore((s) => s.resetSimulationData);
 
   const [isNamecardModalOpen, setIsNamecardModalOpen] = useState(false);
   const [isBargainsModalOpen, setIsBargainsModalOpen] = useState(false);
@@ -779,6 +780,22 @@ export default function ProfileScreen() {
               <Text style={styles.appInfoLabel}>Katalog Resmi</Text>
               <Text style={styles.appInfoValue}>{DISHES.length} Hidangan · 8 Wilayah</Text>
             </View>
+          </ParchmentCard>
+
+          {/* Reset Simulation Data */}
+          <ParchmentCard style={{ gap: 8, marginTop: 4 }}>
+            <Text style={styles.fieldLabel}>Reset Data Simulasi</Text>
+            <Text style={styles.appInfoLabel}>
+              Kosongkan keranjang belanja, kembalikan kuota voucher, dan reset riwayat pesanan ke awal.
+            </Text>
+            <GoldCapsuleButton
+              onPress={() => {
+                resetSimulationData();
+                setIsSettingsModalOpen(false);
+              }}
+            >
+              Reset Data ke Default
+            </GoldCapsuleButton>
           </ParchmentCard>
         </ScrollView>
       </TeyvatModalSheet>
