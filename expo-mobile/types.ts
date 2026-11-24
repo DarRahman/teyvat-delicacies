@@ -2,6 +2,8 @@ import { ImageSource } from 'expo-image';
 
 export type AssetSource = ImageSource | number | string;
 
+export type TravelerAvatarId = 'aether' | 'lumine';
+
 export type TeyvatRegion =
   | 'Mondstadt'
   | 'Liyue'
@@ -36,7 +38,7 @@ export interface Dish {
   buffIcon?: AssetSource;
   priceMora: number;
   image: AssetSource;
-  fallbackImage: string;
+  fallbackImage?: AssetSource;
   description: string;
   effect: string;
   ingredients: DishIngredient[];
@@ -101,6 +103,7 @@ export interface Order {
   kitchenNotes: string;
   status: OrderStatus;
   createdAt: string;
+  rewardClaimed?: boolean;
 }
 
 export interface TravelerProfile {
@@ -114,7 +117,8 @@ export interface TravelerProfile {
   primogemBalance: number;
   reputationTitle: string;
   reputationRegion: TeyvatRegion;
-  avatarUrl: string;
+  avatarId: TravelerAvatarId;
+  avatarUrl: AssetSource;
   fallbackAvatarUrl: AssetSource;
 }
 

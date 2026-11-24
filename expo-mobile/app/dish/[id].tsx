@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 24,
+    paddingBottom: 14,
   },
   hero: {
     minHeight: 242,

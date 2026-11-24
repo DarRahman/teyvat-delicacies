@@ -10,7 +10,6 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { ArrowRight, Plus } from 'lucide-react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   BuffBadge,
   DiamondDivider,
@@ -18,6 +17,7 @@ import {
   FloatingQuickCartBar,
   GoldCapsuleButton,
   MoraAmount,
+  ParchmentScreen,
   RadialGlowBackdrop,
   RarityDishBanner,
   TeyvatImage,
@@ -27,21 +27,20 @@ import {
   ASSET_ICONS,
   BUFF_META,
   DISHES,
+  FEATURED_DISH_ID,
   TOP_RECOMMENDATION_IDS,
 } from '../../data/dishes';
+import { YATTA_DISH_ASSETS } from '../../data/yattaCatalog';
 import { useDelicaciesStore } from '../../store/useDelicaciesStore';
 import {
-  CHROME_BAR_GRADIENT,
   COLORS,
   FONTS,
   GOLD_BUTTON_GRADIENT,
   HERO_FESTIVAL_GRADIENT,
-  PARCHMENT_BG_GRADIENT,
 } from '../../theme/tokens';
 import { AssetSource, BuffType, DishCategory } from '../../types';
 
 export default function HomeScreen() {
-  const insets = useSafeAreaInsets();
   const profile = useDelicaciesStore((s) => s.profile);
   const addToCart = useDelicaciesStore((s) => s.addToCart);
   const setCatalogPreset = useDelicaciesStore((s) => s.setCatalogPreset);
@@ -53,7 +52,8 @@ export default function HomeScreen() {
   useDelicaciesStore((s) => s.voucherUsageCount);
 
   const totals = getCartTotals();
-  const featuredDish = DISHES.find((d) => d.id === 5101) ?? DISHES[0];
+  const featuredDish =
+    DISHES.find((d) => d.id === FEATURED_DISH_ID) ?? DISHES[0];
   const topFive = TOP_RECOMMENDATION_IDS.map((id) =>
     DISHES.find((d) => d.id === id)
   ).filter((d): d is NonNullable<typeof d> => Boolean(d));
@@ -84,19 +84,19 @@ export default function HomeScreen() {
     {
       label: 'Menu Utama',
       subtitle: 'Santapan utama',
-      icon: LOCAL_ASSETS.dishes.sweetMadame,
+      icon: YATTA_DISH_ASSETS[108033] ?? LOCAL_ASSETS.dishes.sweetMadame,
       onPress: () => openCatalogFiltered({ category: 'Main Dish', buff: null }),
     },
     {
       label: 'Camilan',
       subtitle: 'Kudapan penjelajah',
-      icon: LOCAL_ASSETS.dishes.triColorDango,
+      icon: YATTA_DISH_ASSETS[108254] ?? LOCAL_ASSETS.dishes.triColorDango,
       onPress: () => openCatalogFiltered({ category: 'Snacks', buff: null }),
     },
     {
       label: 'Minuman',
       subtitle: 'Segar khas Teyvat',
-      icon: LOCAL_ASSETS.dishes.dangoMilk,
+      icon: YATTA_DISH_ASSETS[108305] ?? LOCAL_ASSETS.dishes.dangoMilk,
       onPress: () => openCatalogFiltered({ category: 'Beverages', buff: null }),
     },
     {
@@ -109,12 +109,8 @@ export default function HomeScreen() {
   ];
 
   return (
-    <LinearGradient colors={PARCHMENT_BG_GRADIENT} style={styles.screen}>
-      {/* Clean Genshin Charcoal-Indigo Traveler Header */}
-      <LinearGradient
-        colors={CHROME_BAR_GRADIENT}
-        style={[styles.header, { paddingTop: Math.max(insets.top + 10, 18) }]}
-      >
+    <ParchmentScreen
+      header={
         <View style={styles.headerRow}>
           <Pressable
             onPress={() => router.navigate('/(tabs)/profile')}
@@ -133,7 +129,7 @@ export default function HomeScreen() {
             </View>
             <View style={styles.travelerInfo}>
               <Text style={styles.travelerRank} numberOfLines={1}>
-                Traveler · AR {profile.adventureRank}
+                Teyvat Delicacies · AR {profile.adventureRank}
               </Text>
               <Text style={styles.travelerName} numberOfLines={1}>
                 {profile.username}
@@ -154,14 +150,14 @@ export default function HomeScreen() {
             />
           </Pressable>
         </View>
-      </LinearGradient>
-
+      }
+    >
       {/* Edge-to-Edge Warm Antique Parchment Scrollable Canvas */}
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingBottom: totals.itemCount > 0 ? 96 : 28 },
+          { paddingBottom: totals.itemCount > 0 ? 78 : 14 },
         ]}
         showsVerticalScrollIndicator={false}
       >
@@ -187,7 +183,7 @@ export default function HomeScreen() {
                 </View>
                 <Text style={styles.heroTitle}>Jamuan Hangat Para Adeptus</Text>
                 <Text style={styles.heroDesc}>
-                  Teyvat Delicacies · Gunakan kupon{' '}
+                  Dapur Wanmin · Gunakan kupon{' '}
                   <Text style={styles.heroCode}>PAIMONKENYANG</Text> untuk potongan 20% seluruh hidangan.
                 </Text>
               </View>
@@ -355,7 +351,9 @@ export default function HomeScreen() {
                 openCatalogFiltered({ category: 'All Dishes', buff: null, region: null })
               }
             >
-              <Text style={styles.browseAllText}>Jelajahi Seluruh 18 Menu Katalog</Text>
+              <Text style={styles.browseAllText}>
+                Jelajahi Seluruh {DISHES.length} Menu Katalog
+              </Text>
               <ArrowRight size={16} color="#2E3446" />
             </GoldCapsuleButton>
           </View>
@@ -368,18 +366,11 @@ export default function HomeScreen() {
         totalMora={totals.finalTotal}
         onOpenCart={() => router.navigate('/(tabs)/cart')}
       />
-    </LinearGradient>
+    </ParchmentScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-  },
-  header: {
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-  },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -430,7 +421,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    gap: 20,
+    gap: 18,
   },
   heroCard: {
     borderRadius: 16,

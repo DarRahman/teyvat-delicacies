@@ -10,18 +10,19 @@ import {
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Check, Clock, Flame, Footprints, MapPin } from 'lucide-react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ArrowLeft, Check, Clock, Flame, Footprints, MapPin } from 'lucide-react-native';
 import {
   DiamondBullet,
   DiamondDivider,
   DiamondStar,
   GoldCapsuleButton,
   MoraAmount,
+  ParchmentCard,
+  ParchmentScreen,
   TeyvatImage,
   WindGliderIcon,
 } from '../../components/TeyvatUI';
-import { ASSET_ICONS, formatMora } from '../../data/dishes';
+import { ASSET_ICONS, PRIMOGEM_RULES, formatMora } from '../../data/dishes';
 import {
   clampGliderProgress,
   getGliderStageFromProgress,
@@ -37,24 +38,20 @@ import {
 } from '../../theme/tokens';
 
 export default function OrderStatusScreen() {
-  const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const orders = useDelicaciesStore((s) => s.orders);
   const updateOrderStatus = useDelicaciesStore((s) => s.updateOrderStatus);
 
   const order = orders.find((o) => o.id === id) ?? orders[0];
   const initialTotalSeconds = (order?.deliveryPoint.etaMinutes ?? 12) * 60;
+  const startedCompleted = order?.status === 'COMPLETED';
 
-  const [progress, setProgress] = useState<number>(
-    order?.status === 'COMPLETED' ? 100 : 4
-  );
-  const [showQuestModal, setShowQuestModal] = useState(
-    order?.status === 'COMPLETED'
-  );
+  const [progress, setProgress] = useState<number>(startedCompleted ? 100 : 4);
+  const [showQuestModal, setShowQuestModal] = useState(false);
   const [railWidth, setRailWidth] = useState(220);
 
   const dispatchedRef = useRef(order?.status !== 'COOKING');
-  const completedRef = useRef(order?.status === 'COMPLETED');
+  const completedRef = useRef(startedCompleted);
 
   // Smooth continuous real-time courier progress (0% -> 100%)
   useEffect(() => {
@@ -70,7 +67,7 @@ export default function OrderStatusScreen() {
     return () => clearInterval(tick);
   }, [order?.id, order?.status]);
 
-  // Synchronize store order status & Quest Complete modal
+  // Synchronize store order status & Quest Complete modal + +60 Primogem reward
   useEffect(() => {
     if (!order) return;
 
@@ -93,6 +90,14 @@ export default function OrderStatusScreen() {
     setProgress(100);
     updateOrderStatus(order.id, 'COMPLETED');
     setShowQuestModal(true);
+  };
+
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/(tabs)');
+    }
   };
 
   if (!order) {
@@ -151,16 +156,20 @@ export default function OrderStatusScreen() {
   const medallionLeft = (railWidth * progress) / 100 - 20;
 
   return (
-    <LinearGradient colors={PARCHMENT_BG_GRADIENT} style={styles.screen}>
-      {/* Clean Genshin Header */}
-      <LinearGradient
-        colors={CHROME_BAR_GRADIENT}
-        style={[styles.header, { paddingTop: Math.max(insets.top + 10, 18) }]}
-      >
+    <ParchmentScreen
+      header={
         <View style={styles.headerRow}>
+          <Pressable
+            onPress={handleBack}
+            style={styles.backBtn}
+            accessibilityRole="button"
+            accessibilityLabel="Kembali"
+          >
+            <ArrowLeft size={19} color={COLORS.goldBright} />
+          </Pressable>
           <View style={{ flex: 1 }}>
             <Text style={styles.orderIdHeader}>{order.id}</Text>
-            <Text style={styles.headerTitle}>
+            <Text style={styles.headerTitle} numberOfLines={1}>
               {isLocalLiyue ? 'Pengantaran Lokal Liyue' : 'Pelacakan Kurir Glider'}
             </Text>
           </View>
@@ -171,15 +180,15 @@ export default function OrderStatusScreen() {
             </Text>
           </View>
         </View>
-      </LinearGradient>
-
+      }
+    >
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         {/* Commission Progress Card */}
-        <View style={styles.ivoryCard}>
+        <ParchmentCard style={{ gap: 14 }}>
           <View style={styles.progressTopRow}>
             <View style={{ flex: 1 }}>
               <View style={styles.commissionTagRow}>
@@ -317,10 +326,10 @@ export default function OrderStatusScreen() {
                 : 'Percepat Pendaratan Kurir Glider'}
             </GoldCapsuleButton>
           )}
-        </View>
+        </ParchmentCard>
 
-        {/* Clean Ivory Parchment Order Receipt Card */}
-        <View style={styles.ivoryCard}>
+        {/* Clean Ivory Parchment Order Receipt Card (Includes Voucher Discount Row) */}
+        <ParchmentCard style={{ gap: 12 }}>
           <View style={styles.receiptDestRow}>
             <MapPin size={16} color={COLORS.goldDeep} style={{ marginTop: 2 }} />
             <View style={{ flex: 1 }}>
@@ -336,7 +345,7 @@ export default function OrderStatusScreen() {
             </View>
           </View>
 
-          <DiamondDivider style={{ marginVertical: 12 }} />
+          <DiamondDivider />
 
           <View style={styles.receiptItems}>
             {order.items.map((item) => (
@@ -365,6 +374,17 @@ export default function OrderStatusScreen() {
                   : `${formatMora(order.deliveryFeeMora)} Mora`}
               </Text>
             </View>
+
+            {order.discountMora > 0 && (
+              <View style={styles.receiptRow}>
+                <Text style={[styles.receiptFeeLabel, { color: COLORS.successGreen }]}>
+                  Potongan Voucher{order.couponCode ? ` (${order.couponCode})` : ''}
+                </Text>
+                <Text style={[styles.receiptFeeVal, { color: COLORS.successGreen }]}>
+                  -{formatMora(order.discountMora)} Mora
+                </Text>
+              </View>
+            )}
           </View>
 
           {order.kitchenNotes ? (
@@ -402,7 +422,7 @@ export default function OrderStatusScreen() {
               color={COLORS.inkBody}
             />
           </View>
-        </View>
+        </ParchmentCard>
 
         {stage >= 2 && !showQuestModal && (
           <GoldCapsuleButton onPress={() => setShowQuestModal(true)}>
@@ -411,7 +431,7 @@ export default function OrderStatusScreen() {
         )}
       </ScrollView>
 
-      {/* LEGENDARY GOLDEN-FRAMED PARCHMENT MODAL: QUEST COMPLETE */}
+      {/* LEGENDARY GOLDEN-FRAMED PARCHMENT MODAL: QUEST COMPLETE + +60 PRIMOGEM REWARD */}
       <Modal
         visible={showQuestModal}
         transparent
@@ -445,6 +465,22 @@ export default function OrderStatusScreen() {
             </LinearGradient>
 
             <View style={styles.modalBody}>
+              {/* Commission Primogem Reward Banner */}
+              <View style={styles.rewardBadgeCard}>
+                <TeyvatImage
+                  source={ASSET_ICONS.primogem}
+                  fallbackSource={ASSET_ICONS.primogemCdn}
+                  style={styles.rewardPrimoIcon}
+                  contentFit="contain"
+                />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.rewardLabel}>HADIAH COMMISSION GUILD</Text>
+                  <Text style={styles.rewardVal}>
+                    +{PRIMOGEM_RULES.ORDER_COMMISSION_REWARD} Primogem ditambahkan ke Dompet
+                  </Text>
+                </View>
+              </View>
+
               <View style={styles.modalSummaryCard}>
                 <View style={styles.modalSummaryRow}>
                   <Text style={styles.modalSummaryLabel}>Nomor Pesanan</Text>
@@ -462,7 +498,17 @@ export default function OrderStatusScreen() {
                     {order.deliveryPoint.etaMinutes} menit (Tiba)
                   </Text>
                 </View>
-                <DiamondDivider style={{ marginVertical: 6 }} />
+                {order.discountMora > 0 && (
+                  <View style={styles.modalSummaryRow}>
+                    <Text style={[styles.modalSummaryLabel, { color: COLORS.successGreen }]}>
+                      Potongan Voucher
+                    </Text>
+                    <Text style={[styles.modalSummaryVal, { color: COLORS.successGreen }]}>
+                      -{formatMora(order.discountMora)} Mora
+                    </Text>
+                  </View>
+                )}
+                <DiamondDivider style={{ marginVertical: 4 }} />
                 <View style={styles.modalSummaryRow}>
                   <Text style={styles.modalTotalLabel}>Total Transaksi</Text>
                   <MoraAmount
@@ -496,14 +542,11 @@ export default function OrderStatusScreen() {
           </View>
         </View>
       </Modal>
-    </LinearGradient>
+    </ParchmentScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-  },
   emptyScreen: {
     flex: 1,
     alignItems: 'center',
@@ -515,24 +558,28 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: COLORS.inkBody,
   },
-  header: {
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-  },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 8,
+    gap: 10,
+  },
+  backBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   orderIdHeader: {
     fontFamily: FONTS.genshin,
-    fontSize: 10.5,
+    fontSize: 10,
     color: COLORS.navSubtext,
   },
   headerTitle: {
     fontFamily: FONTS.genshin,
-    fontSize: 17,
+    fontSize: 16,
     color: COLORS.goldBright,
     marginTop: 1,
   },
@@ -551,21 +598,8 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 32,
-    gap: 16,
-  },
-  ivoryCard: {
-    borderRadius: 16,
-    backgroundColor: COLORS.ivoryTop,
-    borderWidth: 1,
-    borderColor: COLORS.goldDivider,
-    padding: 16,
+    paddingBottom: 18,
     gap: 14,
-    shadowColor: '#443824',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
   },
   progressTopRow: {
     flexDirection: 'row',
@@ -863,8 +897,35 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   modalBody: {
-    padding: 20,
-    gap: 14,
+    padding: 18,
+    gap: 12,
+  },
+  rewardBadgeCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 14,
+    backgroundColor: '#242B3E',
+    borderWidth: 1,
+    borderColor: COLORS.goldBorder,
+  },
+  rewardPrimoIcon: {
+    width: 26,
+    height: 26,
+  },
+  rewardLabel: {
+    fontFamily: FONTS.genshin,
+    fontSize: 9,
+    color: COLORS.goldBright,
+    letterSpacing: 0.8,
+  },
+  rewardVal: {
+    fontFamily: FONTS.genshin,
+    fontSize: 11.5,
+    color: COLORS.inkCream,
+    marginTop: 2,
   },
   modalSummaryCard: {
     borderRadius: 16,

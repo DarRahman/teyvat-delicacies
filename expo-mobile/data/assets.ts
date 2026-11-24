@@ -2,6 +2,10 @@ export const LOCAL_ASSETS = {
   fonts: {
     genshin: require('../assets/teyvat/fonts/GenshinFont.ttf'),
   },
+  avatars: {
+    aether: require('../assets/teyvat/avatars/aether.png'),
+    lumine: require('../assets/teyvat/avatars/lumine.png'),
+  },
   icons: {
     mora: require('../assets/teyvat/icons/mora.png'),
     primogem: require('../assets/teyvat/icons/primogem.png'),
@@ -74,4 +78,16 @@ export const LOCAL_ASSETS = {
   map: {
     teyvatWorldMap: require('../assets/teyvat/map/teyvat_world_map_8regions.png'),
   },
+} as const;
+
+/** Buff icon aliases consumed by the auto-generated official gi.yatta.moe catalog */
+export const ICON_ASSETS = {
+  buffAtk: LOCAL_ASSETS.icons.buffAtkAdd,
+  buffAtkCrit: LOCAL_ASSETS.icons.buffAtkCrit,
+  buffDef: LOCAL_ASSETS.icons.buffDefAdd,
+  buffRecoveryHp: LOCAL_ASSETS.icons.buffRecoveryHp,
+  buffRecoveryHpAll: LOCAL_ASSETS.icons.buffRecoveryHpAll,
+  buffRecoveryRevive: LOCAL_ASSETS.icons.buffRecoveryRevive,
+  buffStamina: LOCAL_ASSETS.icons.buffStaminaReduce,
+  buffAdventure: LOCAL_ASSETS.icons.buffAdventure,
 } as const;

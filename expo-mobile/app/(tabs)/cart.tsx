@@ -11,28 +11,22 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Minus, Plus, Trash2, X } from 'lucide-react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   DiamondDivider,
   DiamondStarRow,
   GoldCapsuleButton,
   MoraAmount,
+  ParchmentCard,
+  ParchmentScreen,
   RadialGlowBackdrop,
   TeyvatImage,
 } from '../../components/TeyvatUI';
 import { ASSET_ICONS, COUPONS, RARITY_META, formatMora } from '../../data/dishes';
 import { getRemainingVoucherUses } from '../../lib/delicaciesRules';
 import { useDelicaciesStore } from '../../store/useDelicaciesStore';
-import {
-  CHROME_BAR_GRADIENT,
-  COLORS,
-  FONTS,
-  GOLD_BUTTON_GRADIENT,
-  PARCHMENT_BG_GRADIENT,
-} from '../../theme/tokens';
+import { COLORS, FONTS, GOLD_BUTTON_GRADIENT } from '../../theme/tokens';
 
 export default function CartScreen() {
-  const insets = useSafeAreaInsets();
   const cart = useDelicaciesStore((s) => s.cart);
   const appliedCouponCode = useDelicaciesStore((s) => s.appliedCouponCode);
   const voucherUsageCount = useDelicaciesStore((s) => s.voucherUsageCount);
@@ -81,12 +75,8 @@ export default function CartScreen() {
   };
 
   return (
-    <LinearGradient colors={PARCHMENT_BG_GRADIENT} style={styles.screen}>
-      {/* Clean Genshin Header */}
-      <LinearGradient
-        colors={CHROME_BAR_GRADIENT}
-        style={[styles.header, { paddingTop: Math.max(insets.top + 10, 18) }]}
-      >
+    <ParchmentScreen
+      header={
         <View style={styles.headerRow}>
           <View style={{ flex: 1 }}>
             <Text style={styles.headerTitle}>Keranjang Petualang</Text>
@@ -104,8 +94,8 @@ export default function CartScreen() {
             />
           )}
         </View>
-      </LinearGradient>
-
+      }
+    >
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
@@ -113,7 +103,7 @@ export default function CartScreen() {
         keyboardShouldPersistTaps="handled"
       >
         {cart.length === 0 ? (
-          <View style={styles.emptyCard}>
+          <ParchmentCard style={styles.emptyCard}>
             <TeyvatImage
               source={ASSET_ICONS.paimonHungry}
               style={styles.paimonImg}
@@ -129,7 +119,7 @@ export default function CartScreen() {
                 Jelajahi Katalog Kuliner
               </GoldCapsuleButton>
             </View>
-          </View>
+          </ParchmentCard>
         ) : (
           <View style={styles.contentStack}>
             {/* Active Order List */}
@@ -137,7 +127,7 @@ export default function CartScreen() {
               {cart.map(({ dish, quantity }) => {
                 const rarityStyle = RARITY_META[dish.rarity];
                 return (
-                  <View key={dish.id} style={styles.cartItemCard}>
+                  <ParchmentCard key={dish.id} style={styles.cartItemCard}>
                     <Pressable
                       onPress={() =>
                         router.push({
@@ -214,13 +204,13 @@ export default function CartScreen() {
                         </View>
                       </View>
                     </View>
-                  </View>
+                  </ParchmentCard>
                 );
               })}
             </View>
 
             {/* Strict Voucher Redemption Section */}
-            <View style={styles.ivoryCard}>
+            <ParchmentCard>
               <View style={styles.voucherHeader}>
                 <TeyvatImage
                   source={ASSET_ICONS.intertwinedFate}
@@ -364,10 +354,10 @@ export default function CartScreen() {
                   );
                 })}
               </View>
-            </View>
+            </ParchmentCard>
 
             {/* Billing Summary Card */}
-            <View style={styles.ivoryCard}>
+            <ParchmentCard>
               <Text style={styles.billingTitle}>Rincian Tagihan Mora</Text>
 
               <View style={styles.billingRows}>
@@ -423,9 +413,9 @@ export default function CartScreen() {
                   color={COLORS.inkPrimary}
                 />
               </View>
-            </View>
+            </ParchmentCard>
 
-            <View style={{ paddingTop: 4 }}>
+            <View style={{ paddingTop: 2 }}>
               <GoldCapsuleButton onPress={() => router.push('/checkout')}>
                 Lanjut Pengantaran Teyvat
               </GoldCapsuleButton>
@@ -433,18 +423,11 @@ export default function CartScreen() {
           </View>
         )}
       </ScrollView>
-    </LinearGradient>
+    </ParchmentScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-  },
-  header: {
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-  },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -468,16 +451,12 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 32,
+    paddingBottom: 16,
   },
   emptyCard: {
-    borderRadius: 16,
-    backgroundColor: COLORS.ivoryTop,
-    borderWidth: 1,
-    borderColor: COLORS.goldDivider,
     padding: 24,
     alignItems: 'center',
-    marginTop: 12,
+    marginTop: 10,
   },
   paimonImg: {
     width: 124,
@@ -508,19 +487,10 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   cartItemCard: {
-    borderRadius: 16,
-    backgroundColor: COLORS.ivoryTop,
-    borderWidth: 1,
-    borderColor: COLORS.goldDivider,
     padding: 12,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    shadowColor: '#443824',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
   },
   thumbOuter: {
     width: 64,
@@ -600,18 +570,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 13,
     color: COLORS.inkPrimary,
-  },
-  ivoryCard: {
-    borderRadius: 16,
-    backgroundColor: COLORS.ivoryTop,
-    borderWidth: 1,
-    borderColor: COLORS.goldDivider,
-    padding: 14,
-    shadowColor: '#443824',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
   },
   voucherHeader: {
     flexDirection: 'row',

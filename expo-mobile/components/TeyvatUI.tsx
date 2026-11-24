@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  Modal,
   Pressable,
   StyleProp,
   StyleSheet,
@@ -10,7 +11,8 @@ import {
 } from 'react-native';
 import { Image, ImageContentFit } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ShoppingBag } from 'lucide-react-native';
+import { ShoppingBag, X } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Defs, Path, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { ASSET_ICONS, BUFF_META, RARITY_META, formatMora } from '../data/dishes';
 import {
@@ -18,6 +20,7 @@ import {
   COLORS,
   FONTS,
   GOLD_BUTTON_GRADIENT,
+  PARCHMENT_BG_GRADIENT,
 } from '../theme/tokens';
 import { AssetSource, BuffType, Dish, DishRarity } from '../types';
 
@@ -38,6 +41,11 @@ export const TeyvatImage: React.FC<TeyvatImageProps> = ({
   accessibilityLabel,
 }) => {
   const [stage, setStage] = useState<'primary' | 'fallback' | 'empty'>('primary');
+
+  useEffect(() => {
+    setStage('primary');
+  }, [source, fallbackSource]);
+
   const activeSource = stage === 'primary' ? source : fallbackSource;
 
   if (stage === 'empty' || !activeSource) {
@@ -72,6 +80,172 @@ export const TeyvatImage: React.FC<TeyvatImageProps> = ({
         }
       }}
     />
+  );
+};
+
+/** Shared Parchment Screen Shell ensuring 100% uniform header & parchment canvas */
+export const ParchmentScreen: React.FC<{
+  header?: React.ReactNode;
+  children: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+}> = ({ header, children, style }) => {
+  const insets = useSafeAreaInsets();
+  return (
+    <LinearGradient colors={PARCHMENT_BG_GRADIENT} style={[styles.parchmentScreen, style]}>
+      {header ? (
+        <LinearGradient
+          colors={CHROME_BAR_GRADIENT}
+          style={[styles.parchmentHeader, { paddingTop: Math.max(insets.top + 10, 18) }]}
+        >
+          {header}
+        </LinearGradient>
+      ) : null}
+      {children}
+    </LinearGradient>
+  );
+};
+
+/** Shared Ivory Parchment Card ensuring identical radius, border, and shadow across all screens */
+export const ParchmentCard: React.FC<{
+  children: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+}> = ({ children, style }) => (
+  <View style={[styles.parchmentCard, style]}>{children}</View>
+);
+
+/** Shared Warm Parchment Icon Container (unifies Mora Tunai & Kartu Northland Bank icons) */
+export const ParchmentIconBox: React.FC<{
+  children: React.ReactNode;
+  size?: number;
+  style?: StyleProp<ViewStyle>;
+}> = ({ children, size = 40, style }) => (
+  <View
+    style={[
+      styles.parchmentIconBox,
+      { width: size, height: size, borderRadius: Math.round(size * 0.3) },
+      style,
+    ]}
+  >
+    {children}
+  </View>
+);
+
+/** Shared Ornamental Genshin Modal Sheet used by Namecard Picker, Teyvat Map, Paimon's Bargains & Settings */
+export const TeyvatModalSheet: React.FC<{
+  visible: boolean;
+  onClose: () => void;
+  title: string;
+  subtitle?: string;
+  ornamentSource?: AssetSource;
+  children: React.ReactNode;
+  footer?: React.ReactNode;
+  maxHeight?: `${number}%`;
+}> = ({
+  visible,
+  onClose,
+  title,
+  subtitle,
+  ornamentSource,
+  children,
+  footer,
+  maxHeight = '88%',
+}) => (
+  <Modal
+    visible={visible}
+    transparent
+    animationType="fade"
+    onRequestClose={onClose}
+  >
+    <View style={styles.modalBackdrop}>
+      <View style={[styles.modalSheet, { maxHeight }]}>
+        <LinearGradient colors={CHROME_BAR_GRADIENT} style={styles.modalHeader}>
+          <View style={styles.modalHeaderLeft}>
+            <TeyvatImage
+              source={ornamentSource ?? ASSET_ICONS.modalOrnament}
+              fallbackSource={ASSET_ICONS.crownOfInsight}
+              style={styles.modalOrnamentIcon}
+              contentFit="contain"
+            />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.modalTitle} numberOfLines={1}>
+                {title}
+              </Text>
+              {subtitle ? (
+                <Text style={styles.modalSub} numberOfLines={1}>
+                  {subtitle}
+                </Text>
+              ) : null}
+            </View>
+          </View>
+
+          <Pressable
+            onPress={onClose}
+            style={styles.modalCloseBtn}
+            accessibilityRole="button"
+            accessibilityLabel={`Tutup ${title}`}
+          >
+            <X size={16} color={COLORS.goldBright} />
+          </Pressable>
+        </LinearGradient>
+
+        {children}
+
+        {footer ? <View style={styles.modalFooter}>{footer}</View> : null}
+      </View>
+    </View>
+  </Modal>
+);
+
+/** Authentic Genshin Impact Teleport Waypoint Vector Crest (crisp at any DPI) */
+export const TeleportWaypointIcon: React.FC<{
+  size?: number;
+  active?: boolean;
+  color?: string;
+  outlineColor?: string;
+}> = ({ size = 22, active = false, color, outlineColor }) => {
+  const fill = color ?? (active ? '#FFE7A5' : '#4FD6FF');
+  const stroke = outlineColor ?? (active ? '#22283A' : '#18344D');
+  const innerFill = active ? '#FFF9E6' : '#E3FAFF';
+
+  return (
+    <Svg width={size} height={size} viewBox="0 0 28 28">
+      {/* Upper Waypoint Spire Diamond */}
+      <Path
+        d="M14 2L17.4 8.4L14 11.4L10.6 8.4L14 2Z"
+        fill={fill}
+        stroke={stroke}
+        strokeWidth={1.35}
+        strokeLinejoin="round"
+      />
+      {/* Central Floating Teleport Rhombus Core */}
+      <Path
+        d="M14 10.6L19.4 15.8L14 26L8.6 15.8L14 10.6Z"
+        fill={fill}
+        stroke={stroke}
+        strokeWidth={1.4}
+        strokeLinejoin="round"
+      />
+      {/* Luminous Inner Facet */}
+      <Path
+        d="M14 13.4L16.4 15.9L14 21.2L11.6 15.9L14 13.4Z"
+        fill={innerFill}
+      />
+      {/* Side Energy Wings */}
+      <Path
+        d="M6.4 13.2L9.2 14.8L8.1 17.2L5.3 15.5L6.4 13.2Z"
+        fill={fill}
+        stroke={stroke}
+        strokeWidth={0.9}
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M21.6 13.2L18.8 14.8L19.9 17.2L22.7 15.5L21.6 13.2Z"
+        fill={fill}
+        stroke={stroke}
+        strokeWidth={0.9}
+        strokeLinejoin="round"
+      />
+    </Svg>
   );
 };
 
@@ -217,7 +391,14 @@ export const RarityDishBanner: React.FC<{
             : { justifyContent: 'center' },
         ]}
       >
-        <View style={{ width: imageSize + 18, height: imageSize + 18, alignItems: 'center', justifyContent: 'center' }}>
+        <View
+          style={{
+            width: imageSize + 18,
+            height: imageSize + 18,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
           <RadialGlowBackdrop size={imageSize + 18} opacity={0.44} />
           <TeyvatImage
             source={dish.image}
@@ -313,10 +494,7 @@ export const MoraAmount: React.FC<{
         accessibilityLabel="Mora"
       />
       <Text
-        style={[
-          styles.moraText,
-          { fontSize, color },
-        ]}
+        style={[styles.moraText, { fontSize, color }]}
         numberOfLines={1}
       >
         {formatMora(amount)}
@@ -448,6 +626,88 @@ export const TeyvatToast: React.FC<{ message: string | null; bottomOffset?: numb
 };
 
 const styles = StyleSheet.create({
+  parchmentScreen: {
+    flex: 1,
+  },
+  parchmentHeader: {
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+  },
+  parchmentCard: {
+    borderRadius: 16,
+    backgroundColor: COLORS.ivoryTop,
+    borderWidth: 1,
+    borderColor: COLORS.goldDivider,
+    padding: 15,
+    shadowColor: '#443824',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  parchmentIconBox: {
+    backgroundColor: COLORS.insetTrack,
+    borderWidth: 1,
+    borderColor: COLORS.goldBorder,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(27, 34, 52, 0.74)',
+    justifyContent: 'center',
+    padding: 16,
+  },
+  modalSheet: {
+    borderRadius: 24,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: COLORS.goldTrim,
+    backgroundColor: COLORS.parchmentMid,
+  },
+  modalHeader: {
+    paddingHorizontal: 16,
+    paddingVertical: 13,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  modalHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+  },
+  modalOrnamentIcon: {
+    width: 28,
+    height: 28,
+  },
+  modalTitle: {
+    fontFamily: FONTS.genshin,
+    fontSize: 14.5,
+    color: COLORS.goldBright,
+  },
+  modalSub: {
+    fontSize: 10.5,
+    color: COLORS.navSubtext,
+    marginTop: 1,
+  },
+  modalCloseBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalFooter: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: COLORS.ivoryBottom,
+    borderTopWidth: 1,
+    borderTopColor: '#E2D8C5',
+  },
   centerAll: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -575,7 +835,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 16,
     right: 16,
-    bottom: 12,
+    bottom: 10,
     zIndex: 30,
   },
   quickCartBar: {

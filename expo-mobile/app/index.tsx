@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, StyleSheet, Text, View } from 'react-native';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -7,7 +7,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   DiamondDivider,
   DiamondStar,
-  GoldCapsuleButton,
   TeyvatImage,
 } from '../components/TeyvatUI';
 import { ASSET_ICONS } from '../data/dishes';
@@ -19,49 +18,32 @@ export default function CelestiaGateScreen() {
   const profile = useDelicaciesStore((s) => s.profile);
 
   const [isEntering, setIsEntering] = useState(false);
-  const floatAnim = useRef(new Animated.Value(0)).current;
-  const pulseAnim = useRef(new Animated.Value(0.75)).current;
+  const pulseAnim = useRef(new Animated.Value(0.58)).current;
   const whiteoutAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(1.02)).current;
   const uiFadeAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    const floatLoop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(floatAnim, {
-          toValue: -5,
-          duration: 1900,
-          useNativeDriver: true,
-        }),
-        Animated.timing(floatAnim, {
-          toValue: 0,
-          duration: 1900,
-          useNativeDriver: true,
-        }),
-      ])
-    );
     const pulseLoop = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
           toValue: 1,
-          duration: 1200,
+          duration: 1300,
           useNativeDriver: true,
         }),
         Animated.timing(pulseAnim, {
-          toValue: 0.65,
-          duration: 1200,
+          toValue: 0.52,
+          duration: 1300,
           useNativeDriver: true,
         }),
       ])
     );
 
-    floatLoop.start();
     pulseLoop.start();
     return () => {
-      floatLoop.stop();
       pulseLoop.stop();
     };
-  }, [floatAnim, pulseAnim]);
+  }, [pulseAnim]);
 
   const handleBegin = () => {
     if (isEntering) return;
@@ -89,9 +71,15 @@ export default function CelestiaGateScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <Pressable
+      onPress={handleBegin}
+      accessibilityRole="button"
+      accessibilityLabel="Click to Begin - Masuk ke Teyvat Delicacies"
+      style={styles.container}
+    >
       {/* Static Daylight Door of Celestia Backdrop */}
       <Animated.View
+        pointerEvents="none"
         style={[
           StyleSheet.absoluteFill,
           { transform: [{ scale: scaleAnim }] },
@@ -128,35 +116,21 @@ export default function CelestiaGateScreen() {
         <LinearGradient
           colors={[
             'rgba(248, 245, 238, 0)',
-            'rgba(248, 245, 238, 0.55)',
+            'rgba(248, 245, 238, 0.58)',
             'rgba(236, 229, 216, 0.94)',
           ]}
           style={StyleSheet.absoluteFill}
         />
       </Animated.View>
 
-      {/* Top Golden Emblem & Title */}
+      {/* Clean Top Golden Title (No Mora Medallion Above) */}
       <Animated.View
+        pointerEvents="none"
         style={[
           styles.header,
-          { paddingTop: Math.max(insets.top + 28, 52), opacity: uiFadeAnim },
+          { paddingTop: Math.max(insets.top + 38, 62), opacity: uiFadeAnim },
         ]}
       >
-        <Animated.View
-          style={[
-            styles.emblemCircle,
-            { transform: [{ translateY: floatAnim }] },
-          ]}
-        >
-          <TeyvatImage
-            source={ASSET_ICONS.mora}
-            fallbackSource={ASSET_ICONS.moraCdn}
-            style={styles.emblemImg}
-            contentFit="contain"
-            accessibilityLabel="Lambang Teyvat Delicacies"
-          />
-        </Animated.View>
-
         <Text style={styles.title}>Teyvat Delicacies</Text>
 
         <View style={styles.dividerWrap}>
@@ -167,11 +141,12 @@ export default function CelestiaGateScreen() {
       {/* Unobstructed View of the Celestia Stone Door */}
       <View style={styles.spacer} pointerEvents="none" />
 
-      {/* Minimalist Bottom Traveler Identity Pill & Iconic CTA */}
+      {/* Bottom Traveler Identity Pill & Authentic Genshin CLICK TO BEGIN Prompt */}
       <Animated.View
+        pointerEvents="none"
         style={[
           styles.footer,
-          { paddingBottom: Math.max(insets.bottom + 24, 38), opacity: uiFadeAnim },
+          { paddingBottom: Math.max(insets.bottom + 30, 44), opacity: uiFadeAnim },
         ]}
       >
         <View style={styles.travelerPill}>
@@ -189,20 +164,11 @@ export default function CelestiaGateScreen() {
           </Text>
         </View>
 
-        <View style={styles.ctaWrap}>
-          <GoldCapsuleButton
-            onPress={handleBegin}
-            contentStyle={styles.ctaContent}
-          >
-            <DiamondStar size={11} color="#9C5A14" />
-            <Text style={styles.ctaText}>Ketuk untuk Memulai</Text>
-            <DiamondStar size={11} color="#9C5A14" />
-          </GoldCapsuleButton>
-        </View>
-
-        <Animated.Text style={[styles.clickBeginText, { opacity: pulseAnim }]}>
-          CLICK TO BEGIN
-        </Animated.Text>
+        <Animated.View style={[styles.beginPromptRow, { opacity: pulseAnim }]}>
+          <DiamondStar size={11} color="#B88732" strokeColor="#7C5314" />
+          <Text style={styles.clickBeginText}>CLICK TO BEGIN</Text>
+          <DiamondStar size={11} color="#B88732" strokeColor="#7C5314" />
+        </Animated.View>
       </Animated.View>
 
       {/* Radiant Celestial Godray Whiteout Bloom */}
@@ -215,7 +181,7 @@ export default function CelestiaGateScreen() {
           style={StyleSheet.absoluteFill}
         />
       </Animated.View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -230,7 +196,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: '36%',
+    height: '34%',
     zIndex: 5,
   },
   bottomVeil: {
@@ -238,7 +204,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: '36%',
+    height: '34%',
     zIndex: 5,
   },
   header: {
@@ -246,39 +212,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     alignItems: 'center',
   },
-  emblemCircle: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    borderWidth: 2,
-    borderColor: COLORS.goldBright,
-    backgroundColor: '#F7F2E6',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-    shadowColor: '#182340',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.32,
-    shadowRadius: 12,
-    elevation: 6,
-  },
-  emblemImg: {
-    width: 34,
-    height: 34,
-  },
   title: {
     fontFamily: FONTS.genshin,
-    fontSize: 28,
+    fontSize: 30,
     color: COLORS.inkCream,
-    letterSpacing: 0.6,
+    letterSpacing: 0.8,
     textAlign: 'center',
-    textShadowColor: 'rgba(20, 30, 58, 0.72)',
+    textShadowColor: 'rgba(20, 30, 58, 0.78)',
     textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 10,
+    textShadowRadius: 12,
   },
   dividerWrap: {
-    width: 160,
-    marginTop: 10,
+    width: 176,
+    marginTop: 12,
   },
   spacer: {
     flex: 1,
@@ -287,7 +233,7 @@ const styles = StyleSheet.create({
     zIndex: 15,
     paddingHorizontal: 24,
     alignItems: 'center',
-    gap: 14,
+    gap: 20,
   },
   travelerPill: {
     flexDirection: 'row',
@@ -326,23 +272,21 @@ const styles = StyleSheet.create({
     color: COLORS.inkPrimary,
     flexShrink: 1,
   },
-  ctaWrap: {
-    width: '100%',
-    maxWidth: 310,
-  },
-  ctaContent: {
-    minHeight: 50,
-  },
-  ctaText: {
-    fontFamily: FONTS.genshin,
-    fontSize: 14,
-    color: '#2E3446',
+  beginPromptRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    paddingVertical: 6,
   },
   clickBeginText: {
     fontFamily: FONTS.genshin,
-    fontSize: 10,
-    letterSpacing: 2.2,
-    color: '#4C4537',
+    fontSize: 14,
+    letterSpacing: 3.4,
+    color: '#342F25',
+    textShadowColor: 'rgba(255, 250, 236, 0.95)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 8,
   },
   whiteoutOverlay: {
     position: 'absolute',

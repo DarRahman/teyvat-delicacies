@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   FlatList,
   Pressable,
@@ -17,12 +17,12 @@ import {
   SlidersHorizontal,
   X,
 } from 'lucide-react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   BuffBadge,
   DiamondStar,
   FloatingQuickCartBar,
   MoraAmount,
+  ParchmentScreen,
   RarityDishBanner,
   TeyvatImage,
 } from '../../components/TeyvatUI';
@@ -35,20 +35,13 @@ import {
 } from '../../data/dishes';
 import { filterDishes } from '../../lib/delicaciesRules';
 import { useDelicaciesStore } from '../../store/useDelicaciesStore';
-import {
-  CHROME_BAR_GRADIENT,
-  COLORS,
-  FONTS,
-  GOLD_BUTTON_GRADIENT,
-  PARCHMENT_BG_GRADIENT,
-} from '../../theme/tokens';
+import { COLORS, FONTS, GOLD_BUTTON_GRADIENT } from '../../theme/tokens';
 import { BuffType, Dish, DishCategory, DishRarity, TeyvatRegion } from '../../types';
 
 const ALL_BUFFS: BuffType[] = ['ATK', 'DEF', 'HP', 'STAMINA'];
 const ALL_RARITIES: DishRarity[] = [5, 4, 3, 2, 1];
 
 export default function CatalogScreen() {
-  const insets = useSafeAreaInsets();
   const profile = useDelicaciesStore((s) => s.profile);
   const addToCart = useDelicaciesStore((s) => s.addToCart);
   const catalogPreset = useDelicaciesStore((s) => s.catalogPreset);
@@ -125,73 +118,72 @@ export default function CatalogScreen() {
 
   const totals = getCartTotals();
 
-  const handleOpenDish = (dish: Dish) => {
+  const handleOpenDish = useCallback((dish: Dish) => {
     router.push({
       pathname: '/dish/[id]',
       params: { id: String(dish.id) },
     });
-  };
+  }, []);
 
-  const renderDishCard = ({ item: dish }: { item: Dish }) => (
-    <View style={styles.dishCard}>
-      <RarityDishBanner
-        dish={dish}
-        height={108}
-        imageSize={78}
-        onPress={() => handleOpenDish(dish)}
-      />
+  const renderDishCard = useCallback(
+    ({ item: dish }: { item: Dish }) => (
+      <View style={styles.dishCard}>
+        <RarityDishBanner
+          dish={dish}
+          height={108}
+          imageSize={78}
+          onPress={() => handleOpenDish(dish)}
+        />
 
-      <View style={styles.dishBody}>
-        <Pressable onPress={() => handleOpenDish(dish)} accessibilityRole="button">
-          <Text style={styles.dishName} numberOfLines={2}>
-            {dish.name}
-          </Text>
-          <View style={{ marginTop: 6 }}>
-            <BuffBadge
-              buffType={dish.buffType}
-              label={dish.buffLabel}
-              iconSource={dish.buffIcon}
-              compact
-            />
-          </View>
-        </Pressable>
-
-        <View style={styles.dishFooter}>
-          <MoraAmount
-            amount={dish.priceMora}
-            size="xs"
-            color={COLORS.inkPrimary}
-          />
-          <Pressable
-            onPress={() => addToCart(dish, 1)}
-            accessibilityRole="button"
-            accessibilityLabel={`Tambah ${dish.name} ke keranjang`}
-            style={({ pressed }) => [
-              styles.plusBtnOuter,
-              pressed && { transform: [{ scale: 0.94 }] },
-            ]}
-          >
-            <LinearGradient colors={GOLD_BUTTON_GRADIENT} style={styles.plusBtnInner}>
-              <Plus size={16} color="#2E3446" strokeWidth={2.5} />
-            </LinearGradient>
+        <View style={styles.dishBody}>
+          <Pressable onPress={() => handleOpenDish(dish)} accessibilityRole="button">
+            <Text style={styles.dishName} numberOfLines={2}>
+              {dish.name}
+            </Text>
+            <View style={{ marginTop: 6 }}>
+              <BuffBadge
+                buffType={dish.buffType}
+                label={dish.buffLabel}
+                iconSource={dish.buffIcon}
+                compact
+              />
+            </View>
           </Pressable>
+
+          <View style={styles.dishFooter}>
+            <MoraAmount
+              amount={dish.priceMora}
+              size="xs"
+              color={COLORS.inkPrimary}
+            />
+            <Pressable
+              onPress={() => addToCart(dish, 1)}
+              accessibilityRole="button"
+              accessibilityLabel={`Tambah ${dish.name} ke keranjang`}
+              style={({ pressed }) => [
+                styles.plusBtnOuter,
+                pressed && { transform: [{ scale: 0.94 }] },
+              ]}
+            >
+              <LinearGradient colors={GOLD_BUTTON_GRADIENT} style={styles.plusBtnInner}>
+                <Plus size={16} color="#2E3446" strokeWidth={2.5} />
+              </LinearGradient>
+            </Pressable>
+          </View>
         </View>
       </View>
-    </View>
+    ),
+    [addToCart, handleOpenDish]
   );
 
   return (
-    <LinearGradient colors={PARCHMENT_BG_GRADIENT} style={styles.screen}>
-      {/* Clean Genshin Title Ribbon */}
-      <LinearGradient
-        colors={CHROME_BAR_GRADIENT}
-        style={[styles.header, { paddingTop: Math.max(insets.top + 10, 18) }]}
-      >
+    <ParchmentScreen
+      header={
         <View style={styles.headerRow}>
           <View style={{ flex: 1 }}>
             <Text style={styles.headerTitle}>Katalog Kuliner Teyvat</Text>
             <Text style={styles.headerSubtitle}>
-              Cari hidangan, saring efek buff tempur &amp; 8 wilayah
+              {DISHES.length} hidangan resmi · Saring efek buff &amp; 8 wilayah
             </Text>
           </View>
           <Pressable
@@ -206,8 +198,8 @@ export default function CatalogScreen() {
             />
           </Pressable>
         </View>
-      </LinearGradient>
-
+      }
+    >
       {/* Warm Parchment Filter Control Deck */}
       <View style={styles.filterDeck}>
         {/* Search Input + Wilayah Toggle */}
@@ -392,16 +384,20 @@ export default function CatalogScreen() {
         )}
       </View>
 
-      {/* Native FlatList 2-Column Catalog Grid */}
+      {/* Optimized Native FlatList 2-Column Catalog Grid for 80 Official Dishes */}
       <FlatList
         data={filteredDishes}
         keyExtractor={(item) => String(item.id)}
         numColumns={2}
         renderItem={renderDishCard}
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
+        windowSize={7}
+        removeClippedSubviews
         columnWrapperStyle={styles.gridRow}
         contentContainerStyle={[
           styles.listContent,
-          { paddingBottom: totals.itemCount > 0 ? 96 : 28 },
+          { paddingBottom: totals.itemCount > 0 ? 72 : 4 },
         ]}
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
@@ -441,18 +437,11 @@ export default function CatalogScreen() {
         totalMora={totals.finalTotal}
         onOpenCart={() => router.navigate('/(tabs)/cart')}
       />
-    </LinearGradient>
+    </ParchmentScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-  },
-  header: {
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-  },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',

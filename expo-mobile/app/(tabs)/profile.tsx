@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 import { Image } from 'expo-image';
@@ -12,58 +12,77 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import {
   Check,
+  ChevronRight,
   Image as ImageIcon,
-  Info,
   Mail,
   RotateCcw,
   RotateCw,
+  Settings,
   ShieldCheck,
-  X,
 } from 'lucide-react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   DiamondBullet,
   DiamondDivider,
   GoldCapsuleButton,
   MoraAmount,
+  ParchmentCard,
+  ParchmentIconBox,
+  ParchmentScreen,
   RadialGlowBackdrop,
   TeyvatImage,
+  TeyvatModalSheet,
 } from '../../components/TeyvatUI';
 import {
   ASSET_ICONS,
+  AVATAR_OPTIONS,
   COUPONS,
   DISHES,
   NAMECARDS,
+  PRIMOGEM_RULES,
   RARITY_META,
   formatMora,
 } from '../../data/dishes';
 import { getRemainingVoucherUses, isLocalLiyueDelivery } from '../../lib/delicaciesRules';
 import { useDelicaciesStore } from '../../store/useDelicaciesStore';
-import {
-  CHROME_BAR_GRADIENT,
-  COLORS,
-  FONTS,
-  GOLD_BUTTON_GRADIENT,
-  PARCHMENT_BG_GRADIENT,
-} from '../../theme/tokens';
+import { COLORS, FONTS, GOLD_BUTTON_GRADIENT } from '../../theme/tokens';
+import { TravelerAvatarId } from '../../types';
 
 export default function ProfileScreen() {
-  const insets = useSafeAreaInsets();
   const profile = useDelicaciesStore((s) => s.profile);
   const selectedNamecardId = useDelicaciesStore((s) => s.selectedNamecardId);
   const setSelectedNamecard = useDelicaciesStore((s) => s.setSelectedNamecard);
   const orders = useDelicaciesStore((s) => s.orders);
   const favoriteIds = useDelicaciesStore((s) => s.favoriteIds);
   const voucherUsageCount = useDelicaciesStore((s) => s.voucherUsageCount);
-  const topUpMora = useDelicaciesStore((s) => s.topUpMora);
+  const exchangePrimogemsForMora = useDelicaciesStore((s) => s.exchangePrimogemsForMora);
+  const exchangePrimogemsForVoucherRefill = useDelicaciesStore(
+    (s) => s.exchangePrimogemsForVoucherRefill
+  );
+  const updateProfileSettings = useDelicaciesStore((s) => s.updateProfileSettings);
   const reorderFromHistory = useDelicaciesStore((s) => s.reorderFromHistory);
   const resetSimulationData = useDelicaciesStore((s) => s.resetSimulationData);
 
   const [isNamecardModalOpen, setIsNamecardModalOpen] = useState(false);
+  const [isBargainsModalOpen, setIsBargainsModalOpen] = useState(false);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+
+  // Settings form state
+  const [draftName, setDraftName] = useState(profile.username);
+  const [draftBio, setDraftBio] = useState(profile.bio);
+  const [draftAvatarId, setDraftAvatarId] = useState<TravelerAvatarId>(profile.avatarId);
+
+  useEffect(() => {
+    if (isSettingsModalOpen) {
+      setDraftName(profile.username);
+      setDraftBio(profile.bio);
+      setDraftAvatarId(profile.avatarId);
+    }
+  }, [isSettingsModalOpen, profile.username, profile.bio, profile.avatarId]);
 
   const activeNamecard =
     NAMECARDS.find((n) => n.id === selectedNamecardId) ?? NAMECARDS[0];
   const favoriteDishes = DISHES.filter((d) => favoriteIds.includes(d.id));
+  const canAffordExchange = profile.primogemBalance >= PRIMOGEM_RULES.EXCHANGE_COST;
 
   const handleReorder = (orderId: string) => {
     const ok = reorderFromHistory(orderId);
@@ -72,43 +91,60 @@ export default function ProfileScreen() {
     }
   };
 
+  const handleSaveSettings = () => {
+    updateProfileSettings({
+      username: draftName,
+      bio: draftBio,
+      avatarId: draftAvatarId,
+    });
+    setIsSettingsModalOpen(false);
+  };
+
   return (
-    <LinearGradient colors={PARCHMENT_BG_GRADIENT} style={styles.screen}>
-      {/* Clean Genshin Header */}
-      <LinearGradient
-        colors={CHROME_BAR_GRADIENT}
-        style={[styles.header, { paddingTop: Math.max(insets.top + 10, 18) }]}
-      >
+    <ParchmentScreen
+      header={
         <View style={styles.headerRow}>
           <View style={{ flex: 1 }}>
             <Text style={styles.headerTitle}>Lisensi Petualang</Text>
-            <Text style={styles.headerSubtitle}>
-              Adventurers&apos; Guild · Koleksi Namecard &amp; riwayat jamuan
+            <Text style={styles.headerSubtitle} numberOfLines={1}>
+              Adventurers&apos; Guild · Koleksi Namecard &amp; riwayat
             </Text>
           </View>
 
-          <Pressable
-            onPress={() => setIsNamecardModalOpen(true)}
-            style={styles.namecardBtnOuter}
-            accessibilityRole="button"
-          >
-            <LinearGradient
-              colors={GOLD_BUTTON_GRADIENT}
-              style={styles.namecardBtnInner}
+          <View style={styles.headerActions}>
+            <Pressable
+              onPress={() => setIsNamecardModalOpen(true)}
+              style={styles.namecardBtnOuter}
+              accessibilityRole="button"
+              accessibilityLabel="Ganti Namecard"
             >
-              <ImageIcon size={14} color="#2E3446" />
-              <Text style={styles.namecardBtnText}>Ganti Namecard</Text>
-            </LinearGradient>
-          </Pressable>
-        </View>
-      </LinearGradient>
+              <LinearGradient
+                colors={GOLD_BUTTON_GRADIENT}
+                style={styles.namecardBtnInner}
+              >
+                <ImageIcon size={14} color="#2E3446" />
+                <Text style={styles.namecardBtnText}>Namecard</Text>
+              </LinearGradient>
+            </Pressable>
 
+            <Pressable
+              onPress={() => setIsSettingsModalOpen(true)}
+              style={styles.settingsIconBtn}
+              accessibilityRole="button"
+              accessibilityLabel="Pengaturan & Info Akun"
+            >
+              <Settings size={18} color={COLORS.goldBright} />
+            </Pressable>
+          </View>
+        </View>
+      }
+    >
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Authentic In-Game Adventurer Namecard Showcase (Unobstructed Artwork) */}
+        {/* Clean In-Game Adventurer Namecard Showcase (Matches Web Layout, Full UID & WL 9) */}
         <View style={styles.namecardCard}>
           <View style={styles.namecardBanner}>
             <Image
@@ -155,62 +191,62 @@ export default function ProfileScreen() {
             </View>
           </View>
 
-          {/* Warm Ivory Adventurer Stat Strip (Full HYWenHei Typography) */}
+          {/* Proportional 4-Box Stat Strip: Full 8-Digit UID NIM Never Truncates + WL 9 */}
           <View style={styles.statStrip}>
-            <View style={styles.statBox}>
+            <View style={[styles.statBox, styles.statBoxUid]}>
               <Text style={styles.statLabel}>UID</Text>
-              <Text style={styles.statValSmall} numberOfLines={1}>
+              <Text
+                style={styles.statValUid}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.76}
+              >
                 {profile.uid}
               </Text>
             </View>
-            <View style={styles.statBox}>
+            <View style={[styles.statBox, styles.statBoxCompact]}>
               <Text style={styles.statLabel}>AR</Text>
               <Text style={[styles.statVal, { color: COLORS.goldDeep }]}>
                 {profile.adventureRank}
               </Text>
             </View>
-            <View style={styles.statBox}>
+            <View style={[styles.statBox, styles.statBoxCompact]}>
               <Text style={styles.statLabel}>WL</Text>
               <Text style={[styles.statVal, { color: COLORS.goldDeep }]}>
                 {profile.worldLevel}
               </Text>
             </View>
-            <View style={styles.statBox}>
-              <Text style={styles.statLabel}>PESANAN</Text>
+            <View style={[styles.statBox, styles.statBoxOrders]}>
+              <Text style={styles.statLabel} numberOfLines={1}>
+                PESANAN
+              </Text>
               <Text style={[styles.statVal, { color: COLORS.successGreen }]}>
                 {orders.length}
               </Text>
             </View>
           </View>
-
-          {/* Traveler Email & Short Bio Strip */}
-          <View style={styles.identityMetaBox}>
-            <View style={styles.emailRow}>
-              <Mail size={13} color={COLORS.goldDeep} />
-              <Text style={styles.emailText} numberOfLines={1}>
-                {profile.email}
-              </Text>
-            </View>
-            <Text style={styles.bioText}>{profile.bio}</Text>
-          </View>
         </View>
 
-        {/* Teyvat Wallet & Synced Voucher Quotas */}
-        <View style={styles.ivoryCard}>
+        {/* Teyvat Wallet, Functional Primogem Exchange (160) & Synced Voucher Quotas */}
+        <ParchmentCard>
           <View style={styles.walletHeader}>
             <Text style={styles.sectionCardTitle}>Dompet Teyvat</Text>
             <Pressable
-              onPress={() => topUpMora(50000)}
-              style={styles.claimBtn}
+              onPress={() => setIsBargainsModalOpen(true)}
+              style={({ pressed }) => [
+                styles.exchangeBtn,
+                pressed && { opacity: 0.85 },
+              ]}
               accessibilityRole="button"
+              accessibilityLabel="Tukar Primogem di Paimon's Bargains"
             >
               <TeyvatImage
-                source={ASSET_ICONS.masterlessStarglitter}
-                fallbackSource={ASSET_ICONS.mora}
-                style={styles.claimIcon}
+                source={ASSET_ICONS.primogem}
+                fallbackSource={ASSET_ICONS.primogemCdn}
+                style={styles.exchangeIcon}
                 contentFit="contain"
               />
-              <Text style={styles.claimBtnText}>Klaim 50k Mora</Text>
+              <Text style={styles.exchangeBtnText}>Tukar Primogem</Text>
             </Pressable>
           </View>
 
@@ -289,7 +325,7 @@ export default function ProfileScreen() {
               );
             })}
           </View>
-        </View>
+        </ParchmentCard>
 
         {/* Saved Favorites */}
         {favoriteDishes.length > 0 && (
@@ -349,50 +385,63 @@ export default function ProfileScreen() {
           </View>
         )}
 
-        {/* Order History List */}
+        {/* Interactive Order History List (Tap Card to Inspect Receipt) */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Riwayat Pesanan Kuliner</Text>
           <View style={styles.historyList}>
             {orders.map((order) => {
               const localOrder = isLocalLiyueDelivery(order.deliveryPoint);
               return (
-                <View key={order.id} style={styles.ivoryCard}>
-                  <View style={styles.orderHeaderRow}>
-                    <View style={styles.orderHeaderLeft}>
-                      <TeyvatImage
-                        source={ASSET_ICONS.masterlessStardust}
-                        fallbackSource={ASSET_ICONS.mora}
-                        style={styles.orderBadgeIcon}
-                        contentFit="contain"
-                      />
-                      <View style={{ flex: 1 }}>
-                        <Text style={styles.orderId}>{order.id}</Text>
-                        <Text style={styles.orderMeta}>
-                          {order.createdAt} ·{' '}
-                          {localOrder ? 'Lokal Liyue' : order.deliveryPoint.region}
+                <ParchmentCard key={order.id}>
+                  <Pressable
+                    onPress={() =>
+                      router.push({
+                        pathname: '/order/[id]',
+                        params: { id: order.id },
+                      })
+                    }
+                    accessibilityRole="button"
+                    accessibilityLabel={`Lihat struk ${order.id}`}
+                    style={({ pressed }) => [pressed && { opacity: 0.85 }]}
+                  >
+                    <View style={styles.orderHeaderRow}>
+                      <View style={styles.orderHeaderLeft}>
+                        <TeyvatImage
+                          source={ASSET_ICONS.masterlessStardust}
+                          fallbackSource={ASSET_ICONS.mora}
+                          style={styles.orderBadgeIcon}
+                          contentFit="contain"
+                        />
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.orderId}>{order.id}</Text>
+                          <Text style={styles.orderMeta}>
+                            {order.createdAt} ·{' '}
+                            {localOrder ? 'Lokal Liyue' : order.deliveryPoint.region}
+                          </Text>
+                        </View>
+                      </View>
+                      <View style={styles.orderStatusBadge}>
+                        <DiamondBullet size={6} color={COLORS.successGreen} />
+                        <Text style={styles.orderStatusText}>
+                          {order.status === 'COMPLETED' ? 'Terkirim' : 'Diantar'}
                         </Text>
+                        <ChevronRight size={13} color={COLORS.goldMuted} />
                       </View>
                     </View>
-                    <View style={styles.orderStatusBadge}>
-                      <DiamondBullet size={6} color={COLORS.successGreen} />
-                      <Text style={styles.orderStatusText}>
-                        {order.status === 'COMPLETED' ? 'Terkirim' : 'Diantar'}
-                      </Text>
-                    </View>
-                  </View>
 
-                  <View style={styles.orderItems}>
-                    {order.items.map((item) => (
-                      <View key={item.dish.id} style={styles.orderItemRow}>
-                        <Text style={styles.orderItemName} numberOfLines={1}>
-                          {item.dish.name} ×{item.quantity}
-                        </Text>
-                        <Text style={styles.orderItemPrice}>
-                          {formatMora(item.dish.priceMora * item.quantity)} Mora
-                        </Text>
-                      </View>
-                    ))}
-                  </View>
+                    <View style={styles.orderItems}>
+                      {order.items.map((item) => (
+                        <View key={item.dish.id} style={styles.orderItemRow}>
+                          <Text style={styles.orderItemName} numberOfLines={1}>
+                            {item.dish.name} ×{item.quantity}
+                          </Text>
+                          <Text style={styles.orderItemPrice}>
+                            {formatMora(item.dish.priceMora * item.quantity)} Mora
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
+                  </Pressable>
 
                   <View style={styles.orderFooter}>
                     <MoraAmount
@@ -414,172 +463,354 @@ export default function ProfileScreen() {
                       </LinearGradient>
                     </Pressable>
                   </View>
-                </View>
+                </ParchmentCard>
               );
             })}
           </View>
         </View>
+      </ScrollView>
 
-        {/* Informasi Aplikasi & Pengaturan Sederhana */}
-        <View style={styles.ivoryCard}>
-          <View style={styles.appInfoHeader}>
-            <Info size={16} color={COLORS.goldDeep} />
-            <Text style={styles.sectionCardTitle}>Informasi Aplikasi &amp; Pengaturan</Text>
+      {/* 1. COLLECTIBLE NAMECARD PICKER MODAL */}
+      <TeyvatModalSheet
+        visible={isNamecardModalOpen}
+        onClose={() => setIsNamecardModalOpen(false)}
+        title="Koleksi Namecard Teyvat"
+        subtitle="Ketuk gambar untuk memasang spanduk profil"
+        footer={
+          <GoldCapsuleButton onPress={() => setIsNamecardModalOpen(false)}>
+            Terapkan Namecard
+          </GoldCapsuleButton>
+        }
+      >
+        <View style={styles.previewWrap}>
+          <View style={styles.previewBanner}>
+            <Image
+              source={activeNamecard.bgImage}
+              style={styles.previewBannerImg}
+              contentFit="cover"
+            />
+            <LinearGradient
+              colors={[
+                'rgba(28, 35, 54, 0.86)',
+                'rgba(28, 35, 54, 0.38)',
+                'rgba(28, 35, 54, 0)',
+              ]}
+              start={{ x: 0, y: 0.5 }}
+              end={{ x: 1, y: 0.5 }}
+              style={StyleSheet.absoluteFill}
+            />
+            <View style={styles.previewCopy}>
+              <Text style={styles.previewRegion}>
+                DIPASANG · {activeNamecard.region.toUpperCase()}
+              </Text>
+              <Text style={styles.previewName}>{activeNamecard.name}</Text>
+              <Text style={styles.previewSub} numberOfLines={1}>
+                {activeNamecard.subtitle}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        <ScrollView
+          style={styles.modalGridScroll}
+          contentContainerStyle={styles.modalGridContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.namecardGrid}>
+            {NAMECARDS.map((card) => {
+              const isSelected = card.id === activeNamecard.id;
+              return (
+                <Pressable
+                  key={card.id}
+                  onPress={() => setSelectedNamecard(card.id)}
+                  accessibilityLabel={card.name}
+                  style={[
+                    styles.namecardOption,
+                    isSelected && styles.namecardOptionSelected,
+                  ]}
+                >
+                  <Image
+                    source={card.bgImage}
+                    style={styles.namecardOptionImg}
+                    contentFit="cover"
+                  />
+                  {isSelected && (
+                    <View style={styles.selectedCheckBadge}>
+                      <Check size={13} color={COLORS.inkPrimary} strokeWidth={3} />
+                    </View>
+                  )}
+                </Pressable>
+              );
+            })}
+          </View>
+        </ScrollView>
+      </TeyvatModalSheet>
+
+      {/* 2. PAIMON'S BARGAINS (PRIMOGEM 160 EXCHANGE MODAL) */}
+      <TeyvatModalSheet
+        visible={isBargainsModalOpen}
+        onClose={() => setIsBargainsModalOpen(false)}
+        title="Paimon's Bargains"
+        subtitle={`Standar 1 Wish · ${PRIMOGEM_RULES.EXCHANGE_COST} Primogem per penukaran`}
+        ornamentSource={ASSET_ICONS.primogem}
+      >
+        <ScrollView
+          contentContainerStyle={styles.bargainsBody}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Current Balances Strip */}
+          <View style={styles.bargainsBalanceRow}>
+            <View style={styles.bargainsBalanceItem}>
+              <TeyvatImage
+                source={ASSET_ICONS.primogem}
+                style={styles.bargainsMiniIcon}
+                contentFit="contain"
+              />
+              <Text style={styles.bargainsBalanceText}>
+                {formatMora(profile.primogemBalance)} Primogem
+              </Text>
+            </View>
+            <MoraAmount
+              amount={profile.moraBalance}
+              size="xs"
+              showSuffix
+              color={COLORS.inkPrimary}
+            />
           </View>
 
-          <View style={styles.appInfoList}>
+          {/* Exchange 1: 160 Primogem -> +50,000 Mora */}
+          <ParchmentCard style={styles.bargainCard}>
+            <View style={styles.bargainTop}>
+              <ParchmentIconBox size={44}>
+                <TeyvatImage
+                  source={ASSET_ICONS.mora}
+                  style={{ width: 28, height: 28 }}
+                  contentFit="contain"
+                />
+              </ParchmentIconBox>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.bargainTitle}>
+                  Peti +{formatMora(PRIMOGEM_RULES.MORA_REWARD)} Mora
+                </Text>
+                <Text style={styles.bargainDesc}>
+                  Tambah saldo Northland Bank secara instan untuk memesan hidangan legendaris.
+                </Text>
+              </View>
+            </View>
+            <GoldCapsuleButton
+              disabled={!canAffordExchange}
+              onPress={() => exchangePrimogemsForMora()}
+              contentStyle={{ minHeight: 40 }}
+            >
+              <TeyvatImage
+                source={ASSET_ICONS.primogem}
+                style={{ width: 16, height: 16 }}
+                contentFit="contain"
+              />
+              <Text style={styles.bargainBtnText}>
+                Tukar {PRIMOGEM_RULES.EXCHANGE_COST} Primogem
+              </Text>
+            </GoldCapsuleButton>
+          </ParchmentCard>
+
+          {/* Exchange 2: 160 Primogem -> Refill Voucher Quota (+1) */}
+          <ParchmentCard style={styles.bargainCard}>
+            <View style={styles.bargainTop}>
+              <ParchmentIconBox size={44}>
+                <TeyvatImage
+                  source={ASSET_ICONS.intertwinedFate}
+                  style={{ width: 28, height: 28 }}
+                  contentFit="contain"
+                />
+              </ParchmentIconBox>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.bargainTitle}>Isi Ulang Kuota Voucher (+1×)</Text>
+                <Text style={styles.bargainDesc}>
+                  Pulihkan 1× kuota pemakaian voucher yang sudah digunakan dengan {PRIMOGEM_RULES.EXCHANGE_COST} Primogem.
+                </Text>
+              </View>
+            </View>
+
+            <View style={{ gap: 8 }}>
+              {COUPONS.map((coupon) => {
+                const remaining = getRemainingVoucherUses(coupon, voucherUsageCount);
+                const isFull = remaining >= coupon.maxUses;
+                return (
+                  <View key={coupon.code} style={styles.refillRow}>
+                    <TeyvatImage
+                      source={coupon.icon}
+                      style={{ width: 22, height: 22 }}
+                      contentFit="contain"
+                    />
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.refillCode} numberOfLines={1}>
+                        {coupon.code}
+                      </Text>
+                      <Text style={styles.refillQuota}>
+                        Sisa {remaining}/{coupon.maxUses}
+                      </Text>
+                    </View>
+                    <Pressable
+                      disabled={isFull || !canAffordExchange}
+                      onPress={() => exchangePrimogemsForVoucherRefill(coupon.code)}
+                      style={[
+                        styles.refillBtn,
+                        (isFull || !canAffordExchange) && { opacity: 0.45 },
+                      ]}
+                    >
+                      <Text style={styles.refillBtnText}>
+                        {isFull ? 'Penuh' : `${PRIMOGEM_RULES.EXCHANGE_COST} Primo`}
+                      </Text>
+                    </Pressable>
+                  </View>
+                );
+              })}
+            </View>
+          </ParchmentCard>
+
+          <View style={styles.commissionHintBox}>
+            <DiamondBullet size={6} color={COLORS.goldDeep} />
+            <Text style={styles.commissionHintText}>
+              Selesaikan setiap pesanan kuliner untuk menerima hadiah +{PRIMOGEM_RULES.ORDER_COMMISSION_REWARD} Primogem (Commission Reward).
+            </Text>
+          </View>
+        </ScrollView>
+      </TeyvatModalSheet>
+
+      {/* 3. PENGATURAN & INFO AKUN MODAL (From Header Gear Icon) */}
+      <TeyvatModalSheet
+        visible={isSettingsModalOpen}
+        onClose={() => setIsSettingsModalOpen(false)}
+        title="Pengaturan & Info Akun"
+        subtitle="Identitas Traveler, avatar & info aplikasi"
+        footer={
+          <GoldCapsuleButton onPress={handleSaveSettings}>
+            Simpan Perubahan Profil
+          </GoldCapsuleButton>
+        }
+      >
+        <ScrollView
+          contentContainerStyle={styles.settingsBody}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Account Info Card */}
+          <ParchmentCard style={{ gap: 10 }}>
+            <View style={styles.accountBadgeRow}>
+              <Mail size={14} color={COLORS.goldDeep} />
+              <Text style={styles.accountEmail}>{profile.email}</Text>
+            </View>
             <View style={styles.appInfoRow}>
-              <Text style={styles.appInfoLabel}>Nama Aplikasi</Text>
+              <Text style={styles.appInfoLabel}>UID Petualang (NIM)</Text>
+              <Text style={styles.appInfoValue}>{profile.uid}</Text>
+            </View>
+
+            <DiamondDivider style={{ marginVertical: 2 }} />
+
+            {/* Avatar Selector (Aether / Lumine) */}
+            <Text style={styles.fieldLabel}>Pilih Avatar Traveler</Text>
+            <View style={styles.avatarChoiceRow}>
+              {AVATAR_OPTIONS.map((opt) => {
+                const active = draftAvatarId === opt.id;
+                return (
+                  <Pressable
+                    key={opt.id}
+                    onPress={() => setDraftAvatarId(opt.id)}
+                    style={[
+                      styles.avatarChoiceCard,
+                      active && styles.avatarChoiceCardActive,
+                    ]}
+                  >
+                    <View style={styles.avatarChoiceRing}>
+                      <TeyvatImage
+                        source={opt.source}
+                        style={styles.profileAvatarImg}
+                        contentFit="cover"
+                      />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.avatarChoiceName}>{opt.name}</Text>
+                      <Text style={styles.avatarChoiceSub} numberOfLines={1}>
+                        {opt.subtitle}
+                      </Text>
+                    </View>
+                    {active && (
+                      <View style={styles.avatarCheckDot}>
+                        <Check size={11} color={COLORS.inkPrimary} strokeWidth={3} />
+                      </View>
+                    )}
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            {/* Editable Name & Short Bio */}
+            <View style={{ gap: 6 }}>
+              <Text style={styles.fieldLabel}>Nama Traveler</Text>
+              <TextInput
+                value={draftName}
+                onChangeText={setDraftName}
+                placeholder="Nama tampilan"
+                placeholderTextColor="#7F7666"
+                style={styles.textInput}
+              />
+            </View>
+
+            <View style={{ gap: 6 }}>
+              <Text style={styles.fieldLabel}>Bio Singkat</Text>
+              <TextInput
+                value={draftBio}
+                onChangeText={setDraftBio}
+                placeholder="Tulis informasi singkat petualang..."
+                placeholderTextColor="#7F7666"
+                multiline
+                numberOfLines={2}
+                textAlignVertical="top"
+                style={[styles.textInput, styles.bioInput]}
+              />
+            </View>
+          </ParchmentCard>
+
+          {/* Compact App Information & Reset */}
+          <ParchmentCard style={{ gap: 8 }}>
+            <Text style={styles.fieldLabel}>Informasi Aplikasi</Text>
+            <View style={styles.appInfoRow}>
+              <Text style={styles.appInfoLabel}>Aplikasi</Text>
               <Text style={styles.appInfoValue}>Teyvat Delicacies v1.0.0</Text>
             </View>
             <View style={styles.appInfoRow}>
-              <Text style={styles.appInfoLabel}>Kerangka Mobile</Text>
-              <Text style={styles.appInfoValue}>React Native · Expo Router SDK 58</Text>
+              <Text style={styles.appInfoLabel}>Katalog Resmi</Text>
+              <Text style={styles.appInfoValue}>{DISHES.length} Hidangan · 8 Wilayah</Text>
             </View>
             <View style={styles.appInfoRow}>
-              <Text style={styles.appInfoLabel}>Penyimpanan Lokal</Text>
+              <Text style={styles.appInfoLabel}>Penyimpanan</Text>
               <View style={styles.storageBadge}>
                 <ShieldCheck size={13} color={COLORS.successGreen} />
                 <Text style={styles.storageText}>AsyncStorage Aktif</Text>
               </View>
             </View>
-          </View>
 
-          <DiamondDivider style={{ marginVertical: 12 }} />
+            <DiamondDivider style={{ marginVertical: 4 }} />
 
-          <Pressable
-            onPress={resetSimulationData}
-            style={styles.resetSimBtn}
-            accessibilityRole="button"
-          >
-            <RotateCcw size={14} color={COLORS.goldDeep} />
-            <Text style={styles.resetSimText}>Reset Data Simulasi Teyvat</Text>
-          </Pressable>
-        </View>
-      </ScrollView>
-
-      {/* WARM PARCHMENT COLLECTIBLE NAMECARD MODAL */}
-      <Modal
-        visible={isNamecardModalOpen}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setIsNamecardModalOpen(false)}
-      >
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalSheet}>
-            {/* Modal Header with Official Ornament */}
-            <LinearGradient colors={CHROME_BAR_GRADIENT} style={styles.modalHeader}>
-              <View style={styles.modalHeaderLeft}>
-                <TeyvatImage
-                  source={ASSET_ICONS.modalOrnament}
-                  fallbackSource={ASSET_ICONS.crownOfInsight}
-                  style={styles.modalOrnamentIcon}
-                  contentFit="contain"
-                />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.modalTitle} numberOfLines={1}>
-                    Koleksi Namecard Teyvat
-                  </Text>
-                  <Text style={styles.modalSub} numberOfLines={1}>
-                    Ketuk gambar untuk memasang spanduk profil
-                  </Text>
-                </View>
-              </View>
-
-              <Pressable
-                onPress={() => setIsNamecardModalOpen(false)}
-                style={styles.modalCloseBtn}
-                accessibilityLabel="Tutup pilihan Namecard"
-              >
-                <X size={16} color={COLORS.goldBright} />
-              </Pressable>
-            </LinearGradient>
-
-            {/* Live Selected Banner Preview */}
-            <View style={styles.previewWrap}>
-              <View style={styles.previewBanner}>
-                <Image
-                  source={activeNamecard.bgImage}
-                  style={styles.previewBannerImg}
-                  contentFit="cover"
-                />
-                <LinearGradient
-                  colors={[
-                    'rgba(28, 35, 54, 0.86)',
-                    'rgba(28, 35, 54, 0.38)',
-                    'rgba(28, 35, 54, 0)',
-                  ]}
-                  start={{ x: 0, y: 0.5 }}
-                  end={{ x: 1, y: 0.5 }}
-                  style={StyleSheet.absoluteFill}
-                />
-                <View style={styles.previewCopy}>
-                  <Text style={styles.previewRegion}>
-                    DIPASANG · {activeNamecard.region.toUpperCase()}
-                  </Text>
-                  <Text style={styles.previewName}>{activeNamecard.name}</Text>
-                  <Text style={styles.previewSub} numberOfLines={1}>
-                    {activeNamecard.subtitle}
-                  </Text>
-                </View>
-              </View>
-            </View>
-
-            {/* 2-Column Pure Visual Namecard Artwork Grid (Zero text covering art) */}
-            <ScrollView
-              style={styles.modalGridScroll}
-              contentContainerStyle={styles.modalGridContent}
-              showsVerticalScrollIndicator={false}
+            <Pressable
+              onPress={() => {
+                resetSimulationData();
+                setIsSettingsModalOpen(false);
+              }}
+              style={styles.resetSimBtn}
+              accessibilityRole="button"
             >
-              <View style={styles.namecardGrid}>
-                {NAMECARDS.map((card) => {
-                  const isSelected = card.id === activeNamecard.id;
-                  return (
-                    <Pressable
-                      key={card.id}
-                      onPress={() => setSelectedNamecard(card.id)}
-                      accessibilityLabel={card.name}
-                      style={[
-                        styles.namecardOption,
-                        isSelected && styles.namecardOptionSelected,
-                      ]}
-                    >
-                      <Image
-                        source={card.bgImage}
-                        style={styles.namecardOptionImg}
-                        contentFit="cover"
-                      />
-                      {isSelected && (
-                        <View style={styles.selectedCheckBadge}>
-                          <Check size={13} color={COLORS.inkPrimary} strokeWidth={3} />
-                        </View>
-                      )}
-                    </Pressable>
-                  );
-                })}
-              </View>
-            </ScrollView>
-
-            <View style={styles.modalFooter}>
-              <GoldCapsuleButton onPress={() => setIsNamecardModalOpen(false)}>
-                Terapkan Namecard
-              </GoldCapsuleButton>
-            </View>
-          </View>
-        </View>
-      </Modal>
-    </LinearGradient>
+              <RotateCcw size={14} color={COLORS.goldDeep} />
+              <Text style={styles.resetSimText}>Reset Data Simulasi Teyvat</Text>
+            </Pressable>
+          </ParchmentCard>
+        </ScrollView>
+      </TeyvatModalSheet>
+    </ParchmentScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-  },
-  header: {
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-  },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -596,6 +827,11 @@ const styles = StyleSheet.create({
     color: COLORS.navSubtext,
     marginTop: 2,
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   namecardBtnOuter: {
     borderRadius: 999,
     overflow: 'hidden',
@@ -604,16 +840,26 @@ const styles = StyleSheet.create({
   },
   namecardBtnInner: {
     minHeight: 34,
-    paddingHorizontal: 12,
+    paddingHorizontal: 11,
     paddingVertical: 5,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 5,
   },
   namecardBtnText: {
     fontFamily: FONTS.genshin,
     fontSize: 11,
     color: '#2E3446',
+  },
+  settingsIconBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.09)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,231,165,0.38)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   scroll: {
     flex: 1,
@@ -621,7 +867,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 32,
+    paddingBottom: 16,
     gap: 16,
   },
   namecardCard: {
@@ -637,7 +883,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   namecardBanner: {
-    height: 132,
+    height: 130,
     backgroundColor: '#242C42',
     position: 'relative',
     overflow: 'hidden',
@@ -699,75 +945,50 @@ const styles = StyleSheet.create({
     textShadowRadius: 3,
   },
   statStrip: {
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 11,
     backgroundColor: COLORS.ivoryTop,
     borderTopWidth: 1,
     borderTopColor: COLORS.goldTrim,
     flexDirection: 'row',
-    gap: 8,
+    gap: 6,
   },
   statBox: {
-    flex: 1,
-    borderRadius: 12,
+    borderRadius: 11,
     backgroundColor: COLORS.insetWarm,
     borderWidth: 1,
     borderColor: COLORS.goldTrim,
-    paddingHorizontal: 6,
+    paddingHorizontal: 5,
     paddingVertical: 7,
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statBoxUid: {
+    flex: 1.55,
+  },
+  statBoxCompact: {
+    flex: 0.85,
+  },
+  statBoxOrders: {
+    flex: 1.15,
   },
   statLabel: {
     fontFamily: FONTS.genshin,
-    fontSize: 9,
+    fontSize: 8.5,
     color: COLORS.goldMuted,
-    letterSpacing: 0.4,
+    letterSpacing: 0.3,
   },
-  statValSmall: {
+  statValUid: {
     fontFamily: FONTS.genshin,
-    fontSize: 10.5,
+    fontSize: 11.5,
     color: COLORS.inkPrimary,
-    marginTop: 2,
+    marginTop: 3,
+    fontVariant: ['tabular-nums'],
   },
   statVal: {
     fontFamily: FONTS.genshin,
     fontSize: 14,
     marginTop: 2,
-  },
-  identityMetaBox: {
-    paddingHorizontal: 14,
-    paddingBottom: 12,
-    paddingTop: 2,
-    backgroundColor: COLORS.ivoryTop,
-    gap: 4,
-  },
-  emailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  emailText: {
-    fontFamily: FONTS.genshin,
-    fontSize: 11,
-    color: COLORS.goldDeep,
-    flexShrink: 1,
-  },
-  bioText: {
-    fontSize: 11,
-    color: COLORS.inkMuted,
-    lineHeight: 16,
-  },
-  ivoryCard: {
-    borderRadius: 16,
-    backgroundColor: COLORS.ivoryTop,
-    borderWidth: 1,
-    borderColor: COLORS.goldDivider,
-    padding: 15,
-    shadowColor: '#443824',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
   },
   walletHeader: {
     flexDirection: 'row',
@@ -781,7 +1002,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.inkPrimary,
   },
-  claimBtn: {
+  exchangeBtn: {
     minHeight: 34,
     paddingHorizontal: 10,
     paddingVertical: 5,
@@ -793,11 +1014,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
   },
-  claimIcon: {
+  exchangeIcon: {
     width: 16,
     height: 16,
   },
-  claimBtnText: {
+  exchangeBtnText: {
     fontFamily: FONTS.genshin,
     fontSize: 11,
     color: '#3B4255',
@@ -1028,106 +1249,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#2E3446',
   },
-  appInfoHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 10,
-  },
-  appInfoList: {
-    gap: 8,
-  },
-  appInfoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8,
-  },
-  appInfoLabel: {
-    fontSize: 11.5,
-    color: COLORS.inkMuted,
-  },
-  appInfoValue: {
-    fontFamily: FONTS.genshin,
-    fontSize: 11.5,
-    color: COLORS.inkPrimary,
-  },
-  storageBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  storageText: {
-    fontFamily: FONTS.genshin,
-    fontSize: 11,
-    color: COLORS.successGreen,
-  },
-  resetSimBtn: {
-    minHeight: 40,
-    borderRadius: 12,
-    backgroundColor: COLORS.insetWarm,
-    borderWidth: 1,
-    borderColor: COLORS.goldTrim,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  resetSimText: {
-    fontFamily: FONTS.genshin,
-    fontSize: 11.5,
-    color: COLORS.goldDeep,
-  },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(27, 34, 52, 0.72)',
-    justifyContent: 'center',
-    padding: 16,
-  },
-  modalSheet: {
-    maxHeight: '86%',
-    borderRadius: 24,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: COLORS.goldTrim,
-    backgroundColor: COLORS.parchmentMid,
-  },
-  modalHeader: {
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8,
-  },
-  modalHeaderLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    flex: 1,
-  },
-  modalOrnamentIcon: {
-    width: 28,
-    height: 28,
-  },
-  modalTitle: {
-    fontFamily: FONTS.genshin,
-    fontSize: 14.5,
-    color: COLORS.goldBright,
-  },
-  modalSub: {
-    fontSize: 10.5,
-    color: COLORS.navSubtext,
-    marginTop: 1,
-  },
-  modalCloseBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   previewWrap: {
     paddingHorizontal: 16,
     paddingTop: 14,
@@ -1217,11 +1338,234 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  modalFooter: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: COLORS.ivoryBottom,
-    borderTopWidth: 1,
-    borderTopColor: '#E2D8C5',
+  bargainsBody: {
+    padding: 16,
+    gap: 12,
+  },
+  bargainsBalanceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: COLORS.ivoryTop,
+    borderWidth: 1,
+    borderColor: COLORS.goldBorder,
+  },
+  bargainsBalanceItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  bargainsMiniIcon: {
+    width: 18,
+    height: 18,
+  },
+  bargainsBalanceText: {
+    fontFamily: FONTS.genshin,
+    fontSize: 12,
+    color: COLORS.inkPrimary,
+  },
+  bargainCard: {
+    gap: 12,
+  },
+  bargainTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  bargainTitle: {
+    fontFamily: FONTS.genshin,
+    fontSize: 13,
+    color: COLORS.inkPrimary,
+  },
+  bargainDesc: {
+    fontSize: 11,
+    color: COLORS.inkMuted,
+    marginTop: 2,
+    lineHeight: 16,
+  },
+  bargainBtnText: {
+    fontFamily: FONTS.genshin,
+    fontSize: 12,
+    color: '#2E3446',
+  },
+  refillRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: COLORS.parchmentMid,
+    borderWidth: 1,
+    borderColor: '#D4C7AE',
+  },
+  refillCode: {
+    fontFamily: FONTS.genshin,
+    fontSize: 11,
+    color: COLORS.inkPrimary,
+  },
+  refillQuota: {
+    fontSize: 10,
+    color: COLORS.inkMuted,
+  },
+  refillBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+    backgroundColor: '#242B3E',
+    borderWidth: 1,
+    borderColor: COLORS.goldBorder,
+  },
+  refillBtnText: {
+    fontFamily: FONTS.genshin,
+    fontSize: 10,
+    color: COLORS.goldBright,
+  },
+  commissionHintBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: COLORS.ivoryTop,
+    borderWidth: 1,
+    borderColor: COLORS.goldDivider,
+  },
+  commissionHintText: {
+    flex: 1,
+    fontSize: 11,
+    color: COLORS.inkSecondary,
+    lineHeight: 16,
+  },
+  settingsBody: {
+    padding: 16,
+    gap: 12,
+  },
+  accountBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: COLORS.insetWarm,
+    borderWidth: 1,
+    borderColor: COLORS.goldTrim,
+  },
+  accountEmail: {
+    fontFamily: FONTS.genshin,
+    fontSize: 11.5,
+    color: COLORS.goldDeep,
+    flexShrink: 1,
+  },
+  fieldLabel: {
+    fontFamily: FONTS.genshin,
+    fontSize: 11.5,
+    color: COLORS.inkPrimary,
+  },
+  avatarChoiceRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  avatarChoiceCard: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    padding: 8,
+    borderRadius: 12,
+    backgroundColor: COLORS.parchmentMid,
+    borderWidth: 1,
+    borderColor: '#D4C7AE',
+  },
+  avatarChoiceCardActive: {
+    backgroundColor: '#FFFDF8',
+    borderColor: COLORS.goldWarm,
+    borderWidth: 1.5,
+  },
+  avatarChoiceRing: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: COLORS.goldBorder,
+    backgroundColor: COLORS.chromeDeep,
+  },
+  avatarChoiceName: {
+    fontFamily: FONTS.genshin,
+    fontSize: 11.5,
+    color: COLORS.inkPrimary,
+  },
+  avatarChoiceSub: {
+    fontSize: 9.5,
+    color: COLORS.inkMuted,
+  },
+  avatarCheckDot: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: COLORS.goldBright,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  textInput: {
+    minHeight: 40,
+    borderRadius: 10,
+    backgroundColor: COLORS.parchmentMid,
+    borderWidth: 1,
+    borderColor: '#CBB997',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 12.5,
+    color: COLORS.inkBody,
+  },
+  bioInput: {
+    minHeight: 62,
+  },
+  appInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  appInfoLabel: {
+    fontSize: 11.5,
+    color: COLORS.inkMuted,
+  },
+  appInfoValue: {
+    fontFamily: FONTS.genshin,
+    fontSize: 11.5,
+    color: COLORS.inkPrimary,
+  },
+  storageBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  storageText: {
+    fontFamily: FONTS.genshin,
+    fontSize: 11,
+    color: COLORS.successGreen,
+  },
+  resetSimBtn: {
+    minHeight: 40,
+    borderRadius: 12,
+    backgroundColor: COLORS.insetWarm,
+    borderWidth: 1,
+    borderColor: COLORS.goldTrim,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  resetSimText: {
+    fontFamily: FONTS.genshin,
+    fontSize: 11.5,
+    color: COLORS.goldDeep,
   },
 });

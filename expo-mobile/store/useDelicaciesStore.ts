@@ -2,12 +2,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import {
+  COUPONS,
+  DEFAULT_FAVORITE_IDS,
   DELIVERY_POINTS,
   DISHES,
   INITIAL_ORDERS,
   INITIAL_PROFILE,
   NAMECARDS,
+  PRIMOGEM_RULES,
   formatMora,
+  getAvatarSourceById,
 } from '../data/dishes';
 import {
   CartTotals,
@@ -24,6 +28,7 @@ import {
   Order,
   OrderStatus,
   PaymentMethod,
+  TravelerAvatarId,
   TravelerProfile,
 } from '../types';
 
@@ -31,6 +36,12 @@ interface PlaceOrderInput {
   deliveryPoint: DeliveryPoint;
   paymentMethod: PaymentMethod;
   kitchenNotes: string;
+}
+
+interface ProfileSettingsInput {
+  username: string;
+  bio: string;
+  avatarId: TravelerAvatarId;
 }
 
 interface DelicaciesState {
@@ -63,7 +74,11 @@ interface DelicaciesState {
   removeCoupon: () => void;
 
   toggleFavorite: (dishId: number) => void;
-  topUpMora: (amount: number) => void;
+  exchangePrimogemsForMora: () => { ok: boolean; message: string };
+  exchangePrimogemsForVoucherRefill: (
+    couponCode: string
+  ) => { ok: boolean; message: string };
+  updateProfileSettings: (input: ProfileSettingsInput) => void;
   setSelectedNamecard: (namecardId: string) => void;
   resetSimulationData: () => void;
 
@@ -86,7 +101,7 @@ function resolveDeliveryPoint(pointId: string): DeliveryPoint {
 /** Re-hydrate bundled local require() dish image references after AsyncStorage JSON parse */
 function rehydrateDish(dish: Dish): Dish {
   const canonical = DISHES.find((d) => d.id === dish.id);
-  return canonical ?? dish;
+  return canonical ?? DISHES[0];
 }
 
 function formatOrderTimestamp(date: Date): string {
@@ -112,7 +127,7 @@ export const useDelicaciesStore = create<DelicaciesState>()(
       appliedCouponCode: null,
       voucherUsageCount: {},
 
-      favoriteIds: [5101, 4102, 4116],
+      favoriteIds: DEFAULT_FAVORITE_IDS,
       profile: INITIAL_PROFILE,
       selectedNamecardId: NAMECARDS[0].id,
       orders: INITIAL_ORDERS,
@@ -299,14 +314,76 @@ export const useDelicaciesStore = create<DelicaciesState>()(
         );
       },
 
-      topUpMora: (amount) => {
+      exchangePrimogemsForMora: () => {
+        const state = get();
+        const cost = PRIMOGEM_RULES.EXCHANGE_COST;
+        const reward = PRIMOGEM_RULES.MORA_REWARD;
+        if (state.profile.primogemBalance < cost) {
+          const msg = `Primogem tidak cukup (butuh ${cost} Primogem). Selesaikan pesanan untuk +${PRIMOGEM_RULES.ORDER_COMMISSION_REWARD} Primogem.`;
+          get().showToast(msg);
+          return { ok: false, message: msg };
+        }
+        set((prev) => ({
+          profile: {
+            ...prev.profile,
+            primogemBalance: prev.profile.primogemBalance - cost,
+            moraBalance: prev.profile.moraBalance + reward,
+          },
+        }));
+        const okMsg = `Tukar ${cost} Primogem → +${formatMora(reward)} Mora berhasil!`;
+        get().showToast(okMsg);
+        return { ok: true, message: okMsg };
+      },
+
+      exchangePrimogemsForVoucherRefill: (couponCode) => {
+        const state = get();
+        const cost = PRIMOGEM_RULES.EXCHANGE_COST;
+        const coupon = COUPONS.find((c) => c.code === couponCode);
+        if (!coupon) {
+          return { ok: false, message: 'Voucher tidak ditemukan.' };
+        }
+        const used = state.voucherUsageCount[coupon.code] ?? 0;
+        if (used <= 0) {
+          const msg = `Kuota ${coupon.code} sudah penuh (${coupon.maxUses}/${coupon.maxUses}).`;
+          get().showToast(msg);
+          return { ok: false, message: msg };
+        }
+        if (state.profile.primogemBalance < cost) {
+          const msg = `Primogem tidak cukup (butuh ${cost} Primogem).`;
+          get().showToast(msg);
+          return { ok: false, message: msg };
+        }
+        set((prev) => ({
+          profile: {
+            ...prev.profile,
+            primogemBalance: prev.profile.primogemBalance - cost,
+          },
+          voucherUsageCount: {
+            ...prev.voucherUsageCount,
+            [coupon.code]: Math.max(0, (prev.voucherUsageCount[coupon.code] ?? 0) - 1),
+          },
+        }));
+        const okMsg = `Kuota ${coupon.code} diisi ulang +1× (${cost} Primogem)`;
+        get().showToast(okMsg);
+        return { ok: true, message: okMsg };
+      },
+
+      updateProfileSettings: ({ username, bio, avatarId }) => {
+        const trimmedName = username.trim() || INITIAL_PROFILE.username;
+        const trimmedBio = bio.trim() || INITIAL_PROFILE.bio;
+        const avatarSource = getAvatarSourceById(avatarId);
         set((state) => ({
           profile: {
             ...state.profile,
-            moraBalance: state.profile.moraBalance + amount,
+            uid: INITIAL_PROFILE.uid, // NIM locked
+            username: trimmedName,
+            bio: trimmedBio,
+            avatarId,
+            avatarUrl: avatarSource,
+            fallbackAvatarUrl: avatarSource,
           },
         }));
-        get().showToast(`+${formatMora(amount)} Mora diterima dari Ley Line`);
+        get().showToast('Profil Petualang berhasil diperbarui');
       },
 
       setSelectedNamecard: (namecardId) => {
@@ -322,7 +399,7 @@ export const useDelicaciesStore = create<DelicaciesState>()(
           selectedDeliveryPointId: DELIVERY_POINTS[0].id,
           appliedCouponCode: null,
           voucherUsageCount: {},
-          favoriteIds: [5101, 4102, 4116],
+          favoriteIds: DEFAULT_FAVORITE_IDS,
           profile: INITIAL_PROFILE,
           selectedNamecardId: NAMECARDS[0].id,
           orders: INITIAL_ORDERS,
@@ -378,6 +455,7 @@ export const useDelicaciesStore = create<DelicaciesState>()(
           kitchenNotes: kitchenNotes.trim(),
           status: 'COOKING',
           createdAt: formatOrderTimestamp(new Date()),
+          rewardClaimed: false,
         };
 
         const nextVoucherUsage = usedCouponCode
@@ -406,11 +484,41 @@ export const useDelicaciesStore = create<DelicaciesState>()(
       },
 
       updateOrderStatus: (orderId, status) => {
-        set((state) => ({
-          orders: state.orders.map((order) =>
-            order.id === orderId ? { ...order, status } : order
-          ),
-        }));
+        let grantedReward = false;
+        set((state) => {
+          const target = state.orders.find((o) => o.id === orderId);
+          const shouldGrant =
+            status === 'COMPLETED' && Boolean(target) && !target?.rewardClaimed;
+          if (shouldGrant) {
+            grantedReward = true;
+          }
+
+          return {
+            orders: state.orders.map((order) =>
+              order.id === orderId
+                ? {
+                    ...order,
+                    status,
+                    rewardClaimed: shouldGrant ? true : order.rewardClaimed,
+                  }
+                : order
+            ),
+            profile: shouldGrant
+              ? {
+                  ...state.profile,
+                  primogemBalance:
+                    state.profile.primogemBalance +
+                    PRIMOGEM_RULES.ORDER_COMMISSION_REWARD,
+                }
+              : state.profile,
+          };
+        });
+
+        if (grantedReward) {
+          get().showToast(
+            `+${PRIMOGEM_RULES.ORDER_COMMISSION_REWARD} Primogem hadiah Commission diterima!`
+          );
+        }
       },
 
       reorderFromHistory: (orderId) => {
@@ -462,7 +570,7 @@ export const useDelicaciesStore = create<DelicaciesState>()(
       },
     }),
     {
-      name: 'teyvat-delicacies-mobile-v1',
+      name: 'teyvat-delicacies-mobile-v2',
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
         cart: state.cart,
@@ -491,16 +599,29 @@ export const useDelicaciesStore = create<DelicaciesState>()(
               })),
             }))
           : current.orders;
+        const hydratedAvatarId: TravelerAvatarId =
+          incoming.profile?.avatarId === 'lumine' ? 'lumine' : 'aether';
+        const avatarSource = getAvatarSourceById(hydratedAvatarId);
         const hydratedProfile: TravelerProfile = {
           ...INITIAL_PROFILE,
           ...(incoming.profile ?? {}),
-          fallbackAvatarUrl: INITIAL_PROFILE.fallbackAvatarUrl,
+          uid: INITIAL_PROFILE.uid, // NIM locked
+          worldLevel: Math.max(9, incoming.profile?.worldLevel ?? 9),
+          avatarId: hydratedAvatarId,
+          avatarUrl: avatarSource,
+          fallbackAvatarUrl: avatarSource,
         };
+        const validDishIds = new Set(DISHES.map((d) => d.id));
+        const hydratedFavorites = Array.isArray(incoming.favoriteIds)
+          ? incoming.favoriteIds.filter((id) => validDishIds.has(id))
+          : current.favoriteIds;
         return {
           ...current,
           ...incoming,
           cart: hydratedCart,
           orders: hydratedOrders,
+          favoriteIds:
+            hydratedFavorites.length > 0 ? hydratedFavorites : DEFAULT_FAVORITE_IDS,
           profile: hydratedProfile,
         };
       },
