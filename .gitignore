@@ -38,3 +38,9 @@ AGENTS.md
 public/assets/aistudio/
 assets/audio/
 assets/video/
+
+# Berkas Soal & Dokumen Internal Lokal
+Soal_*.pdf
+SPESIFIKASI_*.md
+PRD_*.md
+bun.lock
