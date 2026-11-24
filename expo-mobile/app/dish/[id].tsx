@@ -87,7 +87,6 @@ export default function DishDetailScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Full-Bleed Hero Rarity Backdrop */}
         <LinearGradient
           colors={rarityStyle.gradientColors}
           start={{ x: 0, y: 0 }}
@@ -167,7 +166,6 @@ export default function DishDetailScreen() {
 
         {/* Full-Bleed Ivory Parchment Dossier Surface */}
         <View style={styles.dossierSheet}>
-          {/* Stars, Meta, Title & Mora Price */}
           <View>
             <View style={styles.metaTopRow}>
               <DiamondStarRow rarity={dish.rarity} size={14} />
@@ -193,7 +191,6 @@ export default function DishDetailScreen() {
 
           <DiamondDivider />
 
-          {/* Combat Stat Buff Banner */}
           <View style={styles.buffCard}>
             <View
               style={[
@@ -217,7 +214,6 @@ export default function DishDetailScreen() {
             </View>
           </View>
 
-          {/* Italicized Lore Quote Block */}
           <View style={styles.sectionBlock}>
             <Text style={styles.sectionTitle}>Kisah &amp; Asal Hidangan</Text>
             <View style={styles.loreBox}>
@@ -229,7 +225,6 @@ export default function DishDetailScreen() {
 
           <DiamondDivider />
 
-          {/* Authentic Genshin Cooking Interface Ingredients Grid */}
           <View style={styles.sectionBlock}>
             <View style={styles.ingredientsHeader}>
               <Text style={styles.sectionTitle}>Bahan Baku Resep</Text>

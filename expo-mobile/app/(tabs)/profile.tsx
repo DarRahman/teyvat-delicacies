@@ -324,7 +324,6 @@ export default function ProfileScreen() {
           </View>
         </ParchmentCard>
 
-        {/* Saved Favorites */}
         {favoriteDishes.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>
@@ -467,7 +466,6 @@ export default function ProfileScreen() {
         </View>
       </ScrollView>
 
-      {/* 1. COLLECTIBLE NAMECARD PICKER MODAL */}
       <TeyvatModalSheet
         visible={isNamecardModalOpen}
         onClose={() => setIsNamecardModalOpen(false)}
@@ -543,7 +541,6 @@ export default function ProfileScreen() {
         </ScrollView>
       </TeyvatModalSheet>
 
-      {/* 2. PAIMON'S BARGAINS (PRIMOGEM 160 EXCHANGE MODAL) */}
       <TeyvatModalSheet
         visible={isBargainsModalOpen}
         onClose={() => setIsBargainsModalOpen(false)}
@@ -674,7 +671,6 @@ export default function ProfileScreen() {
         </ScrollView>
       </TeyvatModalSheet>
 
-      {/* 3. PENGATURAN & INFO AKUN MODAL (From Header Gear Icon) */}
       <TeyvatModalSheet
         visible={isSettingsModalOpen}
         onClose={() => setIsSettingsModalOpen(false)}

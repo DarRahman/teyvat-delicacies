@@ -77,7 +77,6 @@ export default function CelestiaGateScreen() {
       accessibilityLabel="Click to Begin - Masuk ke Teyvat Delicacies"
       style={styles.container}
     >
-      {/* Static Daylight Door of Celestia Backdrop */}
       <Animated.View
         pointerEvents="none"
         style={[
@@ -93,7 +92,6 @@ export default function CelestiaGateScreen() {
         />
       </Animated.View>
 
-      {/* Top Sky Contrast Veil */}
       <Animated.View
         pointerEvents="none"
         style={[styles.topVeil, { opacity: uiFadeAnim }]}
@@ -108,7 +106,6 @@ export default function CelestiaGateScreen() {
         />
       </Animated.View>
 
-      {/* Bottom Luminous Daylight Cloud Mist */}
       <Animated.View
         pointerEvents="none"
         style={[styles.bottomVeil, { opacity: uiFadeAnim }]}
@@ -123,7 +120,6 @@ export default function CelestiaGateScreen() {
         />
       </Animated.View>
 
-      {/* Clean Top Golden Title (No Mora Medallion Above) */}
       <Animated.View
         pointerEvents="none"
         style={[
@@ -138,10 +134,8 @@ export default function CelestiaGateScreen() {
         </View>
       </Animated.View>
 
-      {/* Unobstructed View of the Celestia Stone Door */}
       <View style={styles.spacer} pointerEvents="none" />
 
-      {/* Bottom Traveler Identity Pill & Authentic Genshin CLICK TO BEGIN Prompt */}
       <Animated.View
         pointerEvents="none"
         style={[
@@ -171,7 +165,6 @@ export default function CelestiaGateScreen() {
         </Animated.View>
       </Animated.View>
 
-      {/* Radiant Celestial Godray Whiteout Bloom */}
       <Animated.View
         pointerEvents="none"
         style={[styles.whiteoutOverlay, { opacity: whiteoutAnim }]}

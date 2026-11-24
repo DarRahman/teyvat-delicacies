@@ -183,7 +183,6 @@ export default function OrderStatusScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Commission Progress Card */}
         <ParchmentCard style={{ gap: 14 }}>
           <View style={styles.progressTopRow}>
             <View style={{ flex: 1 }}>

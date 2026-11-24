@@ -122,7 +122,6 @@ export default function CartScreen() {
           </ParchmentCard>
         ) : (
           <View style={styles.contentStack}>
-            {/* Active Order List */}
             <View style={styles.cartList}>
               {cart.map(({ dish, quantity }) => {
                 const rarityStyle = RARITY_META[dish.rarity];
@@ -209,7 +208,6 @@ export default function CartScreen() {
               })}
             </View>
 
-            {/* Strict Voucher Redemption Section */}
             <ParchmentCard>
               <View style={styles.voucherHeader}>
                 <TeyvatImage
@@ -282,7 +280,6 @@ export default function CartScreen() {
                 </Text>
               )}
 
-              {/* Quick Voucher Cards with Live Remaining Quota */}
               <View style={styles.quickVoucherList}>
                 {COUPONS.map((c) => {
                   const isApplied = appliedCouponCode === c.code;
@@ -356,7 +353,6 @@ export default function CartScreen() {
               </View>
             </ParchmentCard>
 
-            {/* Billing Summary Card */}
             <ParchmentCard>
               <Text style={styles.billingTitle}>Rincian Tagihan Mora</Text>
 

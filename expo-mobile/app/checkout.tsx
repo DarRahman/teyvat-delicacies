@@ -119,7 +119,6 @@ export default function CheckoutScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* 1. Interactive Teyvat Delivery Point Section */}
         <ParchmentCard>
           <View style={styles.sectionTitleRow}>
             <View style={styles.sectionTitleLeft}>
@@ -201,7 +200,6 @@ export default function CheckoutScreen() {
           </View>
         </ParchmentCard>
 
-        {/* 2. Payment Method Radio Toggle with Unified ParchmentIconBox */}
         <ParchmentCard>
           <Text style={[styles.sectionCardTitle, { marginBottom: 10 }]}>
             Metode Pembayaran Mora
@@ -292,7 +290,6 @@ export default function CheckoutScreen() {
           )}
         </ParchmentCard>
 
-        {/* 3. Kitchen Notes for Chef Xiangling */}
         <ParchmentCard>
           <Text style={[styles.sectionCardTitle, { fontSize: 13, marginBottom: 8 }]}>
             Catatan Dapur untuk Chef Xiangling
@@ -309,7 +306,6 @@ export default function CheckoutScreen() {
           />
         </ParchmentCard>
 
-        {/* Order Summary */}
         <ParchmentCard>
           <View style={styles.summaryRows}>
             <View style={styles.summaryRow}>
@@ -365,7 +361,6 @@ export default function CheckoutScreen() {
         {errorMessage && <Text style={styles.errorCenter}>{errorMessage}</Text>}
       </ScrollView>
 
-      {/* Clean Genshin Bottom Sticky Confirm CTA */}
       <LinearGradient
         colors={CHROME_BAR_GRADIENT}
         style={[
@@ -381,7 +376,6 @@ export default function CheckoutScreen() {
         </GoldCapsuleButton>
       </LinearGradient>
 
-      {/* INTERACTIVE 8-REALM TEYVAT WORLD MAP MODAL (TELEPORT WAYPOINTS) */}
       <TeyvatModalSheet
         visible={isMapModalOpen}
         onClose={() => setIsMapModalOpen(false)}

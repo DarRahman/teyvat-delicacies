@@ -161,7 +161,6 @@ export default function HomeScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Culinary Festival Hero Card */}
         <View style={styles.heroCard}>
           <LinearGradient
             colors={HERO_FESTIVAL_GRADIENT}
@@ -224,7 +223,6 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Quick Category Shortcuts */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Kategori Cepat</Text>
@@ -274,7 +272,6 @@ export default function HomeScreen() {
 
         <DiamondDivider />
 
-        {/* Top 5 Recommendations */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>5 Rekomendasi Terbaik</Text>
@@ -360,7 +357,6 @@ export default function HomeScreen() {
         </View>
       </ScrollView>
 
-      {/* Floating Quick Cart Bar */}
       <FloatingQuickCartBar
         itemCount={totals.itemCount}
         totalMora={totals.finalTotal}

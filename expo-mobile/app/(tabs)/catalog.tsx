@@ -200,9 +200,7 @@ export default function CatalogScreen() {
         </View>
       }
     >
-      {/* Warm Parchment Filter Control Deck */}
       <View style={styles.filterDeck}>
-        {/* Search Input + Wilayah Toggle */}
         <View style={styles.searchRow}>
           <View style={styles.searchBox}>
             <Search size={16} color="#736957" style={styles.searchIcon} />
@@ -254,7 +252,6 @@ export default function CatalogScreen() {
           </Pressable>
         </View>
 
-        {/* Category Chips */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -278,7 +275,6 @@ export default function CatalogScreen() {
           })}
         </ScrollView>
 
-        {/* Combat Buff Chips */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -307,7 +303,6 @@ export default function CatalogScreen() {
           })}
         </ScrollView>
 
-        {/* Expandable 8-Region + Rarity Filter Drawer */}
         {showRegionFilters && (
           <View style={styles.drawerCard}>
             <View>
@@ -431,7 +426,6 @@ export default function CatalogScreen() {
         }
       />
 
-      {/* Floating Quick Cart Bar */}
       <FloatingQuickCartBar
         itemCount={totals.itemCount}
         totalMora={totals.finalTotal}

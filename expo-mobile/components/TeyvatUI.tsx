@@ -210,7 +210,6 @@ export const TeleportWaypointIcon: React.FC<{
 
   return (
     <Svg width={size} height={size} viewBox="0 0 28 28">
-      {/* Upper Waypoint Spire Diamond */}
       <Path
         d="M14 2L17.4 8.4L14 11.4L10.6 8.4L14 2Z"
         fill={fill}
@@ -218,7 +217,6 @@ export const TeleportWaypointIcon: React.FC<{
         strokeWidth={1.35}
         strokeLinejoin="round"
       />
-      {/* Central Floating Teleport Rhombus Core */}
       <Path
         d="M14 10.6L19.4 15.8L14 26L8.6 15.8L14 10.6Z"
         fill={fill}
