@@ -1,6 +1,6 @@
-# Teyvat Delicacies - Pemvis Tugas 7: Aplikasi Pemesanan Makanan Mobile
+# Teyvat Delicacies - Pemvis Tugas 7: Aplikasi Katalog dan Pemesanan Makanan
 
-Aplikasi mobile katalog dan pemesanan kuliner bertema fantasi RPG dunia Teyvat (*Genshin Impact*) berbasis React Native dan Expo Router (Expo SDK 52). Proyek ini dikembangkan untuk memenuhi penugasan praktikum Tugas 7 (Pertemuan 7) mata kuliah Pemrograman Visual I pada program studi S1 Teknik Informatika STIKOM Poltek Cirebon.
+Aplikasi mobile katalog dan pemesanan kuliner bertema fantasi RPG dunia Teyvat (*Genshin Impact*) berbasis React Native dan Expo Router (Expo SDK 58). Proyek ini dikembangkan untuk memenuhi penugasan praktikum Tugas 7 (Pertemuan 7) mata kuliah Pemrograman Visual I pada program studi S1 Teknik Informatika STIKOM Poltek Cirebon.
 
 ---
 
@@ -24,48 +24,53 @@ Aplikasi mobile katalog dan pemesanan kuliner bertema fantasi RPG dunia Teyvat (
 ```text
 teyvat-delicacies/
 ├── README.md                          # Dokumentasi resmi proyek akademik Tugas 7
-├── PRD_TEYVAT_DELICACIES.md           # Spesifikasi teknis aplikasi kuliner
-├── SPESIFIKASI_TUGAS_7_PEMVIS.md      # Salinan ketentuan soal praktikum dosen
 ├── package.json                       # Konfigurasi dependensi simulator root
 ├── tsconfig.json                      # Konfigurasi TypeScript root
 ├── vite.config.ts                     # Konfigurasi bundler Vite dev server
 ├── index.html                         # Dokumen induk simulator web
 ├── assets/                            # Koleksi aset visual dan media game
 │   ├── backgrounds/                   # Latar belakang gerbang Celestia & konstelasi
-│   ├── dishes/                        # Berkas PNG transparan masakan utama
-│   ├── icons/                         # Ikon mata uang Mora, Primogem, dan buff
+│   ├── dishes/                        # Berkas masakan utama format WebP & PNG
+│   ├── icons/                         # Ikon mata uang Mora, Primogem, dan efek buff
 │   ├── map/                           # Peta benua Teyvat resolusi tinggi 8 region
 │   ├── namecards/                     # Panji kartu nama karakter & wilayah
-│   └── ui/                            # Ornamen belah ketupat dan logo
-├── screenshots/                       # Dokumentasi 10 tangkapan layar antarmuka
-│   ├── 01_beranda_rekomendasi.jpg
-│   ├── 02_beranda_kategori.jpg
-│   ├── 03_katalog_flatlist.jpg
-│   ├── 04_katalog_pencarian.jpg
-│   ├── 05_detail_makanan_resep.jpg
-│   ├── 06_keranjang_belanja.jpg
-│   ├── 07_checkout_pengiriman.jpg
-│   ├── 08_pelacakan_glider.jpg
-│   ├── 09_quest_complete_modal.jpg
-│   └── 10_profil_pengaturan.jpg
+│   └── ui/                            # Ornamen belah ketupat dan logo resmi
+├── screenshots/                       # Dokumentasi 17 tangkapan layar antarmuka
+│   ├── 01_layar_pembuka_celestia.jpg
+│   ├── 02_beranda_rekomendasi.jpg
+│   ├── 03_katalog_flatlist_panjang.jpg
+│   ├── 04_katalog_filter_notifikasi.jpg
+│   ├── 05_detail_masakan_resep.jpg
+│   ├── 06_keranjang_kosong_paimon.jpg
+│   ├── 07_keranjang_terisi_kupon.jpg
+│   ├── 08_checkout_pengantaran.jpg
+│   ├── 09_modal_peta_waypoint.jpg
+│   ├── 10_pelacakan_glider_terbang.jpg
+│   ├── 11_pelacakan_glider_tiba.jpg
+│   ├── 12_modal_quest_complete.jpg
+│   ├── 13_profil_lisensi_panjang.jpg
+│   ├── 14_modal_koleksi_namecard.jpg
+│   ├── 15_modal_paimon_bargains.jpg
+│   ├── 16_modal_pengaturan_identitas.jpg
+│   └── 17_modal_reset_data.jpg
 ├── expo-mobile/                       # Subproyek utama aplikasi React Native Expo
-│   ├── app.json                       # Konfigurasi metadata aplikasi Expo SDK 52
-│   ├── package.json                   # Dependensi mobile (React 18, Expo 52, Zustand)
+│   ├── app.json                       # Konfigurasi metadata aplikasi Expo SDK 58
+│   ├── package.json                   # Dependensi mobile (React 19, Expo 58, Zustand)
 │   ├── tsconfig.json                  # Konfigurasi TypeScript mobile
 │   ├── app/                           # File-Based Routing (Expo Router)
-│   │   ├── _layout.tsx                # Root layout, Stack navigator, safe area & toast
+│   │   ├── _layout.tsx                # Root layout, Stack navigator & screen options
 │   │   ├── index.tsx                  # Layar pembuka (Celestia Gate Entrance Screen)
 │   │   ├── checkout.tsx               # Layar formulir checkout & titik antar Waypoint
 │   │   ├── (tabs)/                    # 4 Menu bilah navigasi bawah (Bottom Tabs)
 │   │   │   ├── _layout.tsx            # Konfigurasi Tabs navigator & tab bar styling
-│   │   │   ├── index.tsx              # Tab 1: Beranda & Rekomendasi Chef Xiangling
-│   │   │   ├── catalog.tsx            # Tab 2: Katalog 80 Hidangan (FlatList 2 kolom)
+│   │   │   ├── index.tsx              # Tab 1: Beranda & Rekomendasi Menu Kuliner
+│   │   │   ├── catalog.tsx            # Tab 2: Katalog 80 Hidangan (FlatList)
 │   │   │   ├── cart.tsx               # Tab 3: Keranjang Belanja & Validasi Kupon
-│   │   │   └── profile.tsx            # Tab 4: Profil Mahasiswa & Pengaturan
+│   │   │   └── profile.tsx            # Tab 4: Profil Petualang & Pengaturan
 │   │   ├── dish/
 │   │   │   └── [id].tsx               # Layar dinamis Detail Masakan, Lore & Resep
 │   │   └── order/
-│   │       └── [id].tsx               # Layar Pelacakan Glider & Modal Quest Complete
+│   │       └── [id].tsx               # Layar Pelacakan Glider & Konfirmasi Pesanan
 │   ├── components/
 │   │   └── TeyvatUI.tsx               # Komponen antarmuka modular (Cards, Modal, Buttons)
 │   ├── data/
@@ -90,29 +95,29 @@ teyvat-delicacies/
 
 ## Fitur Aplikasi
 
-1. **Halaman Beranda & Rekomendasi Utama**  
-   Menampilkan identitas aplikasi pemesanan kuliner, banner promosi masakan Chef Xiangling, 5 hidangan rekomendasi terbaik lengkap dengan harga Mora dan lencana buff, serta 4 tombol pintasan kategori kuliner (Hidangan Utama, Minuman, Cemilan, Penguat Tempur).
+1. **Halaman Beranda & Rekomendasi Kuliner**  
+   Menampilkan identitas aplikasi pemesanan kuliner, banner informasi aplikasi, hidangan rekomendasi terbaik lengkap dengan harga Mora dan lencana efek buff, serta tombol kategori menu (Makanan Utama, Minuman, Camilan).
 
-2. **Katalog Terpadu 80 Hidangan (FlatList 2 Kolom)**  
-   Menampilkan 80 masakan resmi dari seluruh region Teyvat (Mondstadt, Liyue, Inazuma, Sumeru, Fontaine, Natlan, Nod-Krai, Snezhnaya). Dirender menggunakan komponen performa tinggi `FlatList` 2 kolom dengan virtualisasi memori agar rendering tetap halus dan ringan di perangkat mobile.
+2. **Katalog 80 Hidangan (FlatList)**  
+   Menampilkan 80 masakan resmi dari 8 wilayah Teyvat (Mondstadt, Liyue, Inazuma, Sumeru, Fontaine, Natlan, Nod-Krai, Snezhnaya). Dirender menggunakan komponen performa tinggi `FlatList` dengan virtualisasi memori agar rendering tetap halus dan ringan di perangkat mobile.
 
-3. **Pencarian Cepat & Filter Region**  
-   Fitur pencarian instan berdasarkan nama masakan (*Search Bar*) serta filter kategori dan asal wilayah untuk memudahkan petualang menemukan kuliner yang diinginkan.
+3. **Pencarian Cepat & Filter Wilayah**  
+   Fitur pencarian instan berdasarkan nama masakan (*Search Bar*) serta filter kategori dan asal wilayah untuk memudahkan pengguna menemukan kuliner yang diinginkan.
 
-4. **Detail Masakan, Lore & Resep Bahan**  
-   Halaman detail dinamis berbasis parameter rute (`app/dish/[id].tsx`) menampilkan gambar beresolusi tinggi, narasi latar belakang (*lore in-game*), efek peningkatan status tempur (*Combat Buff*), takaran bahan resep, stepper porsi, tombol *Add to Cart*, serta tombol *Pesan Sekarang*.
+4. **Detail Masakan, Efek Buff & Resep Bahan**  
+   Halaman detail dinamis berbasis parameter rute (`app/dish/[id].tsx`) menampilkan gambar hidangan, informasi asal wilayah, efek peningkatan status tempur (*Buff*), takaran bahan resep, pengatur porsi, serta tombol penambahan ke keranjang belanja.
 
-5. **Keranjang Belanja & Validasi Kupon**  
-   Daftar seluruh item pesanan aktif dengan pengatur kuantitas porsi (+ / -), subtotal harga, serta tombol hapus item. Dilengkapi sistem penebusan voucher diskon resmi (*PAIMONKENYANG, GLIDERFREE, ADEPTEUSFEAST*) dengan validasi kuota dan syarat minimal belanja otomatis.
+5. **Keranjang Belanja & Validasi Kupon Diskon**  
+   Daftar seluruh item pesanan aktif dengan kontrol kuantitas porsi (+ / -), subtotal harga, serta tombol hapus item. Dilengkapi sistem penebusan voucher diskon (*PAIMONKENYANG, GLIDERFREE, ADEPTEUSFEAST*) dengan validasi kuota dan syarat minimal belanja otomatis.
 
 6. **Simulasi Checkout & Titik Antar Waypoint**  
-   Ringkasan pesanan dengan pemilihan 8 titik antar markas Teyvat (termasuk Restoran Wanmin Liyue dengan bebas ongkir) yang dilengkapi modal peta benua interaktif, pilihan metode bayar (Koin Mora Tunai COD atau Kartu Debit Bank Northland), serta catatan khusus dapur.
+   Ringkasan pesanan dengan pemilihan titik antar di 8 wilayah Teyvat yang dilengkapi modal peta dunia interaktif, rincian biaya ongkir kurir glider, serta tombol konfirmasi pesanan.
 
-7. **Pelacakan Kurir Wind Glider & Quest Complete**  
-   Animasi pelacakan progres kurir *Wind Glider* waktu nyata dari dapur hingga mendarat di lokasi tujuan (progres 100%), yang diakhiri dengan tampilan modal dialog *"QUEST COMPLETE: Feast Delivered!"* berpemberian hadiah saldo Primogem.
+7. **Pelacakan Kurir Wind Glider & Konfirmasi Pesanan**  
+   Simulasi pelacakan progres kurir *Wind Glider* waktu nyata dari dapur hingga mendarat di lokasi tujuan (progres 0% hingga 100%), yang diakhiri dengan tampilan modal dialog konfirmasi pesanan berhasil (*Quest Complete*) beserta faktur pembayaran lunas.
 
-8. **Profil Petualang & Pengaturan Aplikasi**  
-   Menampilkan data profil resmi mahasiswa (Badar Rahman, NIM 14524303, AR 60, WL 9, email `badarrahman1905@gmail.com`), fitur interaktif ganti Panji Kartu Nama (*Namecard Picker*), klaim berkah harian Mora Ley Line, serta modal pengaturan informasi versi aplikasi.
+8. **Profil Petualang & Menu Pengaturan**  
+   Menampilkan data profil resmi mahasiswa (Badar Rahman, NIM 14524303, AR 60, email `badarrahman1905@gmail.com`), fitur kustomisasi spanduk profil (*Namecard*), penukaran saldo Paimon's Bargains, formulir pembaruan identitas, serta tombol pemulihan data ke default pabrik (*Reset Data*).
 
 ---
 
@@ -139,21 +144,29 @@ Proyek ini menerapkan arsitektur navigasi deklaratif berbasis berkas (*File-Base
 
 ## Tangkapan Layar Aplikasi
 
-| 01. Rekomendasi Beranda | 02. Kategori Kuliner | 03. Katalog 80 Masakan |
+| 01. Layar Pembuka | 02. Keranjang Kosong | 03. Beranda Rekomendasi |
 | :---: | :---: | :---: |
-| ![Beranda](screenshots/01_beranda_rekomendasi.jpg) | ![Kategori](screenshots/02_beranda_kategori.jpg) | ![Katalog](screenshots/03_katalog_flatlist.jpg) |
+| ![Layar Pembuka](screenshots/01_layar_pembuka_celestia.jpg) | ![Keranjang Kosong](screenshots/06_keranjang_kosong_paimon.jpg) | ![Beranda Rekomendasi](screenshots/02_beranda_rekomendasi.jpg) |
 
-| 04. Pencarian Katalog | 05. Detail Masakan & Resep | 06. Keranjang & Kupon |
+| 04. Katalog Hidangan | 05. Pencarian & Filter | 06. Detail Hidangan |
 | :---: | :---: | :---: |
-| ![Pencarian](screenshots/04_katalog_pencarian.jpg) | ![Detail](screenshots/05_detail_makanan_resep.jpg) | ![Keranjang](screenshots/06_keranjang_belanja.jpg) |
+| ![Katalog Hidangan](screenshots/03_katalog_flatlist_panjang.jpg) | ![Pencarian & Filter](screenshots/04_katalog_filter_notifikasi.jpg) | ![Detail Hidangan](screenshots/05_detail_masakan_resep.jpg) |
 
-| 07. Checkout & Waypoint | 08. Pelacakan Glider | 09. Quest Complete Modal |
+| 07. Keranjang Belanja | 08. Checkout Pengantaran | 09. Peta Lokasi Pengantaran |
 | :---: | :---: | :---: |
-| ![Checkout](screenshots/07_checkout_pengiriman.jpg) | ![Pelacakan](screenshots/08_pelacakan_glider.jpg) | ![Quest Complete](screenshots/09_quest_complete_modal.jpg) |
+| ![Keranjang Belanja](screenshots/07_keranjang_terisi_kupon.jpg) | ![Checkout Pengantaran](screenshots/08_checkout_pengantaran.jpg) | ![Peta Pengantaran](screenshots/09_modal_peta_waypoint.jpg) |
 
-| 10. Profil & Pengaturan |
-| :---: |
-| ![Profil](screenshots/10_profil_pengaturan.jpg) |
+| 10. Pelacakan Kurir (Bagian 1) | 11. Pelacakan Kurir (Bagian 2) | 12. Konfirmasi Pesanan |
+| :---: | :---: | :---: |
+| ![Pelacakan 48%](screenshots/10_pelacakan_glider_terbang.jpg) | ![Pelacakan 100%](screenshots/11_pelacakan_glider_tiba.jpg) | ![Konfirmasi Pesanan](screenshots/12_modal_quest_complete.jpg) |
+
+| 13. Profil Petualang | 14. Pengaturan Identitas | 15. Koleksi Namecard |
+| :---: | :---: | :---: |
+| ![Profil Petualang](screenshots/13_profil_lisensi_panjang.jpg) | ![Pengaturan Identitas](screenshots/16_modal_pengaturan_identitas.jpg) | ![Koleksi Namecard](screenshots/14_modal_koleksi_namecard.jpg) |
+
+| 16. Paimon's Bargains | 17. Modal Reset Data | |
+| :---: | :---: | :---: |
+| ![Paimon's Bargains](screenshots/15_modal_paimon_bargains.jpg) | ![Modal Reset Data](screenshots/17_modal_reset_data.jpg) | |
 
 ---
 

@@ -27,5 +27,7 @@ __pycache__/
 drafts/
 *.tmp
 *.bak
+*.docx
+*.pdf
 assets/audio/
 assets/video/
