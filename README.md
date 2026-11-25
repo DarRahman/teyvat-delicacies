@@ -1,6 +1,12 @@
 # Teyvat Delicacies - Pemvis Tugas 7: Aplikasi Katalog dan Pemesanan Makanan
 
+[![GitHub Release](https://img.shields.io/github/v/release/DarRahman/teyvat-delicacies?color=blue&label=Download%20APK)](https://github.com/DarRahman/teyvat-delicacies/releases/latest)
+[![Android](https://img.shields.io/badge/Platform-Android%207.0%2B-green.svg)](https://github.com/DarRahman/teyvat-delicacies/releases/latest)
+[![Expo SDK](https://img.shields.io/badge/Expo-SDK%2058-black.svg)](https://expo.dev)
+
 Aplikasi mobile katalog dan pemesanan kuliner bertema fantasi RPG dunia Teyvat (*Genshin Impact*) berbasis React Native dan Expo Router (Expo SDK 58). Proyek ini dikembangkan untuk memenuhi penugasan praktikum Tugas 7 (Pertemuan 7) mata kuliah Pemrograman Visual I pada program studi S1 Teknik Informatika STIKOM Poltek Cirebon.
+
+> 📥 **Download File APK Siap Pakai**: File instalasi mandiri Android standalone (`.apk`) dapat diunduh langsung melalui halaman resmi [**GitHub Releases v1.0.0**](https://github.com/DarRahman/teyvat-delicacies/releases/tag/v1.0.0).
 
 ---
 
