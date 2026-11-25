@@ -32,6 +32,17 @@
       "expo-font",
       "expo-image",
       "expo-splash-screen"
-    ]
+    ],
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "517ecc1a-0ceb-45a3-b265-e4725778299e"
+      }
+    },
+    "owner": "darrahman"
   }
 }

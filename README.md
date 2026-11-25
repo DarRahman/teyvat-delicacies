@@ -201,3 +201,10 @@ Prasyarat: Node.js (versi 18 ke atas) dan npm telah terpasang pada komputer.
    npm run dev
    ```
    Buka `http://localhost:3000` pada peramban web.
+
+---
+
+## Hak Cipta & Aset (Disclaimer)
+
+Seluruh aset grafis, ilustrasi karakter, nama hidangan kuliner, dan elemen visual dunia Teyvat yang digunakan dalam proyek ini merupakan hak cipta milik **COGNOSPHERE PTE. LTD. (HoYoverse / Genshin Impact)**. Proyek ini dikembangkan secara independen murni untuk tujuan edukasi dan pemenuhan tugas akademik mata kuliah Pemrograman Visual I pada Program Studi S1 Teknik Informatika STIKOM Poltek Cirebon, tanpa tujuan komersial.
+
